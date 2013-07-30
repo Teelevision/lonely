@@ -1624,8 +1624,13 @@ class LonelyImageFile extends LonelyFile {
 		/* square mode */
 		if ($square) {
 			
-			$thumbWidth = $maxWidth;
-			$thumbHeight = $maxHeight;
+			/* thumb dimensions */
+			if (!$upscaling && ($imageWidth < $maxWidth || $imageHeight < $maxHeight)) {
+				$thumbWidth = $thumbHeight = min($imageWidth, $imageHeight);
+			} else {
+				$thumbWidth = $maxWidth;
+				$thumbHeight = $maxHeight;
+			}
 			
 			/* wider than high */
 			if ($imageWidth > $imageHeight) {
@@ -1837,6 +1842,10 @@ h1 a {
 	width: 300px;
 	height: 300px;
 	line-height: 280px;
+}
+#images li img {
+	height: 300px;
+	width: 300px;
 }
 #albums li a, #images li a {
 	position: absolute;
