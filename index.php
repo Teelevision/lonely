@@ -161,6 +161,9 @@ $settings = array(
 	/* default file action */
 	// 'defaultFileAction' => 'preview',
 	
+	/* whether to use the original file rather than a rendered version on a preview page */
+	// 'useOriginals' => false,
+	
 	/* css files to be loaded */
 	// 'cssfiles' => array(),
 	
@@ -404,6 +407,9 @@ class LonelyGallery extends LonelyComponent {
 	
 	/* default file action */
 	public $defaultFileAction = 'preview';
+	
+	/* whether to use the original file rather than a rendered version on a preview page */
+	public $useOriginals = false;
 	
 	/* css files to be loaded */
 	public $cssfiles = array();
@@ -1594,9 +1600,9 @@ class LonelyImageFile extends LonelyFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$path = $this->lonely->escape($this->getThumbPath('700px'));
+		$path = empty($this->lonely->useOriginals) ? $this->getThumbPath('700px') : $this->getPath();
 		$name = $this->lonely->escape($this->getName());
-		return "<img src=\"".$path."\" alt=\"".$name."\">";
+		return "<img src=\"".$this->lonely->escape($path)."\" alt=\"".$name."\">";
 	}
 	
 	/* creates a thumbnail */
@@ -1903,11 +1909,13 @@ h1 a {
 }
 .image img {
 	display: block;
+	max-width: 100%;
 }
 .image-box {
 	display: inline-block;
 	position: relative;
 	margin: 0 0 10px;
+	max-width: 100%;
 }
 .image-box a {
 	display: block;
