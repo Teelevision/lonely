@@ -1960,20 +1960,22 @@ h1 a {
 .image img {
 	display: block;
 	max-width: 100%;
+	margin: 0 auto;
 }
 .image-box {
 	display: inline-block;
 	position: relative;
 	margin: 0 0 10px;
 	max-width: 100%;
+	min-width: 100px;
 }
 .image-box a {
-	display: block;
 	position: absolute;
 	top: 0;
 	left: 0;
 	height: 100%;
-	width: 25%;
+	width: 30%;
+	min-width: 50px;
 	color: #fff;
 	background-color: rgba(0,0,0,.4);
 	opacity: 0;
@@ -1994,7 +1996,8 @@ h1 a {
 	display: block;
 	font-size: 80px;
 	margin-top: -40px;
-	position: relative;
+	position: absolute;
+	width: 100%;
 	top: 50%;
 }
 .image-box a.next:after {
