@@ -1582,7 +1582,7 @@ class LonelyFile extends LonelyElement {
 class LonelyImageFile extends LonelyFile {
 	
 	protected $imageInfo;
-	
+	protected $useOriginalAsThumb = array();
 	
 	/* returns the image info */
 	public function getImageInfo() {
@@ -1605,8 +1605,47 @@ class LonelyImageFile extends LonelyFile {
 		return "<img src=\"".$this->lonely->escape($path)."\" alt=\"".$name."\">";
 	}
 	
+	/* returns whether this file is suitable as a thumb without resizing */
+	public function canUseOriginalAsThumb($mode) {
+		if (!isset($this->useOriginalAsThumb[$mode])) {
+			/* evaluate whether this file has to be resized */
+			
+			/* get info */
+			$info = $this->getImageInfo();
+			
+			switch ($mode) {
+				case '150sq': $v = ($info[0] == $info[1] && $info[0] <= 150); break;
+				case '300sq': $v = ($info[0] == $info[1] && $info[0] <= 300); break;
+				case '700px': $v = ($info[0] <= 700 && $info[1] <= 700); break;
+				default: $v = false;
+			}
+			$this->useOriginalAsThumb[$mode] = $v;
+		}
+		return $this->useOriginalAsThumb[$mode];
+	}
+	
+	/* returns the absolute path of the thumbnail */
+	public function getThumbLocation($mode) {
+		return $this->canUseOriginalAsThumb($mode) ? $this->getLocation() : parent::getThumbLocation($mode);
+	}
+	
+	/* returns the web thumb path */
+	public function getThumbPath($mode) {
+		return $this->canUseOriginalAsThumb($mode) ? $this->lonely->rootPath.$this->getPath() : parent::getThumbPath($mode);
+	}
+	
+	/* checks if there is a up-to-date thumbnail file */
+	public function thumbAvailable($mode) {
+		return ($this->canUseOriginalAsThumb($mode) || parent::thumbAvailable($mode));
+	}
+	
 	/* creates a thumbnail */
 	protected function createThumb($mode, $saveTo) {
+		
+		/* check if creating a thumbnail is needless */
+		if ($this->canUseOriginalAsThumb($mode)) {
+			return true;
+		}
 		
 		/* get info */
 		$info = $this->getImageInfo();
@@ -1672,6 +1711,11 @@ class LonelyImageFile extends LonelyFile {
 			
 		}
 		
+		// /* check if resizing is needless */
+		// if ($thumbWidth == $info[0] && $thumbHeight == $info[1]) {
+			// return $this->useOriginalAsThumb[$mode] = true;
+		// }
+		
 		/* load image from file */
 		switch ($info[2]) {
 			case IMAGETYPE_GIF: $image = imagecreatefromgif($this->location); break;
@@ -1689,10 +1733,10 @@ class LonelyImageFile extends LonelyFile {
 		
 		/* resizing */
 		
-		/* simply copy */
-		if ($thumbWidth == $info[0] && $thumbHeight == $info[1]) {
-			return copy($this->location, $saveTo);
-		}
+		// /* simply copy */
+		// if ($thumbWidth == $info[0] && $thumbHeight == $info[1]) {
+			// return copy($this->location, $saveTo);
+		// }
 		
 		/* create new image */
 		$thumb = imagecreatetruecolor($thumbWidth, $thumbHeight);
