@@ -1364,12 +1364,19 @@ class LonelyAlbum extends LonelyElement {
 	/* creates a thumbnail */
 	protected function createThumb($mode, $saveTo) {
 		
+		/* mode to use for files to not render needless versions of the images used in the album thumbnail */
+		switch ($mode) {
+			case '150sq':
+			case '300sq':
+			default: $fileMode = '300sq';
+		}
+		
 		/* get 4 images */
 		$files = array();
 		$count = 0;
 		foreach($this->getFiles() as $file) {
-			if ($file->initThumb($mode)) {
-				$files[] = $file->getThumbLocation($mode);
+			if ($file->initThumb($fileMode)) {
+				$files[] = $file->getThumbLocation($fileMode);
 				$count++;
 			}
 			if ($count >= 4) {
@@ -1381,7 +1388,6 @@ class LonelyAlbum extends LonelyElement {
 			foreach($this->getAlbums() as $album) {
 				if ($album->initThumb($mode)) {
 					array_unshift($files, $album->getThumbLocation($mode));
-					// $files[] = $album->getThumbLocation($mode);
 					$count++;
 				}
 				if ($count >= 4) {
