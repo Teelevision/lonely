@@ -114,6 +114,11 @@ class ImageInfoLonelyModule extends LonelyModule {
 		return $metadata;
 	}
 	
+	/* checks a value */
+	public static function isEmpty($value) {
+		return !(is_scalar($value) ? trim($value) : $value);
+	}
+	
 	/* returns the EXIF data */
 	protected function getMetadata($location, $mime) {
 		
@@ -134,38 +139,38 @@ class ImageInfoLonelyModule extends LonelyModule {
 		if (empty($iptc)) $iptc = array();
 		
 		// /* title */
-		// if (!empty($iptc['2#105'])) { // headline
+		// if (isset($iptc['2#105'][0]) && !self::isEmpty($iptc['2#105'][0])) { // headline
 			// $metadata[] = $iptc['2#105'];
-		// } else if (!empty($exif['Title'])) {
+		// } else if (isset($exif['Title']) && !self::isEmpty($exif['Title'])) {
 			// $metadata[] = $exif['Title'];
 		// }
 		/* description */
-		if (!empty($iptc['2#120'][0])) { // caption
+		if (isset($iptc['2#120'][0]) && !self::isEmpty($iptc['2#120'][0])) { // caption
 			$metadata[] = $iptc['2#120'][0];
-		} else if (!empty($exif['ImageDescription'])) {
+		} else if (isset($exif['ImageDescription']) && !self::isEmpty($exif['ImageDescription'])) {
 			$metadata[] = $exif['ImageDescription'];
-		} else if (!empty($exif['Subject'])) {
+		} else if (isset($exif['Subject']) && !self::isEmpty($exif['Subject'])) {
 			$metadata[] = $exif['Subject'];
 		}
 		/* photographer */
-		if (!empty($iptc['2#080'][0])) { // by-line
+		if (isset($iptc['2#080'][0]) && !self::isEmpty($iptc['2#080'][0])) { // by-line
 			$metadata['Photographer'] = $iptc['2#080'][0].(empty($iptc['2#085'][0]) ? '' : ' ('.$exif['2#085'][0].')');
-		} else if (!empty($exif['Artist'])) {
+		} else if (isset($exif['Artist']) && !self::isEmpty($exif['Artist'])) {
 			$metadata['Photographer'] = $exif['Artist'];
-		} else if (!empty($exif['Author'])) {
+		} else if (isset($exif['Author']) && !self::isEmpty($exif['Author'])) {
 			$metadata['Photographer'] = $exif['Author'];
 		}
 		/* copyright */
-		if (!empty($iptc['2#116'][0])) {
+		if (isset($iptc['2#116'][0]) && !self::isEmpty($iptc['2#116'][0])) {
 			$metadata['Copyright'] = $iptc['2#116'][0];
-		} else if (!empty($exif['Copyright'])) {
+		} else if (isset($exif['Copyright']) && !self::isEmpty($exif['Copyright'])) {
 			$metadata['Copyright'] = $exif['Copyright'];
 		}
 		/* time */
-		if (!empty($exif['DateTimeOriginal'])) {
+		if (isset($exif['DateTimeOriginal']) && !self::isEmpty($exif['DateTimeOriginal'])) {
 			$metadata['Date and time'] = date('j M Y, H:i', strtotime($exif['DateTimeOriginal']));
-		} else if (!empty($iptc['2#055'][0])) {
-			if (!empty($iptc['2#060'][0])) {
+		} else if (isset($iptc['2#055'][0]) && !self::isEmpty($iptc['2#055'][0])) {
+			if (isset($iptc['2#060'][0]) && !self::isEmpty($iptc['2#060'][0])) {
 				$metadata['Date and time'] = date('j M Y, H:i', strtotime($exif['2#055'][0].(empty($iptc['2#060'][0]) ? '' : $exif['2#060'][0])));
 			} else {
 				$metadata['Date'] = date('j M Y', strtotime($exif['2#055'][0]));
@@ -174,7 +179,7 @@ class ImageInfoLonelyModule extends LonelyModule {
 		/* location */
 		$location = array();
 		foreach (array('2#090', '2#095', '2#101') as $l) {
-			if (!empty($iptc[$l][0])) {
+			if (isset($iptc[$l][0]) && !self::isEmpty($iptc[$l][0])) {
 				$location[] = $iptc[$l][0];
 			}
 		}
@@ -201,7 +206,7 @@ class ImageInfoLonelyModule extends LonelyModule {
 			$metadata['Resolution'] = $gis[0].' x '.$gis[1].' pixel';
 		}
 		/* filesize */
-		if (!empty($exif['FileSize'])) {
+		if (isset($exif['FileSize']) && !self::isEmpty($exif['FileSize'])) {
 			$metadata['Filesize'] = round($exif['FileSize'] * 0.001, 2).' kB';
 		} else {
 			$metadata['Filesize'] = round(filesize($location) * 0.001, 2).' kB';
@@ -209,14 +214,14 @@ class ImageInfoLonelyModule extends LonelyModule {
 		
 		if (!empty($this->lonely->imageInfo_technical)) {
 			/* camera model */
-			if (!empty($exif['Model'])) {
+			if (isset($exif['Model']) && !self::isEmpty($exif['Model'])) {
 				$metadata['Camera'] = $exif['Model'];
-				// if (!empty($exif['Make'])) {
+				// if (isset($exif['Make']) && !self::isEmpty($exif['Make'])) {
 					// $metadata['Camera'] .= ' ('.$exif['Make'].')';
 				// }
 			}
 			/* exposure time */
-			if (!empty($exif['ExposureTime'])) {
+			if (isset($exif['ExposureTime']) && !self::isEmpty($exif['ExposureTime'])) {
 				$metadata['Exposure time'] = $exif['ExposureTime'].' s';
 			}
 			/* aperture */
@@ -224,7 +229,7 @@ class ImageInfoLonelyModule extends LonelyModule {
 				$metadata['Aperture'] = $exif['COMPUTED']['ApertureFNumber'];
 			}
 			/* ISO */
-			if (!empty($exif['ISOSpeedRatings'])) {
+			if (isset($exif['ISOSpeedRatings']) && !self::isEmpty($exif['ISOSpeedRatings'])) {
 				$metadata['ISO'] = $exif['ISOSpeedRatings'];
 			}
 			/* flash */
@@ -252,13 +257,13 @@ class ImageInfoLonelyImageFile extends LonelyImageFile {
 		if ($this->tmp_name !== "") {
 			return $this->tmp_name;
 		}
-		if (getimagesize($this->location, $info) && isset($info['APP13']) && ($iptc = iptcparse($info['APP13'])) && isset($iptc['2#105'][0]) && $iptc['2#105'][0] !== '') {
+		if (getimagesize($this->location, $info) && isset($info['APP13']) && ($iptc = iptcparse($info['APP13'])) && isset($iptc['2#105'][0]) && trim($iptc['2#105'][0]) !== '') {
 			return $this->tmp_name = $iptc['2#105'][0];
 		}
 		if ($exif = exif_read_data($this->location)) {
-			if (isset($exif['ImageDescription']) && $exif['ImageDescription'] !== '') {
+			if (isset($exif['ImageDescription']) && trim($exif['ImageDescription']) !== '') {
 				return $this->tmp_name = $exif['ImageDescription'];
-			} else if (isset($exif['Title']) && $exif['Title'] !== '') {
+			} else if (isset($exif['Title']) && trim($exif['Title']) !== '') {
 				return $this->tmp_name = $exif['Title'];
 			}
 		}
