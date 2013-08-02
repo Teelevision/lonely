@@ -341,7 +341,7 @@ class LonelyRequest extends LonelyComponent {
 class LonelyGallery extends LonelyComponent {
 	
 	/* file extensions of the files that should appear in the gallery */
-	public $extensions = array('jpg', 'jpeg', 'png', 'gif', 'txt');
+	public $extensions = array('jpg', 'jpeg', 'png', 'gif');
 	
 	/* map file extension on class */
 	public $extensionMap = array(
