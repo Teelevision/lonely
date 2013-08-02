@@ -735,15 +735,18 @@ class LonelyGallery extends LonelyComponent {
 	}
 	
 	/* calls an event */
-	public function callEvent($eventName) {
-		$method = $eventName.'Event';
-		$data = array();
-		foreach ($this->modules as $moduleName => $module) {
-			if (method_exists($module, $method)) {
-				$data[$moduleName] = call_user_func_array(array($module, $method), array_slice(func_get_args(), 1));
+	public function callEvent() {
+		if (func_num_args() >= 1) {
+			$args = func_get_args();
+			$method = $args[0].'Event';
+			$data = array();
+			foreach ($this->modules as $moduleName => $module) {
+				if (method_exists($module, $method)) {
+					$data[$moduleName] = call_user_func_array(array($module, $method), array_slice($args, 1));
+				}
 			}
+			return $data;
 		}
-		return $data;
 	}
 	
 	/* add file extensions */
