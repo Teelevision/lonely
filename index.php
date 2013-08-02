@@ -1835,7 +1835,8 @@ body {
 	color: #fff;
 	font-family: Arial,Helvetica,sans-serif;
 	font-size: 14px;
-	max-width: 1240px;
+	width: 90%;
+	width: calc(100% - 60px);
 }
 a {
 	color: #f20;
