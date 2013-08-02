@@ -1937,7 +1937,7 @@ h1 a {
 .imagenav p {
 	margin: 0;
 }
-.imagenav p a {
+.imagenav p * {
 	display: inline-block;
 	line-height: 400%;
 }
