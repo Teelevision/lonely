@@ -71,7 +71,6 @@ class ImageInfoLonelyModule extends LonelyModule {
 			$this->error(500, 'Error 500: Missing EXIF library. Make sure your PHP installation includes the EXIF library.');
 		}
 		
-		// var_dump (!empty($this->lonely->imageInfo_title));
 		if (empty($this->lonely->imageInfo_notitle)) {
 			$this->lonely->extensionMap = array_merge(
 				$this->lonely->extensionMap,
@@ -124,19 +123,17 @@ class ImageInfoLonelyModule extends LonelyModule {
 		
 		$metadata = array();
 		
-		if ($exif = exif_read_data($location)) {
-			// var_dump('######### EXIF #########', $exif);
+		/* load data */
+		/* EXIF */
+		if (!($exif = exif_read_data($location))) {
+			$exif = array();
 		}
-		
-		if ($gis = getimagesize($location, $info)) {
-			if (isset($info['APP13'])) {
-				$iptc = iptcparse($info['APP13']);
-				// var_dump('######### IPTC #########', $iptc);
+		/* IPTC */
+		if (($gis = getimagesize($location, $info)) && isset($info['APP13'])) {
+			if (!($iptc = iptcparse($info['APP13']))) {
+				$iptc = array();
 			}
 		}
-		
-		if (empty($exif)) $exif = array();
-		if (empty($iptc)) $iptc = array();
 		
 		// /* title */
 		// if (isset($iptc['2#105'][0]) && !self::isEmpty($iptc['2#105'][0])) { // headline
@@ -254,19 +251,32 @@ class ImageInfoLonelyImageFile extends LonelyImageFile {
 	
 	/* return the name of this element */
 	public function getName() {
+		
+		/* cached value */
 		if ($this->tmp_name !== "") {
 			return $this->tmp_name;
 		}
-		if (getimagesize($this->location, $info) && isset($info['APP13']) && ($iptc = iptcparse($info['APP13'])) && isset($iptc['2#105'][0]) && trim($iptc['2#105'][0]) !== '') {
-			return $this->tmp_name = $iptc['2#105'][0];
+		
+		/* IPTC */
+		if (getimagesize($this->location, $info)
+			&& isset($info['APP13'])
+			&& ($iptc = iptcparse($info['APP13']))
+			&& isset($iptc['2#105'][0])
+			&& ($name = trim($iptc['2#105'][0])) !== '')
+		{
+			return $this->tmp_name = $name;
 		}
+		
+		/* EXIF */
 		if ($exif = exif_read_data($this->location)) {
-			if (isset($exif['ImageDescription']) && trim($exif['ImageDescription']) !== '') {
-				return $this->tmp_name = $exif['ImageDescription'];
-			} else if (isset($exif['Title']) && trim($exif['Title']) !== '') {
-				return $this->tmp_name = $exif['Title'];
+			if (isset($exif['ImageDescription']) && ($name = trim($exif['ImageDescription'])) !== '') {
+				return $this->tmp_name = $name;
+			} else if (isset($exif['Title']) && ($name = trim($exif['Title'])) !== '') {
+				return $this->tmp_name = $name;
 			}
 		}
+		
+		/* default way to get the name (filename) */
 		return $this->tmp_name = parent::getName();
 	}
 }
