@@ -146,29 +146,8 @@ $settings = array(
 	/* compression of PNG thumbnails: 0 to 9 (max) */
 	// 'PNGConpression' => 9,
 	
-	/* name of the thumbnail sub directory */
-	// 'thumbDirectoryName' => 'thumb',
-	
-	/* name of the config sub directory */
-	// 'configDirectoryName' => 'config',
-	
-	/* name of the thumb file of albums */
-	// 'albumThumbName' => '_album.jpg',
-	
-	/* class name of the default design which is used if there is no design module */
-	// 'defaultDesign' => 'DefaultLonelyDesign',
-	
-	/* default file action */
-	// 'defaultFileAction' => 'preview',
-	
 	/* whether to use the original file rather than a rendered version on a preview page */
 	// 'useOriginals' => false,
-	
-	/* css files to be loaded */
-	// 'cssfiles' => array(),
-	
-	/* javascript files to be loaded */
-	// 'jsfiles' => array(),
 	
 );
 
