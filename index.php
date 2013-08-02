@@ -149,6 +149,9 @@ $settings = array(
 	/* whether to use the original file rather than a rendered version on a preview page */
 	// 'useOriginals' => false,
 	
+	/* whether to hide the download link on a preview page */
+	// 'hideDownload' => false,
+	
 );
 
 /* aaand ... action! */
@@ -389,6 +392,9 @@ class LonelyGallery extends LonelyComponent {
 	
 	/* whether to use the original file rather than a rendered version on a preview page */
 	public $useOriginals = false;
+	
+	/* whether to hide the download link on a preview page */
+	public $hideDownload = false;
 	
 	/* css files to be loaded */
 	public $cssfiles = array();
@@ -925,7 +931,9 @@ class LonelyGallery extends LonelyComponent {
 			/* info */
 			$html .= "\t<div class=\"image-info\">\n";
 			$html .= "\t\t<p class=\"title\">".$name."</p>\n";
-			$html .= "\t\t<p class=\"download\"><a href=\"".$this->escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
+			if (!$this->hideDownload) {
+				$html .= "\t\t<p class=\"download\"><a href=\"".$this->escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
+			}
 			$dlOpen = false;
 			foreach ($this->callEvent('fileInfo', $file) as $data) {
 				foreach ($data as $key => $value) {
