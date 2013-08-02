@@ -341,7 +341,7 @@ class LonelyRequest extends LonelyComponent {
 class LonelyGallery extends LonelyComponent {
 	
 	/* file extensions of the files that should appear in the gallery */
-	public $extensions = array('jpg', 'jpeg', 'png', 'gif');
+	public $extensions = array('jpg', 'jpeg', 'png', 'gif', 'txt');
 	
 	/* map file extension on class */
 	public $extensionMap = array(
@@ -401,6 +401,14 @@ class LonelyGallery extends LonelyComponent {
 	
 	/* javascript files to be loaded */
 	public $jsfiles = array();
+	
+	/* hidden names */
+	public $hiddenNames = array();
+	public $hiddenFileNames = array();
+	public $hiddenAlbumNames = array();
+	public $hiddenNamesPattern = array();
+	public $hiddenFileNamesPattern = array();
+	public $hiddenAlbumNamesPattern = array();
 	
 	/* modules */
 	private $modules = array();
@@ -506,14 +514,17 @@ class LonelyGallery extends LonelyComponent {
 		$this->request = new LonelyRequest($scopes);
 		$album = $this->request->album;
 		
-		/* check album, must not be config or thumbnail directory */
-		if (count($album) && ($this->thumbDirectoryName == $album[0] || in_array($this->configDirectoryName, $album))) {
-			$this->error();
-		}
+		/* initialize modules */
+		$this->initModules();
+		
+		// /* check album, must not be config or thumbnail directory */
+		// if (count($album) && ($this->thumbDirectoryName == $album[0] || in_array($this->configDirectoryName, $album))) {
+			// $this->error();
+		// }
 		
 		/* check for hidden files and directories */
 		$file = $this->request->file;
-		if ($file && $this->isHiddenFileName($file) && $file != $this->albumThumbName) {
+		if ($file && $this->isHiddenFileName($file)) {
 			$this->error();
 		}
 		foreach ($album as $a) {
@@ -529,9 +540,6 @@ class LonelyGallery extends LonelyComponent {
 				$this->readConfig($dir);
 			}
 		}
-		
-		/* initialize modules */
-		$this->initModules();
 		
 		/* build the method to call */
 		$this->handleRequest($this->request);
@@ -659,17 +667,41 @@ class LonelyGallery extends LonelyComponent {
 	
 	/* evaluates if the file or dir name is hidden */
 	public function isHiddenName($name) {
-		return $name && ($name[0] == '.' || $name[0] == '-');
+		if ($name === '' || $name[0] == '.' || $name[0] == '-' || in_array($name, $this->hiddenNames)) {
+			return true;
+		}
+		foreach ($this->hiddenNamesPattern as $pattern) {
+			if (preg_match($pattern, $name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/* evaluates if the file name is hidden */
 	public function isHiddenFileName($name) {
-		return $name && ($name[0] == '.' || $name[0] == '-' || $name == $this->albumThumbName);
+		if ($this->isHiddenName($name) || $name == $this->albumThumbName || in_array($name, $this->hiddenFileNames)) {
+			return true;
+		}
+		foreach ($this->hiddenFileNamesPattern as $pattern) {
+			if (preg_match($pattern, $name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/* evaluates if the dir name is hidden */
 	public function isHiddenAlbumName($name) {
-		return $name && ($name[0] == '.' || $name[0] == '-' || $name == $this->configDirectoryName || $name == $this->thumbDirectoryName);
+		if ($this->isHiddenName($name) || $name == $this->configDirectoryName || $name == $this->thumbDirectoryName || in_array($name, $this->hiddenAlbumNames)) {
+			return true;
+		}
+		foreach ($this->hiddenAlbumNamesPattern as $pattern) {
+			if (preg_match($pattern, $name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/* add module */
@@ -1260,7 +1292,6 @@ class LonelyAlbum extends LonelyElement {
 		while (($filename = readdir($dir)) !== false) {
 			
 			/* skip files starting with a dot or a minus */
-			// if ($filename[0] == '.' || $filename[0] == '-') {
 			if ($this->lonely->isHiddenName($filename)) {
 				continue;
 			}
@@ -1287,9 +1318,8 @@ class LonelyAlbum extends LonelyElement {
 				
 				case 'dir':
 					/* must not be config directory */
-					// if ($filename !== $this->lonely->configDirectoryName) {
 					if (!$this->lonely->isHiddenAlbumName($filename)) {
-						$album = new self($this->lonely, array_merge($this->album, array($filename)), $this);
+						$album = new $this->lonely->albumClass($this->lonely, array_merge($this->album, array($filename)), $this);
 						$this->albums[$filename] = $album;
 					}
 					break;
