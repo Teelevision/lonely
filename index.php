@@ -773,13 +773,13 @@ class LonelyGallery extends LonelyComponent {
 			$value = $matches[0];
 		}
 		foreach ($value as $v) {
-			$this->data['extensions'][] = strtolower($v);
+			$this->extensions[] = strtolower($v);
 		}
 	}
 	
 	/* map file extensions to class */
 	public function addExtensionmap(Array $map) {
-		$this->extensionmap = array_merge($this->extensionmap, $map);
+		$this->extensionMap = array_merge($this->extensionMap, $map);
 	}
 	
 	/* css files to include */
@@ -1150,6 +1150,7 @@ class LonelyGallery extends LonelyComponent {
 	}
 }
 
+
 abstract class LonelyElement extends LonelyComponent {
 	
 	/* reference to the main class */
@@ -1209,7 +1210,6 @@ abstract class LonelyElement extends LonelyComponent {
 	
 	/* returns the absolute path of the thumbnail */
 	public function getThumbLocation($mode) {
-		// return str_replace($this->lonely->rootDir, $this->lonely->thumbDir.$mode.DIRECTORY_SEPARATOR, $this->location);
 		$pos = strpos($this->thumbLocationPattern, '<mode>');
 		return substr($this->thumbLocationPattern, 0, $pos).$mode.substr($this->thumbLocationPattern, $pos + 6);
 	}
@@ -1566,11 +1566,11 @@ abstract class LonelyFileFactory {
 		if (isset($extensionMap[$extension])) {
 			return new $extensionMap[$extension](self::$lonely, $filename, $parentAlbum);
 		}
-		return new LonelyFile(self::$lonely, $filename, $parentAlbum);
+		return new LonelyGenericFile(self::$lonely, $filename, $parentAlbum);
 	}
 }
 
-class LonelyFile extends LonelyElement {
+abstract class LonelyFile extends LonelyElement {
 	
 	/* filename on the file system */
 	protected $filename;
@@ -1587,16 +1587,14 @@ class LonelyFile extends LonelyElement {
 		}
 	}
 	
-	/* returns the filename */
-	public function getFilename() {
+	/* return the name of this element */
+	public function getName() {
 		return $this->filename;
 	}
 	
-	/* return the name of this element */
-	public function getName() {
-		$name = substr($this->filename, 0, strrpos($this->filename, '.'));
-		$name = str_replace('_', ' ', $name);
-		return $name;
+	/* returns the filename */
+	public function getFilename() {
+		return $this->filename;
 	}
 	
 	/* returns the HTML code for the preview */
@@ -1609,6 +1607,13 @@ class LonelyImageFile extends LonelyFile {
 	
 	protected $imageInfo;
 	protected $useOriginalAsThumb = array();
+	
+	/* return the name of this element */
+	public function getName() {
+		$name = substr($this->filename, 0, strrpos($this->filename, '.'));
+		$name = str_replace('_', ' ', $name);
+		return $name;
+	}
 	
 	/* returns the image info */
 	public function getImageInfo() {
@@ -1789,6 +1794,51 @@ class LonelyImageFile extends LonelyFile {
 			case IMAGETYPE_WBMP: return imagewbmp($thumb, $saveTo);
 		}
 	}
+}
+
+class LonelyGenericFile extends LonelyFile {
+	
+	protected $thumbLocationPattern;
+	protected $genericFileName = 'default.png';
+	
+	function __construct(LonelyGallery $lonely, $filename, LonelyAlbum $parentAlbum) {
+		parent::__construct($lonely, $filename, $parentAlbum);
+		
+		if ($this->filename !== "") {
+			$this->thumbLocationPattern = $this->lonely->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<mode>'.DIRECTORY_SEPARATOR.$this->genericFileName;
+		}
+	}
+	
+	/* returns the HTML code for the preview */
+	public function getPreviewHTML() {
+		$path = $this->lonely->escape($this->getThumbPath('700px'));
+		$name = $this->lonely->escape($this->getName());
+		return "<img src=\"".$path."\" alt=\"".$name."\">";
+	}
+	
+	/* returns the web thumb path */
+	public function getThumbPath($mode) {
+		return $this->thumbAvailable($mode) ? $this->lonely->thumbPath.'generic/'.$mode.'/'.$this->genericFileName : $this->lonely->thumbScript.$mode.'/'.$this->path;
+	}
+	
+	/* checks if there is a up-to-date thumbnail file */
+	public function thumbAvailable($mode) {
+		$thumbPath = $this->getThumbLocation($mode);
+		return ($thumbPath && is_file($thumbPath));
+	}
+	
+	/* creates a thumbnail */
+	protected function createThumb($mode, $saveTo) {
+		/* create dir */
+		$dir = dirname($saveTo);
+		if (!is_dir($dir)) {
+			mkdir($dir, 0777, true);
+		}
+		/* save file */
+		return file_put_contents($saveTo, base64_decode($this->base64EncodedThumbFile));
+	}
+	
+	protected $base64EncodedThumbFile = 'iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAADzUlEQVR42u3YwQ2CQBRFUTS0oQspgxUNaQW4oANdUY0xUctgo/ShNZgYne8/pwIYkps3LPrr5lkBBLB0BIBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFUJK69Acc2slXgi/Z3xoLC0CwAMECKFEd7YFLv2NDJNH+EVtYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUIliMABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLCCm2hHw74Z2cggWFoBgAQgWEJt/WKSzvzXpz6BbbatuvbOwgJixOt0PggXEiNX5cRQsoOxYXeYxRKyqyj8ssKyCxMrCAssq1LtYWGBZWViAWAkWkDJWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWiFXaWAkWiJVgAWIlWCBWaWMlWCBWggWIlWCBWAkWIFaCBYiVYIFYCRYgVoIFiJVggVgJFiBWggViJVaCBWIlWIBYCRaIlVgJFoiVYAFiJVggVggWiJVgAWIlWCBWCBaIlWABYiVYIFYIFoiVYIFYiZVggVghWCBWggVihWCBWCFYIFaCBWKFYIFYCRYgVoIFYoVggVgJFoiVWAkWiBWCBWIlWCBWYiVYIFYIFoiVYIFYIVjwq2CJVVh1tAce2slX46Mu8yhWggXls6xcCcGywsICyyq3RX/dPB0D4EoIIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAG86QXYMa4//4/U4QAAAABJRU5ErkJggg==';
 }
 
 
