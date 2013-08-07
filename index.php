@@ -579,7 +579,7 @@ class LonelyGallery extends LonelyComponent {
 			else if (substr($file, -9) == ".list.txt") {
 				$value = array();
 				foreach (file($dir.$file, FILE_SKIP_EMPTY_LINES|FILE_IGNORE_NEW_LINES) as $line) {
-					$value[] = $line;
+					$value[] = $this->utf8ify($line);
 				}
 				$this->{substr($file, 0, -9)} = $value;
 			}
