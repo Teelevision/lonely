@@ -514,13 +514,16 @@ class LonelyGallery extends LonelyComponent {
 		$this->request = new LonelyRequest($scopes);
 		$album = $this->request->album;
 		
+		/* read data from album config dir */
+		for ($n = 1; $n <= count($album); $n++) {
+			$dir = $this->rootDir.implode(DIRECTORY_SEPARATOR, array_slice($album, 0, $n)).DIRECTORY_SEPARATOR.$this->configDirectoryName.DIRECTORY_SEPARATOR;
+			if (is_readable($dir) && is_executable($dir)) {
+				$this->readConfig($dir);
+			}
+		}
+		
 		/* initialize modules */
 		$this->initModules();
-		
-		// /* check album, must not be config or thumbnail directory */
-		// if (count($album) && ($this->thumbDirectoryName == $album[0] || in_array($this->configDirectoryName, $album))) {
-			// $this->error();
-		// }
 		
 		/* check for hidden files and directories */
 		$file = $this->request->file;
@@ -530,14 +533,6 @@ class LonelyGallery extends LonelyComponent {
 		foreach ($album as $a) {
 			if ($a && $this->isHiddenAlbumName($a)) {
 				$this->error();
-			}
-		}
-		
-		/* read data from album config dir */
-		for ($n = 1; $n <= count($album); $n++) {
-			$dir = $this->rootDir.implode(DIRECTORY_SEPARATOR, array_slice($album, 0, $n)).DIRECTORY_SEPARATOR.$this->configDirectoryName.DIRECTORY_SEPARATOR;
-			if (is_readable($dir) && is_executable($dir)) {
-				$this->readConfig($dir);
 			}
 		}
 		
@@ -556,7 +551,7 @@ class LonelyGallery extends LonelyComponent {
 	private function readConfig($dir) {
 		foreach (scandir($dir) as $file) {
 			
-			/* skip hidden (./../.htaccess) and deactivated files (begin with '-') */
+			/* skip hidden (./../.htaccess) */
 			if ($file[0] == '.' || !is_file($dir.$file)) {
 				continue;
 			}
