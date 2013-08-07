@@ -82,7 +82,7 @@ class AlbumNamesLonelyAlbum extends LonelyAlbum {
 		/* '_name.txt' file */
 		$file = $this->location.self::$nameFile;
 		if (is_file($file) && is_readable($file) && ($name = trim(file_get_contents($file))) !== '') {
-			return $this->tmp_name = $name;
+			return $this->tmp_name = $this->lonely->utf8ify($name);
 		}
 		
 		/* default way to get the name (dirname) */

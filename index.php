@@ -586,7 +586,9 @@ class LonelyGallery extends LonelyComponent {
 			
 			/* settings with a value */
 			else if (substr($file, -4) == ".txt") {
-				$this->{substr($file, 0, -4)} = trim(file_get_contents($dir.$file));
+				$value = file_get_contents($dir.$file);
+				$value = $this->utf8ify($value);
+				$this->{substr($file, 0, -4)} = trim($value);
 			}
 			
 			/* otherwise it is a turn on setting */
@@ -1080,6 +1082,15 @@ class LonelyGallery extends LonelyComponent {
 		$this->HTMLContent = "<p class=\"error\">".$this->escape($message)."</p>\n\n";
 		$this->display();
 		exit;
+	}
+	
+	/* make it UTF-8 */
+	public function utf8ify($string) {
+		$encoding = mb_detect_encoding($string, array('UTF-8', 'ISO-8859-1', 'WINDOWS-1252'));
+		if ($encoding != 'UTF-8') {
+			$string = iconv($encoding, 'UTF-8//TRANSLIT', $string);
+		}
+		return $string;
 	}
 	
 	/* HTML escape */
