@@ -807,7 +807,7 @@ class LonelyGallery extends LonelyComponent {
 		/* album requested */
 		else if ($album->isAvailable()) {
 			
-			$html = $this->albumText."\n";
+			$html = $this->albumText ? '<div id="album-text">'.$this->albumText."</div>\n" : '';
 			
 			/* parent albums */
 			$parents = $album->getParents();
