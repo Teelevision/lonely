@@ -9,7 +9,7 @@
 ### Version ###
 
 1.1.0 beta 1
-date: 2013-07-29
+date: 2013-08-29
 
 ### Requirements ###
 
@@ -47,7 +47,7 @@ Place the PHP file into the 'config' directory.
 
 ### Settings ###
 
-
+None.
 
 */
 

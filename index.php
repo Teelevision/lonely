@@ -414,6 +414,9 @@ class LonelyGallery extends LonelyComponent {
 	private $modules = array();
 	private $modulesInitialized = false;
 	
+	/* error */
+	private $_errorInitModules = false;
+	
 	/* design */
 	private $design = null;
 	
@@ -1067,10 +1070,12 @@ class LonelyGallery extends LonelyComponent {
 	}
 	
 	/* show an error page */
-	protected function error($errno = 404, $message = "The page you were looking for was not found.") {
+	public function error($errno = 404, $message = "The page you were looking for was not found.") {
 		
 		/* because this method can be called early, try to init modules */
-		if (!$this->modulesInitialized) {
+		if (!$this->_errorInitModules && !$this->modulesInitialized) {
+			/* prevent looping */
+			$this->_errorInitModules = true;
 			try {
 				$this->initModules();
 			} catch (Exception $e) {

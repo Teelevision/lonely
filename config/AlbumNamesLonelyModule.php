@@ -9,7 +9,7 @@
 ### Version ###
 
 1.1.0 beta 1
-date: 2013-08-02
+date: 2013-08-29
 
 ### Requirements ###
 
@@ -62,13 +62,6 @@ class AlbumNamesLonelyModule extends LonelyModule {
 		);
 	}
 	
-	/* settings for lonely */
-	// public function settings() {
-		// return array(
-			// 'albumClass' => 'AlbumNamesLonelyAlbum',
-		// );
-	// }
-	
 	/* returns the replacing title of the file or null on none replacement */
 	public function elementNamesEvent(LonelyElement $element) {
 		if ($element instanceof LonelyAlbum) {
@@ -95,28 +88,4 @@ class AlbumNamesLonelyModule extends LonelyModule {
 		return null;
 	}
 }
-
-// class AlbumNamesLonelyAlbum extends LonelyAlbum {
-	
-	// public static $nameFile = '_name.txt';
-	// private $tmp_name = '';
-	
-	// /* return the name of this element */
-	// public function getName() {
-		
-		// /* cached value */
-		// if ($this->tmp_name !== "") {
-			// return $this->tmp_name;
-		// }
-		
-		// /* '_name.txt' file */
-		// $file = $this->location.self::$nameFile;
-		// if (is_file($file) && is_readable($file) && ($name = trim(file_get_contents($file))) !== '') {
-			// return $this->tmp_name = $this->lonely->utf8ify($name);
-		// }
-		
-		// /* default way to get the name (dirname) */
-		// return $this->tmp_name = parent::getName();
-	// }
-// }
 ?>

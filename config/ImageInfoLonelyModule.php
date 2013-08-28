@@ -9,7 +9,7 @@
 ### Version ###
 
 1.1.0 beta 1
-date: 2013-07-29
+date: 2013-08-29
 
 ### Requirements ###
 
@@ -68,10 +68,9 @@ class ImageInfoLonelyModule extends LonelyModule {
 	
 	/* executed after __construct() */
 	public function afterConstruct() {
-		
 		/* check for EXIF */
 		if (!function_exists('exif_read_data')) {
-			$this->error(500, 'Error 500: Missing EXIF library. Make sure your PHP installation includes the EXIF library.');
+			$this->lonely->error(500, 'Missing EXIF library. Make sure your PHP installation includes the EXIF library.');
 		}
 	}
 	
