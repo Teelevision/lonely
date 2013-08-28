@@ -56,8 +56,8 @@ class AlbumNamesLonelyModule extends LonelyModule {
 	
 	/* executed after __construct() */
 	public function afterConstruct() {
-		$this->lonely->hiddenFileNames = array_merge(
-			$this->lonely->hiddenFileNames,
+		Lonely::model()->hiddenFileNames = array_merge(
+			Lonely::model()->hiddenFileNames,
 			array($this->nameFile)
 		);
 	}
@@ -82,7 +82,7 @@ class AlbumNamesLonelyModule extends LonelyModule {
 		/* '_name.txt' file */
 		$file = $location.$this->nameFile;
 		if (is_file($file) && is_readable($file) && ($name = trim(file_get_contents($file))) !== '') {
-			return $this->lonely->utf8ify($name);
+			return Lonely::model()->utf8ify($name);
 		}
 		
 		return null;

@@ -155,7 +155,7 @@ $settings = array(
 );
 
 /* aaand ... action! */
-$lonely = new LonelyGallery($settings);
+Lonely::model()->run($settings);
 
 
 /* base class for all lonely classes */
@@ -338,7 +338,7 @@ class LonelyRequest extends LonelyComponent {
 	}
 }
 
-class LonelyGallery extends LonelyComponent {
+class Lonely extends LonelyComponent {
 	
 	/* file extensions of the files that should appear in the gallery */
 	public $extensions = array('jpg', 'jpeg', 'png', 'gif');
@@ -426,8 +426,22 @@ class LonelyGallery extends LonelyComponent {
 	/* start time */
 	private $startTime = 0;
 	
+	/* singleton model */
+	protected static $_model;
 	
-	function __construct(Array $settings = array()) {
+	
+	private function __construct() { /* singleton */ }
+	private function __clone() { /* singleton */ }
+	private function __wakeup() { /* singleton */ }
+	
+	public static function model() {
+		if (self::$_model === null) {
+			self::$_model = new self;
+		}
+		return self::$_model;
+	}
+	
+	public function run(Array $settings = array()) {
 		
 		/* initial settings */
 		$this->set($settings);
@@ -506,8 +520,8 @@ class LonelyGallery extends LonelyComponent {
 		$this->configPath = $this->rootPath.$this->configDirectoryName.'/';
 		$this->configScript = $this->rootScript.$this->configDirectoryName.'/';
 		
-		/* initialize file factory */
-		LonelyFileFactory::init($this);
+		// /* initialize file factory */
+		// LonelyFileFactory::init($this);
 		
 		/* init request */
 		$scopes = array(
@@ -647,7 +661,6 @@ class LonelyGallery extends LonelyComponent {
 				$method .= ucfirst(preg_replace('#[^-\w\d]#', '_', $action[0])).'Action';
 			
 		}
-		// var_dump($method); exit;
 		
 		/* bring the action */
 		if (method_exists($this, $method)) {
@@ -739,7 +752,7 @@ class LonelyGallery extends LonelyComponent {
 		foreach ($this->modules as $name => &$module) {
 			
 			/* initialize module */
-			$module = new $name($this);
+			$module = new $name();
 			
 			/* fetch settings from module */
 			$this->set($module->settings());
@@ -806,7 +819,7 @@ class LonelyGallery extends LonelyComponent {
 	/* show album or image */
 	protected function lonelyIndexAction(LonelyRequest $request) {
 		
-		$album = new $this->albumClass($this, $request->album);
+		$album = new $this->albumClass($request->album);
 		$file = LonelyFileFactory::create($request->file, $album);
 		
 		/* file requested */
@@ -902,7 +915,7 @@ class LonelyGallery extends LonelyComponent {
 	/* display thumb page */
 	protected function lonelyPreviewAction(LonelyRequest $request) {
 		
-		$album = new $this->albumClass($this, $request->album);
+		$album = new $this->albumClass($request->album);
 		$file = LonelyFileFactory::create($request->file, $album);
 		
 		/* file requested */
@@ -1175,9 +1188,6 @@ class LonelyGallery extends LonelyComponent {
 
 abstract class LonelyElement extends LonelyComponent {
 	
-	/* reference to the main class */
-	protected $lonely;
-	
 	/* reference to the parent album if there is one */
 	protected $parentAlbum;
 	
@@ -1197,8 +1207,7 @@ abstract class LonelyElement extends LonelyComponent {
 	private $_altNames;
 	
 	
-	function __construct(LonelyGallery $lonely, LonelyAlbum $parentAlbum = null) {
-		$this->lonely = $lonely;
+	function __construct(LonelyAlbum $parentAlbum = null) {
 		$this->parentAlbum = $parentAlbum;
 	}
 	
@@ -1248,7 +1257,7 @@ abstract class LonelyElement extends LonelyComponent {
 	protected function getAlternativeNames() {
 		if ($this->_altNames === null) {
 			$this->_altNames = array();
-			foreach ($this->lonely->callEvent('elementNames', $this) as $data) {
+			foreach (Lonely::model()->callEvent('elementNames', $this) as $data) {
 				if ($data !== null) {
 					$this->_altNames[] = $data;
 				}
@@ -1276,7 +1285,7 @@ abstract class LonelyElement extends LonelyComponent {
 	
 	/* returns the web thumb path */
 	public function getThumbPath($mode) {
-		return ($this->thumbAvailable($mode) ? $this->lonely->thumbPath : $this->lonely->thumbScript).
+		return ($this->thumbAvailable($mode) ? Lonely::model()->thumbPath : Lonely::model()->thumbScript).
 			$mode.'/'.$this->path;
 	}
 	
@@ -1313,12 +1322,12 @@ class LonelyAlbum extends LonelyElement {
 	protected $files;
 	
 	
-	function __construct(LonelyGallery $lonely, Array $album = array(), self $parentAlbum = null) {
+	function __construct(Array $album = array(), self $parentAlbum = null) {
 		$this->album = $album;
-		parent::__construct($lonely, $parentAlbum);
+		parent::__construct($parentAlbum);
 		
-		$this->location = $this->lonely->rootDir.(count($this->album) ? implode(DIRECTORY_SEPARATOR, $this->album).DIRECTORY_SEPARATOR : '');
-		$this->thumbLocationPattern = $this->lonely->thumbDir.'<mode>'.DIRECTORY_SEPARATOR.(count($this->album) ? implode(DIRECTORY_SEPARATOR, $this->album).DIRECTORY_SEPARATOR : '');
+		$this->location = Lonely::model()->rootDir.(count($this->album) ? implode(DIRECTORY_SEPARATOR, $this->album).DIRECTORY_SEPARATOR : '');
+		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<mode>'.DIRECTORY_SEPARATOR.(count($this->album) ? implode(DIRECTORY_SEPARATOR, $this->album).DIRECTORY_SEPARATOR : '');
 		$this->path = count($this->album) ? implode('/', array_map('rawurlencode', $this->album)).'/' : '';
 	}
 	
@@ -1327,7 +1336,7 @@ class LonelyAlbum extends LonelyElement {
 		if (($altname = $this->getAlternativeName()) !== null) {
 			return $altname;
 		}
-		$name = count($this->album) ? end($this->album) : $this->lonely->title;
+		$name = count($this->album) ? end($this->album) : Lonely::model()->title;
 		$name = str_replace('_', ' ', $name);
 		return $name;
 	}
@@ -1335,7 +1344,7 @@ class LonelyAlbum extends LonelyElement {
 	/* returns the object of the parent album */
 	public function getParent() {
 		if ($this->parentAlbum === null && count($this->album) > 0) {
-			$this->parentAlbum = new self($this->lonely, array_slice($this->album, 0, -1));
+			$this->parentAlbum = new self(array_slice($this->album, 0, -1));
 		}
 		return $this->parentAlbum;
 	}
@@ -1347,15 +1356,14 @@ class LonelyAlbum extends LonelyElement {
 		$this->files = array();
 		
 		/* this is clean if this is a subdirectory which is not the config or thumb directory */
-		// $cleanLocation = count($this->album) && $this->album[0] !== $this->lonely->configDir && $this->album[0] !== $this->lonely->thumbDir;
-		$cleanLocation = count($this->album) && !in_array($this->lonely->configDirectoryName, $this->album) && $this->album[0] !== $this->lonely->thumbDirectoryName;
+		$cleanLocation = count($this->album) && !in_array(Lonely::model()->configDirectoryName, $this->album) && $this->album[0] !== Lonely::model()->thumbDirectoryName;
 		
 		/* go through each element */
 		$dir = opendir($this->location);
 		while (($filename = readdir($dir)) !== false) {
 			
 			/* skip files starting with a dot or a minus */
-			if ($this->lonely->isHiddenName($filename)) {
+			if (Lonely::model()->isHiddenName($filename)) {
 				continue;
 			}
 			
@@ -1363,32 +1371,23 @@ class LonelyAlbum extends LonelyElement {
 			$location = $this->location.$filename;
 			
 			/* the element must not be in the config or thumb directory */
-			if (!$cleanLocation && (strpos($location.DIRECTORY_SEPARATOR, $this->lonely->configDir) === 0 || strpos($location.DIRECTORY_SEPARATOR, $this->lonely->thumbDir) === 0)) {
+			if (!$cleanLocation && (strpos($location.DIRECTORY_SEPARATOR, Lonely::model()->configDir) === 0 || strpos($location.DIRECTORY_SEPARATOR, Lonely::model()->thumbDir) === 0)) {
 				continue;
 			}
-			
-			/* check if link */
-			// if (is_link($location)) {
-				// /* change location to the linked location */
-				// $location = readlink($location);
-				// /* skip if new location is not within the gallery's root directory */
-				// if (strpos($location.DIRECTORY_SEPARATOR, $this->lonely->rootDir) !== 0) {
-					// continue;
-				// }
-			// }
 			
 			switch (filetype($location)) {
 				
 				case 'dir':
 					/* must not be config directory */
-					if (!$this->lonely->isHiddenAlbumName($filename)) {
-						$album = new $this->lonely->albumClass($this->lonely, array_merge($this->album, array($filename)), $this);
+					if (!Lonely::model()->isHiddenAlbumName($filename)) {
+						$classname = Lonely::model()->albumClass;
+						$album = new $classname(array_merge($this->album, array($filename)), $this);
 						$this->albums[$filename] = $album;
 					}
 					break;
 				
 				case 'file':
-					if (!$this->lonely->isHiddenFileName($filename)) {
+					if (!Lonely::model()->isHiddenFileName($filename)) {
 						$file = LonelyFileFactory::create($filename, $this);
 						if ($file) {
 							$this->files[$filename] = $file;
@@ -1424,17 +1423,17 @@ class LonelyAlbum extends LonelyElement {
 	
 	/* returns the absolute path of the thumbnail */
 	public function getThumbLocation($mode) {
-		return parent::getThumbLocation($mode).rawurlencode($this->lonely->albumThumbName);
+		return parent::getThumbLocation($mode).rawurlencode(Lonely::model()->albumThumbName);
 	}
 	
 	/* returns the web thumb path */
 	public function getThumbPath($mode) {
-		return parent::getThumbPath($mode).rawurlencode($this->lonely->albumThumbName);
+		return parent::getThumbPath($mode).rawurlencode(Lonely::model()->albumThumbName);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
 	public function thumbAvailable($mode) {
-		$albumFile = $this->location.$this->lonely->albumThumbName;
+		$albumFile = $this->location.Lonely::model()->albumThumbName;
 		/* check manual album image if exists */
 		if (is_file($albumFile)) {
 			$thumbPath = $this->getThumbLocation($mode);
@@ -1495,15 +1494,6 @@ class LonelyAlbum extends LonelyElement {
 			case '300sq': $thumb = imagecreatetruecolor(300, 300); break;
 			default: return false;
 		}
-		
-		/* transparency for gif and png */
-		// if (in_array($info[2], array(IMAGETYPE_GIF, IMAGETYPE_PNG))) {
-			// $transparent = imagecolorallocatealpha($thumb, 0, 0, 0, 127);
-			// imagecolortransparent($thumb, $transparent);
-			// imagefill($thumb, 0, 0, $transparent);
-			// imagealphablending($thumb, false);
-			// imagesavealpha($thumb, true);
-		// }
 		
 		/* modes */
 		$square = false;
@@ -1600,36 +1590,23 @@ class LonelyAlbum extends LonelyElement {
 		}
 		
 		/* write to file */
-		// switch ($info[2]) {
-			// case IMAGETYPE_GIF: return imagegif($thumb, $saveTo);
-			// case IMAGETYPE_JPEG: 
-			// case IMAGETYPE_PNG: return imagepng($thumb, $saveTo, $this->lonely->PNGConpression);
-			// case IMAGETYPE_WBMP: return imagewbmp($thumb, $saveTo);
-		// }
-		return imagejpeg($thumb, $saveTo, $this->lonely->JPEGQuality);
-		// return false;
+		return imagejpeg($thumb, $saveTo, Lonely::model()->JPEGQuality);
 	}
 }
 
-abstract class LonelyFileFactory {
-	
-	private static $lonely;
-	
-	public static function init(LonelyGallery $lonely) {
-		self::$lonely = $lonely;
-	}
+class LonelyFileFactory {
 	
 	/* returns the instance of the object or null if not supported */
 	public static function create($filename, LonelyAlbum $parentAlbum) {
 		$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-		if (!in_array($extension, self::$lonely->extensions)) {
+		if (!in_array($extension, Lonely::model()->extensions)) {
 			return null;
 		}
-		$extensionMap = self::$lonely->extensionMap;
+		$extensionMap = Lonely::model()->extensionMap;
 		if (isset($extensionMap[$extension])) {
-			return new $extensionMap[$extension](self::$lonely, $filename, $parentAlbum);
+			return new $extensionMap[$extension]($filename, $parentAlbum);
 		}
-		return new LonelyGenericFile(self::$lonely, $filename, $parentAlbum);
+		return new LonelyGenericFile($filename, $parentAlbum);
 	}
 }
 
@@ -1639,9 +1616,9 @@ abstract class LonelyFile extends LonelyElement {
 	private $filename;
 	
 	
-	function __construct(LonelyGallery $lonely, $filename, LonelyAlbum $parentAlbum) {
+	function __construct($filename, LonelyAlbum $parentAlbum) {
 		$this->filename = $filename;
-		parent::__construct($lonely, $parentAlbum);
+		parent::__construct($parentAlbum);
 		
 		if ($this->filename !== "") {
 			$this->location = $this->parentAlbum->getLocation().$this->filename;
@@ -1702,9 +1679,9 @@ class LonelyImageFile extends LonelyFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$path = empty($this->lonely->useOriginals) ? $this->getThumbPath('700px') : $this->getPath();
-		$name = $this->lonely->escape($this->getName());
-		return "<img src=\"".$this->lonely->escape($path)."\" alt=\"".$name."\">";
+		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath('700px') : $this->getPath();
+		$name = Lonely::model()->escape($this->getName());
+		return "<img src=\"".Lonely::model()->escape($path)."\" alt=\"".$name."\">";
 	}
 	
 	/* returns whether this file is suitable as a thumb without resizing */
@@ -1733,7 +1710,7 @@ class LonelyImageFile extends LonelyFile {
 	
 	/* returns the web thumb path */
 	public function getThumbPath($mode) {
-		return $this->canUseOriginalAsThumb($mode) ? $this->lonely->rootPath.$this->getPath() : parent::getThumbPath($mode);
+		return $this->canUseOriginalAsThumb($mode) ? Lonely::model()->rootPath.$this->getPath() : parent::getThumbPath($mode);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
@@ -1860,8 +1837,8 @@ class LonelyImageFile extends LonelyFile {
 		/* write to file */
 		switch ($info[2]) {
 			case IMAGETYPE_GIF: return imagegif($thumb, $saveTo);
-			case IMAGETYPE_JPEG: return imagejpeg($thumb, $saveTo, $this->lonely->JPEGQuality);
-			case IMAGETYPE_PNG: return imagepng($thumb, $saveTo, $this->lonely->PNGConpression);
+			case IMAGETYPE_JPEG: return imagejpeg($thumb, $saveTo, Lonely::model()->JPEGQuality);
+			case IMAGETYPE_PNG: return imagepng($thumb, $saveTo, Lonely::model()->PNGConpression);
 			case IMAGETYPE_WBMP: return imagewbmp($thumb, $saveTo);
 		}
 	}
@@ -1872,24 +1849,24 @@ class LonelyGenericFile extends LonelyFile {
 	protected $thumbLocationPattern;
 	protected $genericFileName = 'default.png';
 	
-	function __construct(LonelyGallery $lonely, $filename, LonelyAlbum $parentAlbum) {
-		parent::__construct($lonely, $filename, $parentAlbum);
+	function __construct($filename, LonelyAlbum $parentAlbum) {
+		parent::__construct($filename, $parentAlbum);
 		
 		if ($this->getFilename() !== "") {
-			$this->thumbLocationPattern = $this->lonely->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<mode>'.DIRECTORY_SEPARATOR.$this->genericFileName;
+			$this->thumbLocationPattern = Lonely::model()->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<mode>'.DIRECTORY_SEPARATOR.$this->genericFileName;
 		}
 	}
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$path = $this->lonely->escape($this->getThumbPath('700px'));
-		$name = $this->lonely->escape($this->getName());
+		$path = Lonely::model()->escape($this->getThumbPath('700px'));
+		$name = Lonely::model()->escape($this->getName());
 		return "<img src=\"".$path."\" alt=\"".$name."\">";
 	}
 	
 	/* returns the web thumb path */
 	public function getThumbPath($mode) {
-		return $this->thumbAvailable($mode) ? $this->lonely->thumbPath.'generic/'.$mode.'/'.$this->genericFileName : $this->lonely->thumbScript.$mode.'/'.$this->path;
+		return $this->thumbAvailable($mode) ? Lonely::model()->thumbPath.'generic/'.$mode.'/'.$this->genericFileName : Lonely::model()->thumbScript.$mode.'/'.$this->path;
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
@@ -1916,12 +1893,8 @@ class LonelyGenericFile extends LonelyFile {
 /* class to extend when developing a module */
 abstract class LonelyModule {
 	
-	/* contains the reference to the LonelyGallery instance */
-	protected $lonely = null;
-	
 	/* sets the LonelyGallery reference */
-	function __construct(LonelyGallery $lonely) {
-		$this->lonely = $lonely;
+	function __construct() {
 		$this->afterConstruct();
 	}
 	
@@ -1962,7 +1935,7 @@ class DefaultLonelyDesign extends LonelyDesign {
 	
 	/* returns an array with css files to be loaded as design */
 	public function getCSSFiles() {
-		return array($this->lonely->configScript.'lonely.css');
+		return array(Lonely::model()->configScript.'lonely.css');
 	}
 	
 	/* config files */
@@ -1970,7 +1943,7 @@ class DefaultLonelyDesign extends LonelyDesign {
 		if ($request->action[0] == 'lonely.css') {
 			$this->displayLonelyCSS();
 		} else {
-			$this->lonely->error();
+			Lonely::model()->error();
 		}
 	}
 	
