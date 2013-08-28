@@ -53,72 +53,69 @@ Place the PHP file into the 'config' directory.
 
 class ManyFilesLonelyModule extends LonelyModule {
 	
-	protected $formats = array(
-		/* archive */
-		'7z' => 'ManyFilesLonelyGenericArchiveFile',
-		'bz' => 'ManyFilesLonelyGenericArchiveFile',
-		'bz2' => 'ManyFilesLonelyGenericArchiveFile',
-		'cab' => 'ManyFilesLonelyGenericDocumentFile',
-		'dmg' => 'ManyFilesLonelyGenericDocumentFile',
-		'gz' => 'ManyFilesLonelyGenericArchiveFile',
-		'iso' => 'ManyFilesLonelyGenericArchiveFile',
-		'lz' => 'ManyFilesLonelyGenericDocumentFile',
-		'lzma' => 'ManyFilesLonelyGenericDocumentFile',
-		'rar' => 'ManyFilesLonelyGenericArchiveFile',
-		'tar' => 'ManyFilesLonelyGenericArchiveFile',
-		'tbz2' => 'ManyFilesLonelyGenericDocumentFile',
-		'tgz' => 'ManyFilesLonelyGenericDocumentFile',
-		'tlz' => 'ManyFilesLonelyGenericDocumentFile',
-		'zip' => 'ManyFilesLonelyGenericArchiveFile',
-		/* audio */
-		'3gp' => 'ManyFilesLonelyGenericAudioFile',
-		'aac' => 'ManyFilesLonelyGenericAudioFile',
-		'aif' => 'ManyFilesLonelyGenericAudioFile',
-		'aiff' => 'ManyFilesLonelyGenericAudioFile',
-		'alac' => 'ManyFilesLonelyGenericAudioFile',
-		'flac' => 'ManyFilesLonelyGenericAudioFile',
-		'm4a' => 'ManyFilesLonelyGenericAudioFile',
-		'mp3' => 'ManyFilesLonelyGenericAudioFile',
-		'ogg' => 'ManyFilesLonelyGenericAudioFile',
-		'wav' => 'ManyFilesLonelyGenericAudioFile',
-		'wma' => 'ManyFilesLonelyGenericAudioFile',
-		/* document */
-		'doc' => 'ManyFilesLonelyGenericDocumentFile',
-		'docx' => 'ManyFilesLonelyGenericDocumentFile',
-		'htm' => 'ManyFilesLonelyGenericDocumentFile',
-		'html' => 'ManyFilesLonelyGenericDocumentFile',
-		'odt' => 'ManyFilesLonelyGenericDocumentFile',
-		'pdf' => 'ManyFilesLonelyGenericDocumentFile',
-		'ps' => 'ManyFilesLonelyGenericDocumentFile',
-		'rtf' => 'ManyFilesLonelyGenericDocumentFile',
-		/* image */
-		'bmp' => 'ManyFilesLonelyGenericImageFile',
-		'ico' => 'ManyFilesLonelyGenericImageFile',
-		'psd' => 'ManyFilesLonelyGenericImageFile',
-		'raw' => 'ManyFilesLonelyGenericImageFile',
-		'svg' => 'ManyFilesLonelyGenericImageFile',
-		'tif' => 'ManyFilesLonelyGenericImageFile',
-		'tiff' => 'ManyFilesLonelyGenericImageFile',
-		'xcf' => 'ManyFilesLonelyGenericImageFile',
-		/* text */
-		'c' => 'ManyFilesLonelyGenericTextFile',
-		'cpp' => 'ManyFilesLonelyGenericTextFile',
-		'h' => 'ManyFilesLonelyGenericTextFile',
-		'txt' => 'ManyFilesLonelyGenericTextFile',
-		/* video */
-		'avi' => 'ManyFilesLonelyGenericVideoFile',
-		'flv' => 'ManyFilesLonelyGenericVideoFile',
-		'm4v' => 'ManyFilesLonelyGenericVideoFile',
-		'mkv' => 'ManyFilesLonelyGenericVideoFile',
-		'mov' => 'ManyFilesLonelyGenericVideoFile',
-		'mp4' => 'ManyFilesLonelyGenericVideoFile',
-		'wmv' => 'ManyFilesLonelyGenericVideoFile',
-	);
-	
-	/* executed after __construct() */
-	public function afterConstruct() {
-		$this->lonely->setExtensions(array_keys($this->formats));
-		$this->lonely->addExtensionmap($this->formats);
+	/* returns array of file types like this: array('ext'=>'FileClassName', ...) */
+	public function fileTypes() {
+		return array(
+			/* archive */
+			'7z' => 'ManyFilesLonelyGenericArchiveFile',
+			'bz' => 'ManyFilesLonelyGenericArchiveFile',
+			'bz2' => 'ManyFilesLonelyGenericArchiveFile',
+			'cab' => 'ManyFilesLonelyGenericDocumentFile',
+			'dmg' => 'ManyFilesLonelyGenericDocumentFile',
+			'gz' => 'ManyFilesLonelyGenericArchiveFile',
+			'iso' => 'ManyFilesLonelyGenericArchiveFile',
+			'lz' => 'ManyFilesLonelyGenericDocumentFile',
+			'lzma' => 'ManyFilesLonelyGenericDocumentFile',
+			'rar' => 'ManyFilesLonelyGenericArchiveFile',
+			'tar' => 'ManyFilesLonelyGenericArchiveFile',
+			'tbz2' => 'ManyFilesLonelyGenericDocumentFile',
+			'tgz' => 'ManyFilesLonelyGenericDocumentFile',
+			'tlz' => 'ManyFilesLonelyGenericDocumentFile',
+			'zip' => 'ManyFilesLonelyGenericArchiveFile',
+			/* audio */
+			'3gp' => 'ManyFilesLonelyGenericAudioFile',
+			'aac' => 'ManyFilesLonelyGenericAudioFile',
+			'aif' => 'ManyFilesLonelyGenericAudioFile',
+			'aiff' => 'ManyFilesLonelyGenericAudioFile',
+			'alac' => 'ManyFilesLonelyGenericAudioFile',
+			'flac' => 'ManyFilesLonelyGenericAudioFile',
+			'm4a' => 'ManyFilesLonelyGenericAudioFile',
+			'mp3' => 'ManyFilesLonelyGenericAudioFile',
+			'ogg' => 'ManyFilesLonelyGenericAudioFile',
+			'wav' => 'ManyFilesLonelyGenericAudioFile',
+			'wma' => 'ManyFilesLonelyGenericAudioFile',
+			/* document */
+			'doc' => 'ManyFilesLonelyGenericDocumentFile',
+			'docx' => 'ManyFilesLonelyGenericDocumentFile',
+			'htm' => 'ManyFilesLonelyGenericDocumentFile',
+			'html' => 'ManyFilesLonelyGenericDocumentFile',
+			'odt' => 'ManyFilesLonelyGenericDocumentFile',
+			'pdf' => 'ManyFilesLonelyGenericDocumentFile',
+			'ps' => 'ManyFilesLonelyGenericDocumentFile',
+			'rtf' => 'ManyFilesLonelyGenericDocumentFile',
+			/* image */
+			'bmp' => 'ManyFilesLonelyGenericImageFile',
+			'ico' => 'ManyFilesLonelyGenericImageFile',
+			'psd' => 'ManyFilesLonelyGenericImageFile',
+			'raw' => 'ManyFilesLonelyGenericImageFile',
+			'svg' => 'ManyFilesLonelyGenericImageFile',
+			'tif' => 'ManyFilesLonelyGenericImageFile',
+			'tiff' => 'ManyFilesLonelyGenericImageFile',
+			'xcf' => 'ManyFilesLonelyGenericImageFile',
+			/* text */
+			'c' => 'ManyFilesLonelyGenericTextFile',
+			'cpp' => 'ManyFilesLonelyGenericTextFile',
+			'h' => 'ManyFilesLonelyGenericTextFile',
+			'txt' => 'ManyFilesLonelyGenericTextFile',
+			/* video */
+			'avi' => 'ManyFilesLonelyGenericVideoFile',
+			'flv' => 'ManyFilesLonelyGenericVideoFile',
+			'm4v' => 'ManyFilesLonelyGenericVideoFile',
+			'mkv' => 'ManyFilesLonelyGenericVideoFile',
+			'mov' => 'ManyFilesLonelyGenericVideoFile',
+			'mp4' => 'ManyFilesLonelyGenericVideoFile',
+			'wmv' => 'ManyFilesLonelyGenericVideoFile',
+		);
 	}
 }
 

@@ -734,14 +734,25 @@ class LonelyGallery extends LonelyComponent {
 		
 		/* init objects */
 		foreach ($this->modules as $name => &$module) {
+			
 			/* initialize module */
 			$module = new $name($this);
+			
 			/* fetch settings from module */
 			$this->set($module->settings());
+			
+			/* file types */
+			$filetypes = $module->fileTypes();
+			if (is_array($filetypes) && count($filetypes)) {
+				$this->setExtensions(array_keys($filetypes));
+				$this->addExtensionmap($filetypes);
+			}
+			
 			/* switch designs */
 			if ($module instanceof LonelyDesign) {
 				$this->design = $module;
 			}
+			
 		}
 		
 		$this->modulesInitialized = true;
@@ -1174,6 +1185,12 @@ abstract class LonelyElement extends LonelyComponent {
 	/* relative web path */
 	protected $path;
 	
+	/* cached name of this element */
+	private $_name;
+	
+	/* cached alternative names */
+	private $_altNames;
+	
 	
 	function __construct(LonelyGallery $lonely, LonelyAlbum $parentAlbum = null) {
 		$this->lonely = $lonely;
@@ -1207,6 +1224,38 @@ abstract class LonelyElement extends LonelyComponent {
 	/* returns the absolute thumb file location pattern containing "<mode>" */
 	public function getThumbPathPattern() {
 		return $this->thumbLocationPattern;
+	}
+	
+	/* returns the name of this element */
+	public function getName() {
+		if ($this->_name === null) {
+			$this->_name = $this->loadName();
+		}
+		return $this->_name;
+	}
+	
+	/* loads the name of this element */
+	protected function loadName() {
+		return '';
+	}
+	
+	/* returns the alternative names for this file */
+	protected function getAlternativeNames() {
+		if ($this->_altNames === null) {
+			$this->_altNames = array();
+			foreach ($this->lonely->callEvent('elementNames', $this) as $data) {
+				if ($data !== null) {
+					$this->_altNames[] = $data;
+				}
+			}
+		}
+		return $this->_altNames;
+	}
+	
+	/* returns the first alternative name for this file or null */
+	protected function getAlternativeName() {
+		$altNames = $this->getAlternativeNames();
+		return count($altNames) ? $altNames[0] : null;
 	}
 	
 	/* returns the relative web path */
@@ -1268,8 +1317,11 @@ class LonelyAlbum extends LonelyElement {
 		$this->path = count($this->album) ? implode('/', array_map('rawurlencode', $this->album)).'/' : '';
 	}
 	
-	/* return the name of this element */
-	public function getName() {
+	/* loads the name of this element */
+	protected function loadName() {
+		if (($altname = $this->getAlternativeName()) !== null) {
+			return $altname;
+		}
 		$name = count($this->album) ? end($this->album) : $this->lonely->title;
 		$name = str_replace('_', ' ', $name);
 		return $name;
@@ -1579,7 +1631,7 @@ abstract class LonelyFileFactory {
 abstract class LonelyFile extends LonelyElement {
 	
 	/* filename on the file system */
-	protected $filename;
+	private $filename;
 	
 	
 	function __construct(LonelyGallery $lonely, $filename, LonelyAlbum $parentAlbum) {
@@ -1593,9 +1645,12 @@ abstract class LonelyFile extends LonelyElement {
 		}
 	}
 	
-	/* return the name of this element */
-	public function getName() {
-		return $this->filename;
+	/* loads the name of this element */
+	protected function loadName() {
+		if (($altname = $this->getAlternativeName()) !== null) {
+			return $altname;
+		}
+		return $this->getFilename();
 	}
 	
 	/* returns the filename */
@@ -1614,9 +1669,14 @@ class LonelyImageFile extends LonelyFile {
 	protected $imageInfo;
 	protected $useOriginalAsThumb = array();
 	
-	/* return the name of this element */
-	public function getName() {
-		$name = substr($this->filename, 0, strrpos($this->filename, '.'));
+	
+	/* loads the name of this element */
+	protected function loadName() {
+		if (($altname = $this->getAlternativeName()) !== null) {
+			return $altname;
+		}
+		$name = $this->getFilename();
+		$name = substr($name, 0, strrpos($name, '.'));
 		$name = str_replace('_', ' ', $name);
 		return $name;
 	}
@@ -1810,7 +1870,7 @@ class LonelyGenericFile extends LonelyFile {
 	function __construct(LonelyGallery $lonely, $filename, LonelyAlbum $parentAlbum) {
 		parent::__construct($lonely, $filename, $parentAlbum);
 		
-		if ($this->filename !== "") {
+		if ($this->getFilename() !== "") {
 			$this->thumbLocationPattern = $this->lonely->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<mode>'.DIRECTORY_SEPARATOR.$this->genericFileName;
 		}
 	}
@@ -1865,14 +1925,20 @@ abstract class LonelyModule {
 		/* nothing */
 	}
 	
-	/* return settings for lonely */
+	/* returns settings for lonely */
 	public function settings() {
+		return array();
+	}
+	
+	/* returns array of file types like this: array('ext'=>'FileClassName', ...) */
+	public function fileTypes() {
 		return array();
 	}
 	
 	/* handle request */
 	public function handleRequest(LonelyRequest $request) {
 		/* return true if further requests handling is allowed */
+		/* return false if the request is handled */
 		return true;
 	}
 }

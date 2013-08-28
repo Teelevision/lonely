@@ -63,6 +63,9 @@ any extension.
 
 class ImageInfoLonelyModule extends LonelyModule {
 	
+	private $tmp_names = array();
+	
+	
 	/* executed after __construct() */
 	public function afterConstruct() {
 		
@@ -70,16 +73,45 @@ class ImageInfoLonelyModule extends LonelyModule {
 		if (!function_exists('exif_read_data')) {
 			$this->error(500, 'Error 500: Missing EXIF library. Make sure your PHP installation includes the EXIF library.');
 		}
-		
-		if (empty($this->lonely->imageInfo_notitle)) {
-			$this->lonely->extensionMap = array_merge(
-				$this->lonely->extensionMap,
-				array(
-					'jpg' => 'ImageInfoLonelyImageFile',
-					'jpeg' => 'ImageInfoLonelyImageFile',
-				)
-			);
+	}
+	
+	/* returns the replacing title of the file or null on none replacement */
+	public function elementNamesEvent(LonelyElement $element) {
+		if (empty($this->lonely->imageInfo_notitle) && $element instanceof LonelyFile && $element->getMime() == 'image/jpeg') {
+			$location = $element->getLocation();
+			if ($location !== '') {
+				/* cached value */
+				if (isset($this->tmp_names[$location]) && $this->tmp_names[$location] !== "") {
+					return $this->tmp_names[$location];
+				}
+				return $this->tmp_names[$location] = $this->getJpegName($location);
+			}
 		}
+		return null;
+	}
+	
+	protected function getJpegName($location) {
+		
+		/* IPTC */
+		if (getimagesize($location, $info)
+			&& isset($info['APP13'])
+			&& ($iptc = iptcparse($info['APP13']))
+			&& isset($iptc['2#105'][0])
+			&& ($name = trim($iptc['2#105'][0])) !== '')
+		{
+			return $this->lonely->utf8ify($name);
+		}
+		
+		/* EXIF */
+		if ($exif = exif_read_data($location)) {
+			if (isset($exif['ImageDescription']) && ($name = trim($exif['ImageDescription'])) !== '') {
+				return $this->lonely->utf8ify($name);
+			} else if (isset($exif['Title']) && ($name = trim($exif['Title'])) !== '') {
+				return $this->lonely->utf8ify($name);
+			}
+		}
+		
+		return null;
 	}
 	
 	/* returns an array of information about the image */
@@ -242,42 +274,6 @@ class ImageInfoLonelyModule extends LonelyModule {
 		}
 		
 		return $metadata;
-	}
-}
-
-class ImageInfoLonelyImageFile extends LonelyImageFile {
-	
-	private $tmp_name = "";
-	
-	/* return the name of this element */
-	public function getName() {
-		
-		/* cached value */
-		if ($this->tmp_name !== "") {
-			return $this->tmp_name;
-		}
-		
-		/* IPTC */
-		if (getimagesize($this->location, $info)
-			&& isset($info['APP13'])
-			&& ($iptc = iptcparse($info['APP13']))
-			&& isset($iptc['2#105'][0])
-			&& ($name = trim($iptc['2#105'][0])) !== '')
-		{
-			return $this->tmp_name = $this->lonely->utf8ify($name);
-		}
-		
-		/* EXIF */
-		if ($exif = exif_read_data($this->location)) {
-			if (isset($exif['ImageDescription']) && ($name = trim($exif['ImageDescription'])) !== '') {
-				return $this->tmp_name = $this->lonely->utf8ify($name);
-			} else if (isset($exif['Title']) && ($name = trim($exif['Title'])) !== '') {
-				return $this->tmp_name = $this->lonely->utf8ify($name);
-			}
-		}
-		
-		/* default way to get the name (filename) */
-		return $this->tmp_name = parent::getName();
 	}
 }
 ?>
