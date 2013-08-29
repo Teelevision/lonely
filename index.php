@@ -579,8 +579,8 @@ class Lonely extends Component {
 				}
 			}
 			
-			/* modules always end like this */
-			else if (substr($file, -10) == "Module.php") {
+			/* modules always end on 'Module.php' and designs are modules ending on 'Design.php' */
+			else if (($s = substr($file, -10)) == 'Module.php' || $s == 'Design.php') {
 				$this->addModule(substr($file, 0, -4));
 			}
 			
@@ -660,19 +660,22 @@ class Lonely extends Component {
 		}
 		
 		/* bring the action */
+		$somethingCalled = false;
 		if (method_exists($this, $method)) {
 			call_user_func(array($this, $method), $this->request);
-			return;
+			$somethingCalled = true;
 		}
 		foreach ($this->modules as $module) {
 			if (method_exists($module, $method)) {
 				call_user_func(array($module, $method), $this->request);
-				return;
+				$somethingCalled = true;
 			}
 		}
 		
 		/* nothing called */
-		$this->error();
+		if (!$somethingCalled) {
+			$this->error();
+		}
 	}
 	
 	/* evaluates if the file or dir name is hidden */
@@ -905,14 +908,12 @@ class Lonely extends Component {
 			
 			$this->HTMLContent = $html;
 			$this->display();
+			exit;
 			
 		}
 		
 		/* nothing requested */
-		else {
-			$this->error();
-		}
-		
+		$this->error();
 	}
 	
 	/* display thumb page */
@@ -1023,11 +1024,11 @@ class Lonely extends Component {
 			
 			$this->HTMLContent = $html;
 			$this->display();
+			exit;
 			
-		} else {
-			$this->error();
 		}
 		
+		$this->error();
 	}
 	
 	/* shows the thumbnail */
@@ -1067,10 +1068,9 @@ class Lonely extends Component {
 			// }
 			exit;
 		
-		} else {
-			$this->error(500, 'Could not calculate Thumbnail.');
 		}
 		
+		$this->error(500, 'Could not calculate Thumbnail.');
 	}
 	
 	/* shows 150px square thumbnail */
@@ -1940,14 +1940,12 @@ class DefaultDesign extends \LonelyGallery\Design {
 	/* config files */
 	public function configAction(\LonelyGallery\Request $request) {
 		if ($request->action[0] == 'lonely.css') {
-			$this->displayLonelyCSS();
-		} else {
-			Lonely::model()->error();
+			$this->displayCSS();
 		}
 	}
 	
 	/* lonely.css */
-	public function displayLonelyCSS() {
+	public function displayCSS() {
 		
 		$lastmodified = filemtime(__FILE__);
 		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
