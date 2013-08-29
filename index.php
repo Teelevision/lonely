@@ -414,19 +414,9 @@ class Lonely extends Component {
 	
 	/* modules */
 	private $modules = array();
-	private $modulesInitialized = false;
-	
-	/* error */
-	private $_errorInitModules = false;
 	
 	/* design */
 	private $design = null;
-	
-	/* full host adress, like: https://sub.example.org:8080 */
-	private $server = '';
-	
-	/* start time */
-	private $startTime = 0;
 	
 	/* singleton model */
 	protected static $_model;
@@ -477,14 +467,14 @@ class Lonely extends Component {
 		
 		/* check for GD */
 		if (!function_exists('gd_info')) {
-			$this->error(500, 'Error 500: Missing GD library. Make sure your PHP installation includes the GD library.');
+			$this->error(500, 'Missing GD library. Make sure your PHP installation includes the GD library.');
 		}
 		
 		/* config directory */
 		$this->configDir = $this->rootDir.$this->configDirectoryName.DIRECTORY_SEPARATOR;
 		if (!is_dir($this->configDir)) {
 			if (!mkdir($this->configDir)) {
-				$this->error(500, 'Error 500: Config directory (/'.$this->configDirectoryName.') could not be created. Check if your user has permission to write to your gallery directory.');
+				$this->error(500, 'Config directory (/'.$this->configDirectoryName.') could not be created. Check if your user has permission to write to your gallery directory.');
 			}
 		}
 		
@@ -493,9 +483,9 @@ class Lonely extends Component {
 			$this->readConfig($this->configDir);
 		} else {
 			if (!is_readable($this->configDir)) {
-				$this->error(500, 'Error 500: Config directory (/'.$this->configDirectoryName.') is not readable.');
+				$this->error(500, 'Config directory (/'.$this->configDirectoryName.') is not readable.');
 			} else {
-				$this->error(500, 'Error 500: Config directory (/'.$this->configDirectoryName.') cannot be entered due to missing executing rights.');
+				$this->error(500, 'Config directory (/'.$this->configDirectoryName.') cannot be entered due to missing executing rights.');
 			}
 		}
 		
@@ -503,10 +493,10 @@ class Lonely extends Component {
 		$this->thumbDir = $this->rootDir.$this->thumbDirectoryName.DIRECTORY_SEPARATOR;
 		if (!is_dir($this->thumbDir)) {
 			if (!mkdir($this->thumbDir)) {
-				$this->error(500, 'Error 500: Thumbnail directory (/'.$this->thumbDirectoryName.') could not be created. Check if your user has permission to write to your gallery directory.');
+				$this->error(500, 'Thumbnail directory (/'.$this->thumbDirectoryName.') could not be created. Check if your user has permission to write to your gallery directory.');
 			}
 			if (!is_readable($this->thumbDir)) {
-				$this->error(500, 'Error 500: Thumbnail directory (/'.$this->thumbDirectoryName.') is not readable.');
+				$this->error(500, 'Thumbnail directory (/'.$this->thumbDirectoryName.') is not readable.');
 			}
 		}
 		
@@ -517,13 +507,11 @@ class Lonely extends Component {
 		/* root-relative path */
 		$this->rootPath = dirname($_SERVER['SCRIPT_NAME']).'/';
 		$this->rootScript = $_SERVER['SCRIPT_NAME'].'?/';
+		$this->rootScriptClean = $_SERVER['SCRIPT_NAME'];
 		$this->thumbPath = $this->rootPath.$this->thumbDirectoryName.'/';
 		$this->thumbScript = $this->rootScript.$this->thumbDirectoryName.'/';
 		$this->configPath = $this->rootPath.$this->configDirectoryName.'/';
 		$this->configScript = $this->rootScript.$this->configDirectoryName.'/';
-		
-		// /* initialize file factory */
-		// FileFactory::init($this);
 		
 		/* init request */
 		$scopes = array(
@@ -777,7 +765,7 @@ class Lonely extends Component {
 			
 		}
 		
-		$this->modulesInitialized = true;
+		$this->_modulesInitialized = true;
 		
 	}
 	
@@ -858,7 +846,8 @@ class Lonely extends Component {
 				$html .= "<nav class=\"breadcrumbs\">\n";
 				$html .= "\t<ul>\n";
 				foreach (array_reverse($parents) as $element) {
-					$html .= "\t\t<li><a href=\"".$this->escape($this->rootScript.$element->getPath())."\">".$this->escape($element->getName())."</a></li>\n";
+					$path = $element->getPath();
+					$html .= "\t\t<li><a href=\"".$this->escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".$this->escape($element->getName())."</a></li>\n";
 				}
 				$html .= "\t\t<li>".$this->escape($album->getName())."</li>\n";
 				$html .= "\t</ul>\n";
@@ -948,7 +937,8 @@ class Lonely extends Component {
 				$html .= "<nav class=\"breadcrumbs\">\n";
 				$html .= "\t<ul>\n";
 				foreach (array_reverse($parents) as $element) {
-					$html .= "\t\t<li><a href=\"".$this->escape($this->rootScript.$element->getPath())."\">".$this->escape($element->getName())."</a></li>\n";
+					$path = $element->getPath();
+					$html .= "\t\t<li><a href=\"".$this->escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".$this->escape($element->getName())."</a></li>\n";
 				}
 				$html .= "\t\t<li>".$name."</li>\n";
 				$html .= "\t</ul>\n";
@@ -1095,7 +1085,7 @@ class Lonely extends Component {
 	public function error($errno = 404, $message = "The page you were looking for was not found.") {
 		
 		/* because this method can be called early, try to init modules */
-		if (!$this->_errorInitModules && !$this->modulesInitialized) {
+		if (!$this->_errorInitModules && !$this->_modulesInitialized) {
 			/* prevent looping */
 			$this->_errorInitModules = true;
 			try {
@@ -1176,7 +1166,7 @@ class Lonely extends Component {
 	?></head>
 <body>
 	
-	<h1><a href="<?php echo $this->escape($this->rootScript); ?>"><?php echo $this->escape($this->title); ?></a></h1>
+	<h1><a href="<?php echo $this->escape($this->rootScriptClean); ?>"><?php echo $this->escape($this->title); ?></a></h1>
 
 	<div id="content">
 
