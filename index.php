@@ -1434,16 +1434,30 @@ class Album extends Element {
 	
 	/* returns the web thumb path */
 	public function getThumbPath($mode) {
-		return parent::getThumbPath($mode).rawurlencode(Lonely::model()->albumThumbName);
+		if ($this->thumbAvailable($mode)) {
+			$path = $this->useOriginalAlbumThumb ? Lonely::model()->rootPath : Lonely::model()->thumbPath.$mode.'/';
+		} else {
+			$path = Lonely::model()->thumbScript.$mode.'/';
+		}
+		return $path.$this->path.rawurlencode(Lonely::model()->albumThumbName);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
 	public function thumbAvailable($mode) {
 		$albumFile = $this->location.Lonely::model()->albumThumbName;
+		$this->useOriginalAlbumThumb = false;
 		/* check manual album image if exists */
 		if (is_file($albumFile)) {
 			$thumbPath = $this->getThumbLocation($mode);
-			return ($thumbPath && ($tTime = @filemtime($thumbPath)) && ($oTime = @filemtime($albumFile)) && $tTime >= $oTime);
+			if ($thumbPath && ($tTime = @filemtime($thumbPath)) && ($oTime = @filemtime($albumFile)) && $tTime >= $oTime) {
+				return true;
+			}
+			$info = getimagesize($albumFile);
+			switch ($mode) {
+				case '150sq': return ($info[0] <= 150 && $info[1] <= 150 && ($this->useOriginalAlbumThumb = true));
+				case '300sq': return ($info[0] <= 300 && $info[1] <= 300 && ($this->useOriginalAlbumThumb = true));
+				default: return false;
+			}
 		} else {
 			return parent::thumbAvailable($mode);
 		}
@@ -1452,7 +1466,7 @@ class Album extends Element {
 	/* creates a thumbnail */
 	protected function createThumb($mode, $saveTo) {
 		
-		/* mode to use for files to not render needless versions of the images used in the album thumbnail */
+		/* mode for files. should be a mode that is used somewhere else to prevent rendering needless thumbnails */
 		switch ($mode) {
 			case '150sq':
 			case '300sq':
