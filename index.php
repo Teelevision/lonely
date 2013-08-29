@@ -7,7 +7,7 @@
 ### Version ###
 
 1.1.0 beta 1
-date: 2013-07-29
+date: 2013-08-29
 
 ### Requirements ###
 
@@ -117,7 +117,9 @@ I recommend setting memory_limit to 64M if you are using a digital camera up to
 
 */
 
-// error_reporting(E_ALL);
+namespace LonelyGallery;
+
+error_reporting(E_ALL);
 
 /* you can make settings here */
 $settings = array(
@@ -159,7 +161,7 @@ Lonely::model()->run($settings);
 
 
 /* base class for all lonely classes */
-abstract class LonelyComponent {
+abstract class Component {
 	
 	protected $data = array();
 	
@@ -209,7 +211,7 @@ abstract class LonelyComponent {
 	}
 }
 
-class LonelyRequest extends LonelyComponent {
+class Request extends Component {
 	
 	/*
 	Request: /<scope>/<album>/<file>/<action>
@@ -338,17 +340,17 @@ class LonelyRequest extends LonelyComponent {
 	}
 }
 
-class Lonely extends LonelyComponent {
+class Lonely extends Component {
 	
 	/* file extensions of the files that should appear in the gallery */
 	public $extensions = array('jpg', 'jpeg', 'png', 'gif');
 	
 	/* map file extension on class */
 	public $extensionMap = array(
-		'jpg' => 'LonelyImageFile',
-		'jpeg' => 'LonelyImageFile',
-		'png' => 'LonelyImageFile',
-		'gif' => 'LonelyImageFile',
+		'jpg' => 'ImageFile',
+		'jpeg' => 'ImageFile',
+		'png' => 'ImageFile',
+		'gif' => 'ImageFile',
 	);
 	
 	/* gallery title */
@@ -382,10 +384,10 @@ class Lonely extends LonelyComponent {
 	public $albumThumbName = '_album.jpg';
 	
 	/* album class to use */
-	public $albumClass = 'LonelyAlbum';
+	public $albumClass = 'Album';
 	
 	/* class name of the default design which is used if there is no design module */
-	public $defaultDesign = 'DefaultLonelyDesign';
+	public $defaultDesign = 'DefaultDesign';
 	
 	/* default file action */
 	public $defaultFileAction = 'preview';
@@ -521,14 +523,14 @@ class Lonely extends LonelyComponent {
 		$this->configScript = $this->rootScript.$this->configDirectoryName.'/';
 		
 		// /* initialize file factory */
-		// LonelyFileFactory::init($this);
+		// FileFactory::init($this);
 		
 		/* init request */
 		$scopes = array(
-			array(LonelyRequest::MATCH_STRING, $this->configDirectoryName),
-			array(LonelyRequest::MATCH_REGEX, $this->thumbDirectoryName.'/[0-9]+(px|sq)'),
+			array(Request::MATCH_STRING, $this->configDirectoryName),
+			array(Request::MATCH_REGEX, $this->thumbDirectoryName.'/[0-9]+(px|sq)'),
 		);
-		$this->request = new LonelyRequest($scopes);
+		$this->request = new Request($scopes);
 		$album = $this->request->album;
 		
 		/* read data from album config dir */
@@ -575,7 +577,7 @@ class Lonely extends LonelyComponent {
 			
 			/* turn off setting */
 			else if ($file[0] == '-') {
-				if (substr($file, -12) == "LonelyModule") {
+				if (substr($file, -6) == "Module") {
 					$this->removeModule(substr($file, 1));
 				} else {
 					$this->{substr($file, 1)} = false;
@@ -583,7 +585,7 @@ class Lonely extends LonelyComponent {
 			}
 			
 			/* modules always end like this */
-			else if (substr($file, -16) == "LonelyModule.php") {
+			else if (substr($file, -10) == "Module.php") {
 				$this->addModule(substr($file, 0, -4));
 			}
 			
@@ -612,7 +614,7 @@ class Lonely extends LonelyComponent {
 	}
 	
 	/* handle request */
-	public function handleRequest(LonelyRequest $request) {
+	public function handleRequest(Request $request) {
 		
 		/* let modules handle the request */
 		foreach ($this->modules as $module) {
@@ -743,7 +745,7 @@ class Lonely extends LonelyComponent {
 		
 		/* first load all files to prevent missing requirements */
 		foreach ($this->modules as $name => &$module) {
-			if (!class_exists($name)) {
+			if (!class_exists('\\'.__NAMESPACE__.'\\'.$name.'\\'.$name)) {
 				require_once($this->configDir.$name.'.php');
 			}
 		}
@@ -752,7 +754,8 @@ class Lonely extends LonelyComponent {
 		foreach ($this->modules as $name => &$module) {
 			
 			/* initialize module */
-			$module = new $name();
+			$classname = '\\'.__NAMESPACE__.'\\'.$name.'\\'.$name;
+			$module = new $classname();
 			
 			/* fetch settings from module */
 			$this->set($module->settings());
@@ -760,12 +763,15 @@ class Lonely extends LonelyComponent {
 			/* file types */
 			$filetypes = $module->fileTypes();
 			if (is_array($filetypes) && count($filetypes)) {
+				foreach ($filetypes as &$filetype) {
+					$filetype = $name.'\\'.$filetype;
+				}
 				$this->setExtensions(array_keys($filetypes));
 				$this->addExtensionmap($filetypes);
 			}
 			
 			/* switch designs */
-			if ($module instanceof LonelyDesign) {
+			if ($module instanceof Design) {
 				$this->design = $module;
 			}
 			
@@ -817,10 +823,11 @@ class Lonely extends LonelyComponent {
 	}
 	
 	/* show album or image */
-	protected function lonelyIndexAction(LonelyRequest $request) {
+	protected function lonelyIndexAction(Request $request) {
 		
-		$album = new $this->albumClass($request->album);
-		$file = LonelyFileFactory::create($request->file, $album);
+		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
+		$album = new $classname($request->album);
+		$file = FileFactory::create($request->file, $album);
 		
 		/* file requested */
 		if ($file && $file->isAvailable()) {
@@ -913,10 +920,11 @@ class Lonely extends LonelyComponent {
 	}
 	
 	/* display thumb page */
-	protected function lonelyPreviewAction(LonelyRequest $request) {
+	protected function lonelyPreviewAction(Request $request) {
 		
-		$album = new $this->albumClass($request->album);
-		$file = LonelyFileFactory::create($request->file, $album);
+		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
+		$album = new $classname($request->album);
+		$file = FileFactory::create($request->file, $album);
 		
 		/* file requested */
 		if ($file && $file->isAvailable()) {
@@ -1026,13 +1034,14 @@ class Lonely extends LonelyComponent {
 	}
 	
 	/* shows the thumbnail */
-	protected function displayThumb(LonelyRequest $request, $mode) {
+	protected function displayThumb(Request $request, $mode) {
 		
-		$element = $album = new $this->albumClass($this, $request->album);
+		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
+		$element = $album = new $classname($this, $request->album);
 		if ($request->file) {
-			$element = LonelyFileFactory::create($request->file, $album);
+			$element = FileFactory::create($request->file, $album);
 		} else if ($request->action[0] == $this->albumThumbName) {
-			$element = LonelyFileFactory::create($request->action[0], $album);
+			$element = FileFactory::create($request->action[0], $album);
 		}
 		
 		if (!$element->isAvailable()) {
@@ -1068,17 +1077,17 @@ class Lonely extends LonelyComponent {
 	}
 	
 	/* shows 150px square thumbnail */
-	protected function thumb150sqAction(LonelyRequest $request) {
+	protected function thumb150sqAction(Request $request) {
 		$this->displayThumb($request, '150sq');
 	}
 	
 	/* shows 300px square thumbnail */
-	protected function thumb300sqAction(LonelyRequest $request) {
+	protected function thumb300sqAction(Request $request) {
 		$this->displayThumb($request, '300sq');
 	}
 	
 	/* shows 700px thumbnail */
-	protected function thumb700pxAction(LonelyRequest $request) {
+	protected function thumb700pxAction(Request $request) {
 		$this->displayThumb($request, '700px');
 	}
 	
@@ -1186,7 +1195,7 @@ class Lonely extends LonelyComponent {
 }
 
 
-abstract class LonelyElement extends LonelyComponent {
+abstract class Element extends Component {
 	
 	/* reference to the parent album if there is one */
 	protected $parentAlbum;
@@ -1207,7 +1216,7 @@ abstract class LonelyElement extends LonelyComponent {
 	private $_altNames;
 	
 	
-	function __construct(LonelyAlbum $parentAlbum = null) {
+	function __construct(Album $parentAlbum = null) {
 		$this->parentAlbum = $parentAlbum;
 	}
 	
@@ -1312,7 +1321,7 @@ abstract class LonelyElement extends LonelyComponent {
 	}
 }
 
-class LonelyAlbum extends LonelyElement {
+class Album extends Element {
 	
 	/* array containing the album path */
 	protected $album;
@@ -1380,7 +1389,7 @@ class LonelyAlbum extends LonelyElement {
 				case 'dir':
 					/* must not be config directory */
 					if (!Lonely::model()->isHiddenAlbumName($filename)) {
-						$classname = Lonely::model()->albumClass;
+						$classname = '\\'.__NAMESPACE__.'\\'.Lonely::model()->albumClass;
 						$album = new $classname(array_merge($this->album, array($filename)), $this);
 						$this->albums[$filename] = $album;
 					}
@@ -1388,7 +1397,7 @@ class LonelyAlbum extends LonelyElement {
 				
 				case 'file':
 					if (!Lonely::model()->isHiddenFileName($filename)) {
-						$file = LonelyFileFactory::create($filename, $this);
+						$file = FileFactory::create($filename, $this);
 						if ($file) {
 							$this->files[$filename] = $file;
 						}
@@ -1594,29 +1603,30 @@ class LonelyAlbum extends LonelyElement {
 	}
 }
 
-class LonelyFileFactory {
+class FileFactory {
 	
 	/* returns the instance of the object or null if not supported */
-	public static function create($filename, LonelyAlbum $parentAlbum) {
+	public static function create($filename, Album $parentAlbum) {
 		$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 		if (!in_array($extension, Lonely::model()->extensions)) {
 			return null;
 		}
 		$extensionMap = Lonely::model()->extensionMap;
 		if (isset($extensionMap[$extension])) {
-			return new $extensionMap[$extension]($filename, $parentAlbum);
+			$classname = '\\'.__NAMESPACE__.'\\'.$extensionMap[$extension];
+			return new $classname($filename, $parentAlbum);
 		}
-		return new LonelyGenericFile($filename, $parentAlbum);
+		return new GenericFile($filename, $parentAlbum);
 	}
 }
 
-abstract class LonelyFile extends LonelyElement {
+abstract class File extends Element {
 	
 	/* filename on the file system */
 	private $filename;
 	
 	
-	function __construct($filename, LonelyAlbum $parentAlbum) {
+	function __construct($filename, Album $parentAlbum) {
 		$this->filename = $filename;
 		parent::__construct($parentAlbum);
 		
@@ -1646,7 +1656,7 @@ abstract class LonelyFile extends LonelyElement {
 	}
 }
 
-class LonelyImageFile extends LonelyFile {
+class ImageFile extends File {
 	
 	protected $imageInfo;
 	protected $useOriginalAsThumb = array();
@@ -1844,12 +1854,12 @@ class LonelyImageFile extends LonelyFile {
 	}
 }
 
-class LonelyGenericFile extends LonelyFile {
+class GenericFile extends File {
 	
 	protected $thumbLocationPattern;
 	protected $genericFileName = 'default.png';
 	
-	function __construct($filename, LonelyAlbum $parentAlbum) {
+	function __construct($filename, Album $parentAlbum) {
 		parent::__construct($filename, $parentAlbum);
 		
 		if ($this->getFilename() !== "") {
@@ -1891,7 +1901,7 @@ class LonelyGenericFile extends LonelyFile {
 
 
 /* class to extend when developing a module */
-abstract class LonelyModule {
+abstract class Module {
 	
 	/* sets the LonelyGallery reference */
 	function __construct() {
@@ -1914,7 +1924,7 @@ abstract class LonelyModule {
 	}
 	
 	/* handle request */
-	public function handleRequest(LonelyRequest $request) {
+	public function handleRequest(Request $request) {
 		/* return true if further requests handling is allowed */
 		/* return false if the request is handled */
 		return true;
@@ -1922,7 +1932,7 @@ abstract class LonelyModule {
 }
 
 /* class to extend when developing a design */
-abstract class LonelyDesign extends LonelyModule {
+abstract class Design extends Module {
 	
 	/* returns an array with css files to be loaded as design */
 	public function getCSSFiles() {
@@ -1931,7 +1941,9 @@ abstract class LonelyDesign extends LonelyModule {
 }
 
 /* default design */
-class DefaultLonelyDesign extends LonelyDesign {
+namespace LonelyGallery\DefaultDesign;
+use \LonelyGallery\Lonely as Lonely;
+class DefaultDesign extends \LonelyGallery\Design {
 	
 	/* returns an array with css files to be loaded as design */
 	public function getCSSFiles() {
@@ -1939,7 +1951,7 @@ class DefaultLonelyDesign extends LonelyDesign {
 	}
 	
 	/* config files */
-	public function configAction(LonelyRequest $request) {
+	public function configAction(\LonelyGallery\Request $request) {
 		if ($request->action[0] == 'lonely.css') {
 			$this->displayLonelyCSS();
 		} else {
