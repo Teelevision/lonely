@@ -154,6 +154,9 @@ $settings = array(
 	/* whether to hide the download link on a preview page */
 	// 'hideDownload' => false,
 	
+	/* the number of images in an album thumbnail is the square of this value, e.g. "2" will result in 2x2=4 images */
+	// 'albumThumbSquare' => 2,
+	
 );
 
 /* aaand ... action! */
@@ -407,6 +410,9 @@ class Lonely extends Component {
 	
 	/* whether to hide the download link on a preview page */
 	public $hideDownload = false;
+	
+	/* the number of images in an album thumbnail is the square of this value, e.g. "2" will result in 2x2=4 images */
+	public $albumThumbSquare = 2;
 	
 	/* css files to be loaded */
 	public $cssfiles = array();
@@ -1534,7 +1540,10 @@ class Album extends Element {
 			default: $fileMode = '300sq';
 		}
 		
-		/* get 4 images */
+		$num = max(1, Lonely::model()->albumThumbSquare);
+		$num2 = $num * $num;
+		
+		/* get images */
 		$files = array();
 		$count = 0;
 		foreach($this->getFiles() as $file) {
@@ -1542,25 +1551,25 @@ class Album extends Element {
 				$files[] = $file->getThumbLocation($fileMode);
 				$count++;
 			}
-			if ($count >= 4) {
+			if ($count >= $num2) {
 				break;
 			}
 		}
 		/* not enough? add albums */
-		if ($count < 4) {
+		if ($count < $num2) {
 			foreach($this->getAlbums() as $album) {
 				if ($album->initThumb($mode)) {
 					array_unshift($files, $album->getThumbLocation($mode));
 					$count++;
 				}
-				if ($count >= 4) {
+				if ($count >= $num2) {
 					break;
 				}
 			}
 		}
 		/* not enough? add duplicates */
-		if ($count && $count < 4) {
-			for ($i = 3, $a = 0; $i >= 0 && !isset($files[$i]); $i--) {
+		if ($count && $count < $num2) {
+			for ($i = $num2 - 1, $a = 0; $i >= 0 && !isset($files[$i]); $i--) {
 				if (!isset($files[$a])) {
 					$a = 0;
 				}
@@ -1580,8 +1589,8 @@ class Album extends Element {
 		$square = false;
 		$upscaling = false;
 		switch ($mode) {
-			case '150sq': $square = true; $maxWidth = $maxHeight = 75; break;
-			case '300sq': $square = true; $maxWidth = $maxHeight = 150; break;
+			case '150sq': $square = true; $maxWidth = $maxHeight = 150/$num; break;
+			case '300sq': $square = true; $maxWidth = $maxHeight = 300/$num; break;
 			default: return false;
 		}
 		
@@ -1648,13 +1657,8 @@ class Album extends Element {
 			}
 			
 			/* resize */
-			switch ($nr) {
-				case 0: $toX = 0; $toY = 0; break;
-				case 1: $toX = $maxWidth; $toY = 0; break;
-				case 2: $toX = 0; $toY = $maxHeight; break;
-				case 3: $toX = $maxWidth; $toY = $maxHeight; break;
-				default: return false;
-			}
+			$toX = ($nr % $num) * $maxWidth;
+			$toY = floor($nr / $num) * $maxHeight;
 			imagecopyresampled($thumb, $image, $toX, $toY, $imageX, $imageY, $thumbWidth, $thumbHeight, $imageWidth, $imageHeight);
 			
 			imagedestroy($image);
