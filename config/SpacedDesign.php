@@ -82,11 +82,19 @@ class SpacedDesign extends \LonelyGallery\Design {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-#albums li {
+#albums {
+	margin-bottom: 12px;
+}
+#albums li, #images li {
 	margin: 0 16px 16px 0;
 }
-#images li {
-	margin: 0 32px 32px 0;
+#images li, #images li img {
+	width: 316px;
+	height: 316px;
+}
+#images li a {
+	width: 296px;
+	height: 296px;
 }
 <?php
 		exit;

@@ -390,6 +390,9 @@ class Lonely extends Component {
 	/* name of the thumb file of albums */
 	public $albumThumbName = '_album.jpg';
 	
+	/* file containing the name of the thumb file of a album */
+	public $albumThumbNameFile = '_thumb.txt';
+	
 	/* album class to use */
 	public $albumClass = 'Album';
 	
@@ -693,7 +696,7 @@ class Lonely extends Component {
 	
 	/* evaluates if the file name is hidden */
 	public function isHiddenFileName($name) {
-		if ($this->isHiddenName($name) || $name == $this->albumThumbName || in_array($name, $this->hiddenFileNames)) {
+		if ($this->isHiddenName($name) || $name == $this->albumThumbName || $name == $this->albumThumbNameFile || in_array($name, $this->hiddenFileNames)) {
 			return true;
 		}
 		foreach ($this->hiddenFileNamesPattern as $pattern) {
@@ -1327,6 +1330,9 @@ class Album extends Element {
 	protected $albums;
 	protected $files;
 	
+	/* file to use as thumbnail */
+	private $_thumbImage;
+	
 	
 	function __construct(Array $album = array(), self $parentAlbum = null) {
 		$this->album = $album;
@@ -1427,40 +1433,75 @@ class Album extends Element {
 		return $this->files;
 	}
 	
+	/* returns the thumb image object or false if an own should be rendered */
+	public function getThumbImage() {
+		if ($this->_thumbImage === null) {
+			
+			/* by name file */
+			$nameFile = $this->location.Lonely::model()->albumThumbNameFile;
+			if (is_file($nameFile) && (($name = @file_get_contents($nameFile)) !== false)) {
+				$name = trim($name);
+				$parts = explode('/', $name);
+				if ($c = count($parts)) {
+					/* /root/path */
+					if ($c >= 2 && $parts[0] === '') {
+						$album = array_slice($parts, 1, -1);
+						$album = $album == $this->album ? $this : new Album($album);
+						$file = new ImageFile(end($parts), $album);
+					}
+					/* ./relative/path */
+					else if ($c >= 2 && $parts[0] === '.') {
+						$album = $c == 2 ? $this : new Album(array_merge($this->album, array_slice($parts, 1, -1)));
+						$file = new ImageFile(end($parts), $album);
+					}
+					/* relative/path */
+					else {
+						$album = $c == 1 ? $this : new Album(array_merge($this->album, array_slice($parts, 0, -1)));
+						$file = new ImageFile(end($parts), $album);
+					}
+					if ($file->isAvailable()) {
+						$this->_thumbImage = $file;
+					}
+				}
+			}
+			
+			/* default name */
+			if ($this->_thumbImage === null) {
+				$file = new ImageFile(Lonely::model()->albumThumbName, $this);
+				if ($file->isAvailable()) {
+					$this->_thumbImage = $file;
+				} else {
+					/* render own */
+					$this->_thumbImage = false;
+				}
+			}
+			
+		}
+		return $this->_thumbImage;
+	}
+	
 	/* returns the absolute path of the thumbnail */
 	public function getThumbLocation($mode) {
+		if ($thumbImage = $this->getThumbImage()) {
+			return $thumbImage->getThumbLocation($mode);
+		}
 		return parent::getThumbLocation($mode).rawurlencode(Lonely::model()->albumThumbName);
 	}
 	
 	/* returns the web thumb path */
 	public function getThumbPath($mode) {
-		if ($this->thumbAvailable($mode)) {
-			$path = $this->useOriginalAlbumThumb ? Lonely::model()->rootPath : Lonely::model()->thumbPath.$mode.'/';
-		} else {
-			$path = Lonely::model()->thumbScript.$mode.'/';
+		if ($thumbImage = $this->getThumbImage()) {
+			return $thumbImage->getThumbPath($mode);
 		}
-		return $path.$this->path.rawurlencode(Lonely::model()->albumThumbName);
+		return parent::getThumbPath($mode).rawurlencode(Lonely::model()->albumThumbName);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
 	public function thumbAvailable($mode) {
-		$albumFile = $this->location.Lonely::model()->albumThumbName;
-		$this->useOriginalAlbumThumb = false;
-		/* check manual album image if exists */
-		if (is_file($albumFile)) {
-			$thumbPath = $this->getThumbLocation($mode);
-			if ($thumbPath && ($tTime = @filemtime($thumbPath)) && ($oTime = @filemtime($albumFile)) && $tTime >= $oTime) {
-				return true;
-			}
-			$info = getimagesize($albumFile);
-			switch ($mode) {
-				case '150sq': return ($info[0] <= 150 && $info[1] <= 150 && ($this->useOriginalAlbumThumb = true));
-				case '300sq': return ($info[0] <= 300 && $info[1] <= 300 && ($this->useOriginalAlbumThumb = true));
-				default: return false;
-			}
-		} else {
-			return parent::thumbAvailable($mode);
+		if ($thumbImage = $this->getThumbImage()) {
+			return $thumbImage->thumbAvailable($mode);
 		}
+		return parent::thumbAvailable($mode);
 	}
 	
 	/* creates a thumbnail */
