@@ -1441,24 +1441,44 @@ class Album extends Element {
 			$nameFile = $this->location.Lonely::model()->albumThumbNameFile;
 			if (is_file($nameFile) && (($name = @file_get_contents($nameFile)) !== false)) {
 				$name = trim($name);
-				$parts = explode('/', $name);
-				if ($c = count($parts)) {
-					/* /root/path */
-					if ($c >= 2 && $parts[0] === '') {
-						$album = array_slice($parts, 1, -1);
-						$album = $album == $this->album ? $this : new Album($album);
-						$file = new ImageFile(end($parts), $album);
+				$path = explode('/', $name);
+				if ($c = count($path)) {
+					
+					/* root path */
+					if ($c >= 2 && $path[0] === '') {
+						$path = array_slice($path, 1);
 					}
-					/* ./relative/path */
-					else if ($c >= 2 && $parts[0] === '.') {
-						$album = $c == 2 ? $this : new Album(array_merge($this->album, array_slice($parts, 1, -1)));
-						$file = new ImageFile(end($parts), $album);
-					}
-					/* relative/path */
+					/* relative path */
 					else {
-						$album = $c == 1 ? $this : new Album(array_merge($this->album, array_slice($parts, 0, -1)));
-						$file = new ImageFile(end($parts), $album);
+						$path = array_merge($this->album, $path);
 					}
+					
+					/* consolidate path (remove '.' and '..')*/
+					$num = count($path);
+					for ($a = $b = 0; $a < $num; $a++) {
+						$b = $a - 1;
+						while ($b >= 0 && !isset($path[$b])) {
+							$b--;
+						}
+						/* remove '.' and empty parts */
+						if ($path[$a] == '.' || $path[$a] === '') {
+							unset($path[$a]);
+						}
+						/* implode with previous part */
+						else if ($path[$a] == '..') {
+							unset($path[$a]);
+							if ($b >= 0 && $b < $a) {
+								unset($path[$b]);
+							}
+						}
+					}
+					
+					/* load objects */
+					$album = array_slice($path, 0, -1);
+					$album = $this->album == $album ? $this : new Album($album);
+					$file = FileFactory::create(end($path), $album);
+					
+					/* check file */
 					if ($file->isAvailable()) {
 						$this->_thumbImage = $file;
 					}
@@ -1934,8 +1954,22 @@ class GenericFile extends File {
 		if (!is_dir($dir)) {
 			mkdir($dir, 0777, true);
 		}
+		
 		/* save file */
-		return file_put_contents($saveTo, base64_decode($this->base64EncodedThumbFile));
+		switch ($mode) {
+			
+			case '150sq':
+				$thumb = imagecreatetruecolor(150, 150);
+				$image = imagecreatefromstring(base64_decode($this->base64EncodedThumbFile));
+				imagecopyresampled($thumb, $image, 0, 0, 0, 0, 150, 150, 300, 300);
+				imagedestroy($image);
+				return imagepng($thumb, $saveTo, Lonely::model()->PNGConpression);
+			
+			case '300sq':
+			default:
+				return file_put_contents($saveTo, base64_decode($this->base64EncodedThumbFile));
+			
+		}
 	}
 	
 	protected $base64EncodedThumbFile = 'iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAADzUlEQVR42u3YwQ2CQBRFUTS0oQspgxUNaQW4oANdUY0xUctgo/ShNZgYne8/pwIYkps3LPrr5lkBBLB0BIBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFUJK69Acc2slXgi/Z3xoLC0CwAMECKFEd7YFLv2NDJNH+EVtYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUIliMABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLCCm2hHw74Z2cggWFoBgAQgWEJt/WKSzvzXpz6BbbatuvbOwgJixOt0PggXEiNX5cRQsoOxYXeYxRKyqyj8ssKyCxMrCAssq1LtYWGBZWViAWAkWkDJWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWiFXaWAkWiJVgAWIlWCBWaWMlWCBWggWIlWCBWAkWIFaCBYiVYIFYCRYgVoIFiJVggVgJFiBWggViJVaCBWIlWIBYCRaIlVgJFoiVYAFiJVggVggWiJVgAWIlWCBWCBaIlWABYiVYIFYIFoiVYIFYiZVggVghWCBWggVihWCBWCFYIFaCBWKFYIFYCRYgVoIFYoVggVgJFoiVWAkWiBWCBWIlWCBWYiVYIFYIFoiVYIFYIVjwq2CJVVh1tAce2slX46Mu8yhWggXls6xcCcGywsICyyq3RX/dPB0D4EoIIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAG86QXYMa4//4/U4QAAAABJRU5ErkJggg==';
