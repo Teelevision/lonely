@@ -1039,18 +1039,21 @@ class Lonely extends Component {
 		
 		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
 		$element = $album = new $classname($request->album);
+		/* file thumbnail */
 		if ($request->file) {
 			$element = FileFactory::create($request->file, $album);
-		} else if ($request->action[0] == $this->albumThumbName) {
-			$element = FileFactory::create($request->action[0], $album);
+		}
+		/* album thumbnail */
+		else {
+			$file = $album->getThumbImage();
+			/* own album thumbnail */
+			if ($file && $request->action[0] == $file->getFilename()) {
+				$element = $file;
+			}
 		}
 		
 		if (!$element->isAvailable()) {
-			if ($album->isAvailable()) {
-				$element = $album;
-			} else {
-				$this->error();
-			}
+			$this->error();
 		}
 		
 		if ($element->initThumb($mode)) {
