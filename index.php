@@ -11,7 +11,7 @@ date: 2013-08-29
 
 ### Requirements ###
 
-PHP 5.0.0 or above
+PHP 5.3.0 or above
 GD library for PHP
 
 ### License ###
@@ -302,7 +302,7 @@ class Request extends Component {
 		/* search for the longest path that is a file or dir */
 		for ($i = 0; $i <= count($requestArray); $i++) {
 			
-			$path = dirname(__FILE__).DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, array_slice($requestArray, 0, count($requestArray) - $i));
+			$path = __DIR__.DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, array_slice($requestArray, 0, count($requestArray) - $i));
 			
 			/* check if file */
 			if (@is_file($path)) {
@@ -437,10 +437,10 @@ class Lonely extends Component {
 	/* singleton model */
 	protected static $_model;
 	
-	
-	private function __construct() { /* singleton */ }
-	private function __clone() { /* singleton */ }
-	private function __wakeup() { /* singleton */ }
+	/* singleton */
+	private function __construct() {}
+	private function __clone() {}
+	private function __wakeup() {}
 	
 	public static function model() {
 		if (self::$_model === null) {
@@ -474,7 +474,7 @@ class Lonely extends Component {
 		*/
 		
 		/* config directory */
-		$this->rootDir = dirname(__FILE__).DIRECTORY_SEPARATOR;
+		$this->rootDir = __DIR__.DIRECTORY_SEPARATOR;
 		
 		/* set default design */
 		if ($this->defaultDesign) {
@@ -593,20 +593,22 @@ class Lonely extends Component {
 				$this->addModule(substr($file, 0, -4));
 			}
 			
-			/* value list */
-			else if (substr($file, -9) == ".list.txt") {
-				$value = array();
-				foreach (file($dir.$file, FILE_SKIP_EMPTY_LINES|FILE_IGNORE_NEW_LINES) as $line) {
-					$value[] = $this->utf8ify($line);
-				}
-				$this->{substr($file, 0, -9)} = $value;
-			}
-			
-			/* settings with a value */
+			/* value */
 			else if (substr($file, -4) == ".txt") {
-				$value = file_get_contents($dir.$file);
-				$value = $this->utf8ify($value);
-				$this->{substr($file, 0, -4)} = trim($value);
+				/* list */
+				if (substr($file, -9, -4) == ".list") {
+					$value = array();
+					foreach (file($dir.$file, FILE_SKIP_EMPTY_LINES|FILE_IGNORE_NEW_LINES) as $line) {
+						$value[] = $this->utf8ify($line);
+					}
+					$this->{substr($file, 0, -9)} = $value;
+				}
+				/* single */
+				else {
+					$value = file_get_contents($dir.$file);
+					$value = $this->utf8ify($value);
+					$this->{substr($file, 0, -4)} = trim($value);
+				}
 			}
 			
 			/* otherwise it is a turn on setting */
@@ -623,8 +625,7 @@ class Lonely extends Component {
 		/* let modules handle the request */
 		foreach ($this->modules as $module) {
 			if (method_exists($module, 'handleRequest')) {
-				$goon = call_user_func(array($module, 'handleRequest'), $request);
-				if (!$goon) {
+				if (!call_user_func(array($module, 'handleRequest'), $request)) {
 					return;
 				}
 			}
@@ -637,13 +638,6 @@ class Lonely extends Component {
 			
 			/* thumb */
 			case $this->thumbDirectoryName:
-				$method = $scope[0];
-				foreach (array_slice($scope, 1) as $scope) {
-					$method .= ucfirst($scope);
-				}
-				$method .= 'Action';
-				break;
-			
 			/* config */
 			case $this->configDirectoryName:
 				$method = $scope[0];
@@ -1060,23 +1054,9 @@ class Lonely extends Component {
 		}
 		
 		if ($element->initThumb($mode)) {
-			
 			/* redirect to thumbnail */
 			header("Location: ".$element->getThumbPath($mode));
-		
-			// $mime = $element->getMime();
-			// $path = $element->getThumbLocation($mode);
-			
-			// $lastmodified = filemtime($path);
-			// if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-				// header("HTTP/1.1 304 Not Modified", true, 304);
-			// } else {
-				// header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-				// header('Content-Type: '.$mime);
-				// readfile($path);
-			// }
 			exit;
-		
 		}
 		
 		$this->error(500, 'Could not calculate Thumbnail.');
@@ -1176,7 +1156,7 @@ class Lonely extends Component {
 		}
 		
 		/* page title */
-		echo "\t<title>", $this->escape($this->HTMLTitle ? $this->HTMLTitle : $this->title), "</title>\n";
+		echo "\t<title>", $this->escape($this->HTMLTitle ?: $this->title), "</title>\n";
 	
 	
 	?></head>
