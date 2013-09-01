@@ -856,15 +856,15 @@ class Lonely extends Component {
 			
 			/* breadcrumbs */
 			if (count($parents)) {
-				$html .= "<nav class=\"breadcrumbs\">\n";
-				$html .= "\t<ul>\n";
+				$html .= "<nav class=\"breadcrumbs\">\n".
+					"\t<ul>\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
 					$html .= "\t\t<li><a href=\"".$this->escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".$this->escape($element->getName())."</a></li>\n";
 				}
-				$html .= "\t\t<li>".$this->escape($album->getName())."</li>\n";
-				$html .= "\t</ul>\n";
-				$html .= "</nav>\n\n";
+				$html .= "\t\t<li>".$this->escape($album->getName())."</li>\n".
+					"\t</ul>\n".
+					"</nav>\n\n";
 			}
 			
 			/* albums */
@@ -875,10 +875,10 @@ class Lonely extends Component {
 					$path = $this->escape($this->rootScript.$element->getPath());
 					$thumbpath = $this->escape($element->getThumbPath($mode));
 					$name = $this->escape($element->getName());
-					$html .= "\t<li>\n";
-					$html .= "\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n";
-					$html .= "\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n";
-					$html .= "\t</li>\n";
+					$html .= "\t<li>\n".
+						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
+						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
+						"\t</li>\n";
 				}
 				$html .= "</ul>\n\n";
 			}
@@ -892,10 +892,10 @@ class Lonely extends Component {
 					$path = $this->escape($this->rootScript.$element->getPath().'/'.$action);
 					$thumbpath = $this->escape($element->getThumbPath($mode));
 					$name = $this->escape($element->getName());
-					$html .= "\t<li>\n";
-					$html .= "\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n";
-					$html .= "\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n";
-					$html .= "\t</li>\n";
+					$html .= "\t<li>\n".
+						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
+						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
+						"\t</li>\n";
 				}
 				$html .= "</ul>\n\n";
 			}
@@ -945,15 +945,15 @@ class Lonely extends Component {
 			
 			/* breadcrumbs */
 			if (count($parents)) {
-				$html .= "<nav class=\"breadcrumbs\">\n";
-				$html .= "\t<ul>\n";
+				$html .= "<nav class=\"breadcrumbs\">\n".
+					"\t<ul>\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
 					$html .= "\t\t<li><a href=\"".$this->escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".$this->escape($element->getName())."</a></li>\n";
 				}
-				$html .= "\t\t<li>".$name."</li>\n";
-				$html .= "\t</ul>\n";
-				$html .= "</nav>\n\n";
+				$html .= "\t\t<li>".$name."</li>\n".
+					"\t</ul>\n".
+					"</nav>\n\n";
 			}
 			
 			/* navigation */
@@ -970,21 +970,21 @@ class Lonely extends Component {
 			$next = ($pos+1) < $count ? $files[$pos+1] : null;
 			$last = ($pos+1) < $count ? $files[$count-1] : null;
 			if ($pos !== false) {
-				$html .= "<nav class=\"imagenav\">\n";
-				$html .= "\t<p>\n";
-				$html .= "\t\t".($first ? "<a href=\"".$this->escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span>first</span>")."\n";
-				$html .= "\t\t".($prev ? "<a rel=\"prev\" href=\"".$this->escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span>previous</span>")."\n";
-				$html .= "\t\t".($next ? "<a rel=\"next\" href=\"".$this->escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span>next</span>")."\n";
-				$html .= "\t\t".($last ? "<a href=\"".$this->escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span>last</span>")."\n";
-				$html .= "\t</p>\n";
-				$html .= "</nav>\n\n";
+				$html .= "<nav class=\"imagenav\">\n".
+					"\t<p>\n".
+					"\t\t".($first ? "<a href=\"".$this->escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span>first</span>")."\n".
+					"\t\t".($prev ? "<a rel=\"prev\" href=\"".$this->escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span>previous</span>")."\n".
+					"\t\t".($next ? "<a rel=\"next\" href=\"".$this->escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span>next</span>")."\n".
+					"\t\t".($last ? "<a href=\"".$this->escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span>last</span>")."\n".
+					"\t</p>\n".
+					"</nav>\n\n";
 			}
 			
 			/* image */
 			$html .= "<div class=\"image\">\n";
 			
-			$html .= "\t<div id=\"image\" class=\"image-box\">\n";
-			$html .= "\t\t".$file->getPreviewHTML()."\n";
+			$html .= "\t<div id=\"image\" class=\"image-box\">\n".
+				"\t\t".$file->getPreviewHTML()."\n";
 			if ($prev) {
 				$html .= "\t\t<a class=\"prev\" rel=\"prev\" href=\"".$this->escape($this->rootScript.$prev->getPath().'/'.$action)."\"></a>\n";
 			}
@@ -994,8 +994,8 @@ class Lonely extends Component {
 			$html .= "\t</div>\n\n";
 			
 			/* info */
-			$html .= "\t<div class=\"image-info\">\n";
-			$html .= "\t\t<p class=\"title\">".$name."</p>\n";
+			$html .= "\t<div class=\"image-info\">\n".
+				"\t\t<p class=\"title\">".$name."</p>\n";
 			if (!$this->hideDownload) {
 				$html .= "\t\t<p class=\"download\"><a href=\"".$this->escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
 			}
@@ -1013,8 +1013,8 @@ class Lonely extends Component {
 							$html .= "\t\t<dl>\n";
 							$dlOpen = true;
 						}
-						$html .= "\t\t\t<dt>".$this->escape($key)."</dt>\n";
-						$html .= "\t\t\t<dd>".$this->escape($value)."</dd>\n";
+						$html .= "\t\t\t<dt>".$this->escape($key)."</dt>\n".
+							"\t\t\t<dd>".$this->escape($value)."</dd>\n";
 					}
 				}
 			}
