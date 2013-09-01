@@ -983,7 +983,7 @@ class Lonely extends Component {
 			/* image */
 			$html .= "<div class=\"image\">\n";
 			
-			$html .= "\t<div class=\"image-box\">\n";
+			$html .= "\t<div id=\"image\" class=\"image-box\">\n";
 			$html .= "\t\t".$file->getPreviewHTML()."\n";
 			if ($prev) {
 				$html .= "\t\t<a class=\"prev\" rel=\"prev\" href=\"".$this->escape($this->rootScript.$prev->getPath().'/'.$action)."\"></a>\n";
