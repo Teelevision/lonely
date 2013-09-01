@@ -200,12 +200,12 @@ class ImageInfoModule extends \LonelyGallery\Module {
 		}
 		/* time */
 		if (isset($exif['DateTimeOriginal']) && !self::isEmpty($exif['DateTimeOriginal'])) {
-			$metadata['Date and time'] = date('j M Y, H:i', strtotime($exif['DateTimeOriginal']));
+			$metadata['Date and time'] = @date('j M Y, H:i', strtotime($exif['DateTimeOriginal']));
 		} else if (isset($iptc['2#055'][0]) && !self::isEmpty($iptc['2#055'][0])) {
 			if (isset($iptc['2#060'][0]) && !self::isEmpty($iptc['2#060'][0])) {
-				$metadata['Date and time'] = date('j M Y, H:i', strtotime($exif['2#055'][0].(empty($iptc['2#060'][0]) ? '' : $exif['2#060'][0])));
+				$metadata['Date and time'] = @date('j M Y, H:i', strtotime($exif['2#055'][0].(empty($iptc['2#060'][0]) ? '' : $exif['2#060'][0])));
 			} else {
-				$metadata['Date'] = date('j M Y', strtotime($exif['2#055'][0]));
+				$metadata['Date'] = @date('j M Y', strtotime($exif['2#055'][0]));
 			}
 		}
 		/* location */

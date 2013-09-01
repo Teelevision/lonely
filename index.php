@@ -2029,7 +2029,7 @@ class DefaultDesign extends \LonelyGallery\Design {
 			exit;
 		}
 		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
+		header("Last-Modified: ".@date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
 body {
