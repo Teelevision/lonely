@@ -1468,7 +1468,7 @@ class Album extends Element {
 					$file = FileFactory::create(end($path), $album);
 					
 					/* check file */
-					if ($file->isAvailable()) {
+					if ($file && $file->isAvailable()) {
 						$this->_thumbImage = $file;
 					}
 				}
