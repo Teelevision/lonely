@@ -119,7 +119,7 @@ I recommend setting memory_limit to 64M if you are using a digital camera up to
 
 namespace LonelyGallery;
 
-error_reporting(E_ALL);
+error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT);
 
 /* you can make settings here */
 $settings = array(
@@ -2029,7 +2029,7 @@ class DefaultDesign extends \LonelyGallery\Design {
 			exit;
 		}
 		
-		header("Last-Modified: ".@date(DATE_RFC1123, $lastmodified));
+		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
 body {
