@@ -875,7 +875,8 @@ class Lonely extends Component {
 					$path = $this->escape($this->rootScript.$element->getPath());
 					$thumbpath = $this->escape($element->getThumbPath($mode));
 					$name = $this->escape($element->getName());
-					$html .= "\t<li>\n".
+					$foldername = $this->escape($element->getFoldername());
+					$html .= "\t<li id=\"album_".$foldername."\">\n".
 						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
 						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
 						"\t</li>\n";
@@ -892,7 +893,8 @@ class Lonely extends Component {
 					$path = $this->escape($this->rootScript.$element->getPath().'/'.$action);
 					$thumbpath = $this->escape($element->getThumbPath($mode));
 					$name = $this->escape($element->getName());
-					$html .= "\t<li>\n".
+					$filename = $this->escape($element->getFilename());
+					$html .= "\t<li id=\"file_".$filename."\">\n".
 						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
 						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
 						"\t</li>\n";
@@ -931,6 +933,7 @@ class Lonely extends Component {
 			
 			$html = "";
 			$name = $this->escape($file->getName());
+			$filename = $this->escape($file->getFilename());
 			$action = $this->defaultFileAction;
 			
 			/* parent albums */
@@ -974,6 +977,7 @@ class Lonely extends Component {
 					"\t<p>\n".
 					"\t\t".($first ? "<a href=\"".$this->escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span>first</span>")."\n".
 					"\t\t".($prev ? "<a rel=\"prev\" href=\"".$this->escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span>previous</span>")."\n".
+					"\t\t<a href=\"".$this->escape($this->rootScript.$element->getPath())."#file_".$filename."\">album</a>\n".
 					"\t\t".($next ? "<a rel=\"next\" href=\"".$this->escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span>next</span>")."\n".
 					"\t\t".($last ? "<a href=\"".$this->escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span>last</span>")."\n".
 					"\t</p>\n".
@@ -1322,6 +1326,9 @@ class Album extends Element {
 	/* file to use as thumbnail */
 	private $_thumbImage;
 	
+	/* foldername on the file system */
+	private $_foldername;
+	
 	
 	function __construct(Array $album = array(), self $parentAlbum = null) {
 		$this->album = $album;
@@ -1340,6 +1347,11 @@ class Album extends Element {
 		$name = count($this->album) ? end($this->album) : Lonely::model()->title;
 		$name = str_replace('_', ' ', $name);
 		return $name;
+	}
+	
+	/* returns the foldername */
+	public function getFoldername() {
+		return $this->_foldername;
 	}
 	
 	/* returns the object of the parent album */
@@ -1682,17 +1694,17 @@ class FileFactory {
 abstract class File extends Element {
 	
 	/* filename on the file system */
-	private $filename;
+	private $_filename;
 	
 	
 	function __construct($filename, Album $parentAlbum) {
-		$this->filename = $filename;
+		$this->_filename = $filename;
 		parent::__construct($parentAlbum);
 		
-		if ($this->filename !== "") {
-			$this->location = $this->parentAlbum->getLocation().$this->filename;
-			$this->thumbLocationPattern = $this->parentAlbum->getThumbPathPattern().$this->filename;
-			$this->path = $this->parentAlbum->getPath().rawurlencode($this->filename);
+		if ($this->_filename !== "") {
+			$this->location = $this->parentAlbum->getLocation().$this->_filename;
+			$this->thumbLocationPattern = $this->parentAlbum->getThumbPathPattern().$this->_filename;
+			$this->path = $this->parentAlbum->getPath().rawurlencode($this->_filename);
 		}
 	}
 	
@@ -1706,7 +1718,7 @@ abstract class File extends Element {
 	
 	/* returns the filename */
 	public function getFilename() {
-		return $this->filename;
+		return $this->_filename;
 	}
 	
 	/* returns the HTML code for the preview */
@@ -2150,8 +2162,10 @@ h1 a {
 }
 .imagenav p *:nth-child(1):before { content: "<< "; }
 .imagenav p *:nth-child(2):before { content: "< "; }
-.imagenav p *:nth-child(3):after { content: " >"; }
-.imagenav p *:nth-child(4):after { content: " >>"; }
+.imagenav p *:nth-child(3):before { content: "["; }
+.imagenav p *:nth-child(3):after { content: "]"; }
+.imagenav p *:nth-child(4):after { content: " >"; }
+.imagenav p *:nth-child(5):after { content: " >>"; }
 .image {
 	margin: 0 auto;
 }
