@@ -52,15 +52,15 @@ namespace LonelyGallery\AlbumNamesModule;
 use \LonelyGallery\Lonely as Lonely;
 class AlbumNamesModule extends \LonelyGallery\Module {
 	
-	private $nameFile = '_name.txt';
-	private $tmp_names = '';
+	private $_nameFile = '_name.txt';
+	private $_tmp_names = '';
 	
 	
 	/* executed after __construct() */
 	public function afterConstruct() {
 		Lonely::model()->hiddenFileNames = array_merge(
 			Lonely::model()->hiddenFileNames,
-			array($this->nameFile)
+			array($this->_nameFile)
 		);
 	}
 	
@@ -70,19 +70,18 @@ class AlbumNamesModule extends \LonelyGallery\Module {
 			$location = $element->getLocation();
 			if ($location !== '') {
 				/* cached value */
-				if (isset($this->tmp_names[$location]) && $this->tmp_names[$location] !== "") {
-					return $this->tmp_names[$location];
+				if (isset($this->_tmp_names[$location]) && $this->_tmp_names[$location] !== "") {
+					return $this->_tmp_names[$location];
 				}
-				return $this->tmp_names[$location] = $this->getAlbumName($location);
+				return $this->_tmp_names[$location] = $this->getAlbumName($location);
 			}
 		}
 		return null;
 	}
 	
 	protected function getAlbumName($location) {
-		
 		/* '_name.txt' file */
-		$file = $location.$this->nameFile;
+		$file = $location.$this->_nameFile;
 		if (is_file($file) && is_readable($file) && ($name = trim(file_get_contents($file))) !== '') {
 			return Lonely::model()->utf8ify($name);
 		}

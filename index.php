@@ -300,24 +300,25 @@ class Request extends Component {
 		
 		/* match album, file and action */
 		/* search for the longest path that is a file or dir */
-		for ($i = 0; $i <= count($requestArray); $i++) {
+		$num = count($requestArray);
+		for ($i = 0; $i <= $num; ++$i) {
 			
-			$path = __DIR__.DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, array_slice($requestArray, 0, count($requestArray) - $i));
+			$path = __DIR__.DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, array_slice($requestArray, 0, $num - $i));
 			
 			/* check if file */
 			if (@is_file($path)) {
-				$pos = max(0, count($requestArray) - $i - 1);
+				$pos = max(0, $num - $i - 1);
 				$this->album = array_slice($requestArray, 0, $pos);
 				$this->file = $requestArray[$pos];
-				if (count($requestArray) > ($pos + 1)) {
+				if ($num > ($pos + 1)) {
 					$this->action = array_slice($requestArray, $pos + 1);
 				}
 				break;
 			}
 			if (@is_dir($path)) {
-				$pos = count($requestArray) - $i;
+				$pos = $num - $i;
 				$this->album = array_slice($requestArray, 0, $pos);
-				if (count($requestArray) > $pos) {
+				if ($num > $pos) {
 					$this->action = array_slice($requestArray, $pos);
 				}
 				break;
@@ -538,7 +539,8 @@ class Lonely extends Component {
 		$album = $this->request->album;
 		
 		/* read data from album config dir */
-		for ($n = 1; $n <= count($album); $n++) {
+		$num = count($album);
+		for ($n = 1; $n <= $num; ++$n) {
 			$dir = $this->rootDir.implode(DIRECTORY_SEPARATOR, array_slice($album, 0, $n)).DIRECTORY_SEPARATOR.$this->configDirectoryName.DIRECTORY_SEPARATOR;
 			if (is_readable($dir) && is_executable($dir)) {
 				$this->readConfig($dir);
@@ -599,14 +601,14 @@ class Lonely extends Component {
 				if (substr($file, -9, -4) == ".list") {
 					$value = array();
 					foreach (file($dir.$file, FILE_SKIP_EMPTY_LINES|FILE_IGNORE_NEW_LINES) as $line) {
-						$value[] = $this->utf8ify($line);
+						$value[] = self::utf8ify($line);
 					}
 					$this->{substr($file, 0, -9)} = $value;
 				}
 				/* single */
 				else {
 					$value = file_get_contents($dir.$file);
-					$value = $this->utf8ify($value);
+					$value = self::utf8ify($value);
 					$this->{substr($file, 0, -4)} = trim($value);
 				}
 			}
@@ -747,7 +749,7 @@ class Lonely extends Component {
 		/* first load all files to prevent missing requirements */
 		foreach ($this->modules as $name => &$module) {
 			if (!class_exists('\\'.__NAMESPACE__.'\\'.$name.'\\'.$name)) {
-				require_once($this->configDir.$name.'.php');
+				require($this->configDir.$name.'.php');
 			}
 		}
 		
@@ -800,7 +802,7 @@ class Lonely extends Component {
 	/* add file extensions */
 	public function setExtensions($value) {
 		if (!is_array($value)) {
-			preg_match_all('#[a-z]+#i', $value, $matches);
+			preg_match_all('#[[:alnum:]]+#i', $value, $matches);
 			$value = $matches[0];
 		}
 		foreach ($value as $v) {
@@ -860,9 +862,9 @@ class Lonely extends Component {
 					"\t<ul>\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
-					$html .= "\t\t<li><a href=\"".$this->escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".$this->escape($element->getName())."</a></li>\n";
+					$html .= "\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
 				}
-				$html .= "\t\t<li>".$this->escape($album->getName())."</li>\n".
+				$html .= "\t\t<li>".self::escape($album->getName())."</li>\n".
 					"\t</ul>\n".
 					"</nav>\n\n";
 			}
@@ -872,9 +874,9 @@ class Lonely extends Component {
 			if (count($albums = $album->getAlbums())) {
 				$html .= "<ul id=\"albums\">\n";
 				foreach ($albums as $element) {
-					$path = $this->escape($this->rootScript.$element->getPath());
-					$thumbpath = $this->escape($element->getThumbPath($mode));
-					$name = $this->escape($element->getName());
+					$path = self::escape($this->rootScript.$element->getPath());
+					$thumbpath = self::escape($element->getThumbPath($mode));
+					$name = self::escape($element->getName());
 					$html .= "\t<li id=\"".$element->getId()."\">\n".
 						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
 						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
@@ -889,9 +891,9 @@ class Lonely extends Component {
 			if (count($files = $album->getFiles())) {
 				$html .= "<ul id=\"images\">\n";
 				foreach ($files as $element) {
-					$path = $this->escape($this->rootScript.$element->getPath().'/'.$action);
-					$thumbpath = $this->escape($element->getThumbPath($mode));
-					$name = $this->escape($element->getName());
+					$path = self::escape($this->rootScript.$element->getPath().'/'.$action);
+					$thumbpath = self::escape($element->getThumbPath($mode));
+					$name = self::escape($element->getName());
 					$html .= "\t<li id=\"".$element->getId()."\">\n".
 						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
 						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
@@ -930,7 +932,7 @@ class Lonely extends Component {
 		if ($file && $file->isAvailable()) {
 			
 			$html = "";
-			$name = $this->escape($file->getName());
+			$name = self::escape($file->getName());
 			$action = $this->defaultFileAction;
 			
 			/* parent albums */
@@ -949,7 +951,7 @@ class Lonely extends Component {
 					"\t<ul>\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
-					$html .= "\t\t<li><a href=\"".$this->escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".$this->escape($element->getName())."</a></li>\n";
+					$html .= "\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
 				}
 				$html .= "\t\t<li>".$name."</li>\n".
 					"\t</ul>\n".
@@ -972,11 +974,11 @@ class Lonely extends Component {
 			if ($pos !== false) {
 				$html .= "<nav class=\"imagenav\">\n".
 					"\t<p>\n".
-					"\t\t".($first ? "<a href=\"".$this->escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span>first</span>")."\n".
-					"\t\t".($prev ? "<a rel=\"prev\" href=\"".$this->escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span>previous</span>")."\n".
-					"\t\t<a href=\"".$this->escape($this->rootScript.$element->getPath())."#".$file->getId()."\">album</a>\n".
-					"\t\t".($next ? "<a rel=\"next\" href=\"".$this->escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span>next</span>")."\n".
-					"\t\t".($last ? "<a href=\"".$this->escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span>last</span>")."\n".
+					"\t\t".($first ? "<a href=\"".self::escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span>first</span>")."\n".
+					"\t\t".($prev ? "<a rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span>previous</span>")."\n".
+					"\t\t<a href=\"".self::escape($this->rootScript.$element->getPath())."#".$file->getId()."\">album</a>\n".
+					"\t\t".($next ? "<a rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span>next</span>")."\n".
+					"\t\t".($last ? "<a href=\"".self::escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span>last</span>")."\n".
 					"\t</p>\n".
 					"</nav>\n\n";
 			}
@@ -987,10 +989,10 @@ class Lonely extends Component {
 			$html .= "\t<div id=\"image\" class=\"image-box\">\n".
 				"\t\t".$file->getPreviewHTML()."\n";
 			if ($prev) {
-				$html .= "\t\t<a class=\"prev\" rel=\"prev\" href=\"".$this->escape($this->rootScript.$prev->getPath().'/'.$action)."\"></a>\n";
+				$html .= "\t\t<a class=\"prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."\"></a>\n";
 			}
 			if ($next) {
-				$html .= "\t\t<a class=\"next\" rel=\"next\" href=\"".$this->escape($this->rootScript.$next->getPath().'/'.$action)."\"></a>\n";
+				$html .= "\t\t<a class=\"next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."\"></a>\n";
 			}
 			$html .= "\t</div>\n\n";
 			
@@ -998,7 +1000,7 @@ class Lonely extends Component {
 			$html .= "\t<div class=\"image-info\">\n".
 				"\t\t<p class=\"title\">".$name."</p>\n";
 			if (!$this->hideDownload) {
-				$html .= "\t\t<p class=\"download\"><a href=\"".$this->escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
+				$html .= "\t\t<p class=\"download\"><a href=\"".self::escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
 			}
 			$dlOpen = false;
 			foreach ($this->callEvent('fileInfo', $file) as $data) {
@@ -1008,14 +1010,14 @@ class Lonely extends Component {
 							$html .= "\t\t</dl>\n";
 							$dlOpen = false;
 						}
-						$html .= "\t\t<p>".$this->escape($value)."</p>\n";
+						$html .= "\t\t<p>".self::escape($value)."</p>\n";
 					} else {
 						if (!$dlOpen) {
 							$html .= "\t\t<dl>\n";
 							$dlOpen = true;
 						}
-						$html .= "\t\t\t<dt>".$this->escape($key)."</dt>\n".
-							"\t\t\t<dd>".$this->escape($value)."</dd>\n";
+						$html .= "\t\t\t<dt>".self::escape($key)."</dt>\n".
+							"\t\t\t<dd>".self::escape($value)."</dd>\n";
 					}
 				}
 			}
@@ -1102,13 +1104,13 @@ class Lonely extends Component {
 			header(' ', true, $errno);
 		}
 		$this->HTMLTitle = "Error ".$errno." - ".$this->title;
-		$this->HTMLContent = "<p class=\"error\">".$this->escape($message)."</p>\n\n";
+		$this->HTMLContent = "<p class=\"error\">".self::escape($message)."</p>\n\n";
 		$this->display();
 		exit;
 	}
 	
 	/* make it UTF-8 */
-	public function utf8ify($string) {
+	public static function utf8ify($string) {
 		$encoding = mb_detect_encoding($string, array('UTF-8', 'ISO-8859-1', 'WINDOWS-1252'));
 		if ($encoding != 'UTF-8') {
 			$string = iconv($encoding, 'UTF-8//TRANSLIT', $string);
@@ -1117,12 +1119,12 @@ class Lonely extends Component {
 	}
 	
 	/* reduces the string so it only contains alphanumeric chars, dots, dashes and underscores */
-	public function simplifyString($string) {
+	public static function simplifyString($string) {
 		return preg_replace('#[^-_\.[:alnum:]]#', '_', $string);
 	}
 	
 	/* HTML escape */
-	public function escape($string) {
+	public static function escape($string) {
 		$text = htmlentities(@iconv('UTF-8', 'UTF-8//IGNORE', $string), ENT_QUOTES, 'UTF-8');
 		/* umlauts workaround, https://bugs.php.net/bug.php?id=61484 */
 		if ($text == '' && $string != '') {
@@ -1141,41 +1143,46 @@ class Lonely extends Component {
 		
 		/* optional meta information */
 		if (($m = $this->metaDescription) != "") {
-			echo "\t<meta name=\"description\" content=\"", $this->escape($m), "\">\n";
+			echo "\t<meta name=\"description\" content=\"", self::escape($m), "\">\n";
 		}
 		if (($m = $this->metaKeywords) != "") {
-			echo "\t<meta name=\"keywords\" content=\"", $this->escape($m), "\">\n";
+			echo "\t<meta name=\"keywords\" content=\"", self::escape($m), "\">\n";
 		}
 		if (($m = $this->metaAuthor) != "") {
-			echo "\t<meta name=\"author\" content=\"", $this->escape($m), "\">\n";
+			echo "\t<meta name=\"author\" content=\"", self::escape($m), "\">\n";
 		}
 		if (($m = $this->metaRobots) != "") {
-			echo "\t<meta name=\"robots\" content=\"", $this->escape($m), "\">\n";
+			echo "\t<meta name=\"robots\" content=\"", self::escape($m), "\">\n";
 		}
 		
 		/* CSS */
 		$cssfiles = array_merge($this->design->getCSSFiles(), $this->cssfiles);
 		foreach ($cssfiles as $file) {
-			echo "\t<link type=\"text/css\" rel=\"stylesheet\" media=\"screen\" href=\"", $this->escape($file), "\">\n";
+			echo "\t<link type=\"text/css\" rel=\"stylesheet\" media=\"screen\" href=\"", self::escape($file), "\">\n";
 		}
 		
 		/* JavaScript */
 		foreach ($this->jsfiles as $file) {
-			echo "\t<script type=\"text/javascript\" src=\"", $this->escape($file), "\">\n\n";
+			echo "\t<script type=\"text/javascript\" src=\"", self::escape($file), "\">\n\n";
 		}
 		
 		/* page title */
-		echo "\t<title>", $this->escape($this->HTMLTitle ?: $this->title), "</title>\n";
-	
+		echo "\t<title>", self::escape($this->HTMLTitle ?: $this->title), "</title>\n";
+		
+		if (isset($this->HTMLHead)) {
+			echo strtr($this->HTMLHead, array("\n" => "\n\t"));
+		}
 	
 	?></head>
 <body>
 	
-	<h1><a href="<?php echo $this->escape($this->rootScriptClean); ?>"><?php echo $this->escape($this->title); ?></a></h1>
+	<h1><a href="<?php echo self::escape($this->rootScriptClean); ?>"><?php echo self::escape($this->title); ?></a></h1>
 
 	<div id="content">
 
-		<?php echo str_replace("\n", "\n\t\t", $this->HTMLContent); ?>
+		<?php if (isset($this->HTMLContent)) {
+			echo strtr($this->HTMLContent, array("\n" => "\n\t\t"));
+		} ?>
 	
 	</div>
 	
@@ -1192,8 +1199,8 @@ class Lonely extends Component {
 
 abstract class Element extends Component {
 	
-	/* reference to the parent album if there is one */
-	protected $parentAlbum;
+	/* reference to the parent album */
+	private $_parent;
 	
 	/* absolute location on the filesystem */
 	protected $location;
@@ -1215,17 +1222,17 @@ abstract class Element extends Component {
 	private static $_usedIds = array();
 	
 	
-	function __construct(Album $parentAlbum = null) {
-		$this->parentAlbum = $parentAlbum;
+	function __construct(Album $parent = null) {
+		$this->_parent = $parent;
 	}
 	
 	/* create id */
 	protected static function createId($name) {
 		$buildString = function($name, $postfix = null) {
-			return Lonely::model()->simplifyString($name).($postfix ? '_'.$postfix : '');
+			return Lonely::simplifyString($name).($postfix ? '_'.$postfix : '');
 		};
 		$id = $buildString($name);
-		for ($i = 2; in_array($id, self::$_usedIds); $i++) {
+		for ($i = 2; in_array($id, self::$_usedIds); ++$i) {
 			$id = $buildString($name, $i);
 		}
 		return $id;
@@ -1246,9 +1253,14 @@ abstract class Element extends Component {
 		return @is_readable($this->location);
 	}
 	
+	/* sets the parent album */
+	protected function setParent(Album $parent) {
+		$this->_parent = $parent;
+	}
+	
 	/* returns the object of the parent album */
 	public function getParent() {
-		return $this->parentAlbum;
+		return $this->_parent;
 	}
 	
 	/* returns an array of the parent albums */
@@ -1348,16 +1360,16 @@ class Album extends Element {
 	protected $album;
 	
 	/* albums and files in this album */
-	protected $albums;
-	protected $files;
+	private $_albums;
+	private $_files;
 	
 	/* file to use as thumbnail */
 	private $_thumbImage;
 	
 	
-	function __construct(Array $album = array(), self $parentAlbum = null) {
+	function __construct(Array $album, self $parent = null) {
 		$this->album = $album;
-		parent::__construct($parentAlbum);
+		parent::__construct($parent);
 		
 		$this->initId('album_'.end($this->album));
 		$this->location = Lonely::model()->rootDir.(count($this->album) ? implode(DIRECTORY_SEPARATOR, $this->album).DIRECTORY_SEPARATOR : '');
@@ -1371,23 +1383,24 @@ class Album extends Element {
 			return $altname;
 		}
 		$name = count($this->album) ? end($this->album) : Lonely::model()->title;
-		$name = str_replace('_', ' ', $name);
+		$name = strtr($name, '_', ' ');
 		return $name;
 	}
 	
 	/* returns the object of the parent album */
 	public function getParent() {
-		if ($this->parentAlbum === null && count($this->album) > 0) {
-			$this->parentAlbum = new self(array_slice($this->album, 0, -1));
+		$parent = parent::getParent();
+		if (!$parent && count($this->album)) {
+			$this->setParent($parent = new self(array_slice($this->album, 0, -1)));
 		}
-		return $this->parentAlbum;
+		return $parent;
 	}
 	
 	/* reads in the files and dirs within the directory of this album */
 	public function loadElements() {
 		
-		$this->albums = array();
-		$this->files = array();
+		$this->_albums = array();
+		$this->_files = array();
 		
 		/* this is clean if this is a subdirectory which is not the config or thumb directory */
 		$cleanLocation = count($this->album) && !in_array(Lonely::model()->configDirectoryName, $this->album) && $this->album[0] !== Lonely::model()->thumbDirectoryName;
@@ -1416,7 +1429,7 @@ class Album extends Element {
 					if (!Lonely::model()->isHiddenAlbumName($filename)) {
 						$classname = '\\'.__NAMESPACE__.'\\'.Lonely::model()->albumClass;
 						$album = new $classname(array_merge($this->album, array($filename)), $this);
-						$this->albums[$filename] = $album;
+						$this->_albums[$filename] = $album;
 					}
 					break;
 				
@@ -1424,7 +1437,7 @@ class Album extends Element {
 					if (!Lonely::model()->isHiddenFileName($filename)) {
 						$file = FileFactory::create($filename, $this);
 						if ($file) {
-							$this->files[$filename] = $file;
+							$this->_files[$filename] = $file;
 						}
 					}
 					break;
@@ -1434,25 +1447,25 @@ class Album extends Element {
 		}
 		
 		/* sort alphabetically */
-		ksort($this->albums);
-		ksort($this->files);
+		ksort($this->_albums);
+		ksort($this->_files);
 		
 	}
 	
 	/* returns the array of albums in this album */
 	public function getAlbums() {
-		if ($this->albums === null) {
+		if ($this->_albums === null) {
 			$this->loadElements();
 		}
-		return $this->albums;
+		return $this->_albums;
 	}
 	
 	/* returns the array of files in this album */
 	public function getFiles() {
-		if ($this->files === null) {
+		if ($this->_files === null) {
 			$this->loadElements();
 		}
-		return $this->files;
+		return $this->_files;
 	}
 	
 	/* returns the thumb image object or false if an own should be rendered */
@@ -1477,7 +1490,7 @@ class Album extends Element {
 					
 					/* consolidate path (remove '.' and '..')*/
 					$num = count($path);
-					for ($a = $b = 0; $a < $num; $a++) {
+					for ($a = $b = 0; $a < $num; ++$a) {
 						$b = $a - 1;
 						while ($b >= 0 && !isset($path[$b])) {
 							$b--;
@@ -1565,7 +1578,7 @@ class Album extends Element {
 		foreach($this->getFiles() as $file) {
 			if ($file->initThumb($fileMode)) {
 				$files[] = $file->getThumbLocation($fileMode);
-				$count++;
+				++$count;
 			}
 			if ($count >= $num2) {
 				break;
@@ -1576,7 +1589,7 @@ class Album extends Element {
 			foreach($this->getAlbums() as $album) {
 				if ($album->initThumb($mode)) {
 					array_unshift($files, $album->getThumbLocation($mode));
-					$count++;
+					++$count;
 				}
 				if ($count >= $num2) {
 					break;
@@ -1590,7 +1603,7 @@ class Album extends Element {
 					$a = 0;
 				}
 				$files[$i] = $files[$a++];
-				$count++;
+				++$count;
 			}
 		}
 		
@@ -1679,7 +1692,7 @@ class Album extends Element {
 			
 			imagedestroy($image);
 			
-			$nr++;
+			++$nr;
 		}
 		
 		/* save */
@@ -1698,7 +1711,7 @@ class Album extends Element {
 class FileFactory {
 	
 	/* returns the instance of the object or null if not supported */
-	public static function create($filename, Album $parentAlbum) {
+	public static function create($filename, Album $parent) {
 		$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 		if (!in_array($extension, Lonely::model()->extensions)) {
 			return null;
@@ -1706,9 +1719,9 @@ class FileFactory {
 		$extensionMap = Lonely::model()->extensionMap;
 		if (isset($extensionMap[$extension])) {
 			$classname = '\\'.__NAMESPACE__.'\\'.$extensionMap[$extension];
-			return new $classname($filename, $parentAlbum);
+			return new $classname($filename, $parent);
 		}
-		return new GenericFile($filename, $parentAlbum);
+		return new GenericFile($filename, $parent);
 	}
 }
 
@@ -1718,15 +1731,16 @@ abstract class File extends Element {
 	private $_filename;
 	
 	
-	function __construct($filename, Album $parentAlbum) {
+	function __construct($filename, Album $parent) {
 		$this->_filename = $filename;
-		parent::__construct($parentAlbum);
+		parent::__construct($parent);
 		
 		$this->initId('file_'.$this->_filename);
 		if ($this->_filename !== "") {
-			$this->location = $this->parentAlbum->getLocation().$this->_filename;
-			$this->thumbLocationPattern = $this->parentAlbum->getThumbPathPattern().$this->_filename;
-			$this->path = $this->parentAlbum->getPath().rawurlencode($this->_filename);
+			$parent = $this->getParent();
+			$this->location = $parent->getLocation().$this->_filename;
+			$this->thumbLocationPattern = $parent->getThumbPathPattern().$this->_filename;
+			$this->path = $parent->getPath().rawurlencode($this->_filename);
 		}
 	}
 	
@@ -1751,8 +1765,8 @@ abstract class File extends Element {
 
 class ImageFile extends File {
 	
-	protected $imageInfo;
-	protected $useOriginalAsThumb = array();
+	private $_imageInfo;
+	private $_useOriginalAsThumb = array();
 	
 	
 	/* loads the name of this element */
@@ -1762,16 +1776,16 @@ class ImageFile extends File {
 		}
 		$name = $this->getFilename();
 		$name = substr($name, 0, strrpos($name, '.'));
-		$name = str_replace('_', ' ', $name);
+		$name = strtr($name, '_', ' ');
 		return $name;
 	}
 	
 	/* returns the image info */
 	public function getImageInfo() {
-		if (!$this->imageInfo) {
-			$this->imageInfo = getimagesize($this->location);
+		if (!$this->_imageInfo) {
+			$this->_imageInfo = getimagesize($this->location);
 		}
-		return $this->imageInfo;
+		return $this->_imageInfo;
 	}
 	
 	/* returns the mime type */
@@ -1783,13 +1797,13 @@ class ImageFile extends File {
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
 		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath('700px') : $this->getPath();
-		$name = Lonely::model()->escape($this->getName());
-		return "<img src=\"".Lonely::model()->escape($path)."\" alt=\"".$name."\">";
+		$name = Lonely::escape($this->getName());
+		return "<img src=\"".Lonely::escape($path)."\" alt=\"".$name."\">";
 	}
 	
 	/* returns whether this file is suitable as a thumb without resizing */
 	public function canUseOriginalAsThumb($mode) {
-		if (!isset($this->useOriginalAsThumb[$mode])) {
+		if (!isset($this->_useOriginalAsThumb[$mode])) {
 			/* evaluate whether this file has to be resized */
 			
 			/* get info */
@@ -1801,9 +1815,9 @@ class ImageFile extends File {
 				case '700px': $v = ($info[0] <= 700 && $info[1] <= 700); break;
 				default: $v = false;
 			}
-			$this->useOriginalAsThumb[$mode] = $v;
+			$this->_useOriginalAsThumb[$mode] = $v;
 		}
-		return $this->useOriginalAsThumb[$mode];
+		return $this->_useOriginalAsThumb[$mode];
 	}
 	
 	/* returns the absolute path of the thumbnail */
@@ -1942,8 +1956,8 @@ class GenericFile extends File {
 	protected $thumbLocationPattern;
 	protected $genericFileName = 'default.png';
 	
-	function __construct($filename, Album $parentAlbum) {
-		parent::__construct($filename, $parentAlbum);
+	function __construct($filename, Album $parent) {
+		parent::__construct($filename, $parent);
 		
 		if ($this->getFilename() !== "") {
 			$this->thumbLocationPattern = Lonely::model()->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<mode>'.DIRECTORY_SEPARATOR.$this->genericFileName;
@@ -1952,8 +1966,8 @@ class GenericFile extends File {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$path = Lonely::model()->escape($this->getThumbPath('700px'));
-		$name = Lonely::model()->escape($this->getName());
+		$path = Lonely::escape($this->getThumbPath('700px'));
+		$name = Lonely::escape($this->getName());
 		return "<img src=\"".$path."\" alt=\"".$name."\">";
 	}
 	
