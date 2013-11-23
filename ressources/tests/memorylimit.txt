@@ -1,0 +1,32 @@
+Test: PHP's memory limit and image sizes
+Date: around july 2013
+
+I placed images of different sizes and contents in my gallery and 
+started with a memory limit of 1M and doubled it in each pass until 
+1024M. In each pass I called the gallery script to see which images were 
+created and which weren't probably because of insufficent memory. This 
+was only a small test. 
+
+mem   | number of pixels of images that worked first
+limit | in the pass (rounded)
+-------------------------------------------------------------------------
+   1M | 11k
+   2M | 45k
+   4M | 63k, 266k, 288k, 327k, 360k, 430k
+   8M | 423k, 583k, 593k, 1.2M
+  16M | 1M, 1.4M, 1.8M, 1.9M, 2.8M
+  32M | 1.9M, 1.9M, 2M, 2.8M, 5.8M, 6.1M
+  64M | 4M, 5.6M, 5.8M, 8M, 8M, 8M, 8M, 8M, 9.2M, 10M, 10M
+ 128M | (no new)
+ 256M | (no new)
+ 512M | 47M
+1024M | 112M
+
+From this table I created this recommendation:
+megapixels => memory_limit
+2 => 16M
+5 => 32M
+10 => 64M
+50 => 512M
+100 => 1024M
+Or even simpler: double the megapixels double the memory.
