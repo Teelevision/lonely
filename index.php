@@ -1163,7 +1163,7 @@ class Lonely extends Component {
 		
 		/* JavaScript */
 		foreach ($this->jsfiles as $file) {
-			echo "\t<script type=\"text/javascript\" src=\"", self::escape($file), "\">\n\n";
+			echo "\t<script type=\"text/javascript\" src=\"", self::escape($file), "\"></script>\n\n";
 		}
 		
 		/* page title */
