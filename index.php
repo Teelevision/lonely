@@ -887,7 +887,7 @@ class Lonely extends Component {
 			
 			/* files */
 			$mode = '300sq';
-			$action = $this->defaultFileAction.'#image';
+			$action = $this->defaultFileAction;
 			if (count($files = $album->getFiles())) {
 				$html .= "<ul id=\"images\">\n";
 				foreach ($files as $element) {
@@ -933,7 +933,7 @@ class Lonely extends Component {
 			
 			$html = "";
 			$name = self::escape($file->getName());
-			$action = $this->defaultFileAction.'#image';
+			$action = $this->defaultFileAction;
 			
 			/* parent albums */
 			$parents = $file->getParents();
@@ -989,17 +989,16 @@ class Lonely extends Component {
 			$html .= "\t<div id=\"image\" class=\"image-box\">\n".
 				"\t\t".$file->getPreviewHTML()."\n";
 			if ($prev) {
-				$html .= "\t\t<a class=\"prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."\"></a>\n";
+				$html .= "\t\t<a class=\"prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."#image\"></a>\n";
 			}
 			if ($next) {
-				$html .= "\t\t<a class=\"next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."\"></a>\n";
+				$html .= "\t\t<a class=\"next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."#image\"></a>\n";
 			}
 			$html .= "\t</div>\n\n";
 			
 			/* resize js */
 			$html .= "\t<script type=\"text/javascript\">\n"
 				."\t\t<!--\n\t\tadjustMaxImageHeight();\n"
-				."\t\tscrollToImage();\n"
 				."\t\t-->\n"
 				."\t</script>";
 			
@@ -2302,10 +2301,6 @@ h1 a {
 		?>
 function adjustMaxImageHeight() {
 	document.getElementById('image').getElementsByTagName('img')[0].style.maxHeight = window.innerHeight + 'px';
-}
-function scrollToImage() {
-	var img = document.getElementById('image').getElementsByTagName('img')[0];
-	window.scrollTo(img.offsetTop, img.offsetWidth);
 }
 window.onload = adjustMaxImageHeight;
 window.onresize = adjustMaxImageHeight;
