@@ -887,7 +887,7 @@ class Lonely extends Component {
 			
 			/* files */
 			$mode = '300sq';
-			$action = $this->defaultFileAction;
+			$action = $this->defaultFileAction.'#image';
 			if (count($files = $album->getFiles())) {
 				$html .= "<ul id=\"images\">\n";
 				foreach ($files as $element) {
@@ -933,7 +933,7 @@ class Lonely extends Component {
 			
 			$html = "";
 			$name = self::escape($file->getName());
-			$action = $this->defaultFileAction;
+			$action = $this->defaultFileAction.'#image';
 			
 			/* parent albums */
 			$parents = $file->getParents();
@@ -995,6 +995,13 @@ class Lonely extends Component {
 				$html .= "\t\t<a class=\"next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."\"></a>\n";
 			}
 			$html .= "\t</div>\n\n";
+			
+			/* resize js */
+			$html .= "\t<script type=\"text/javascript\">\n"
+				."\t\t<!--\n\t\tadjustMaxImageHeight();\n"
+				."\t\tscrollToImage();\n"
+				."\t\t-->\n"
+				."\t</script>";
 			
 			/* info */
 			$html .= "\t<div class=\"image-info\">\n".
@@ -2056,6 +2063,11 @@ namespace LonelyGallery\DefaultDesign;
 use \LonelyGallery\Lonely as Lonely;
 class DefaultDesign extends \LonelyGallery\Design {
 	
+	/* returns settings for default design */
+	public function afterConstruct() {
+		Lonely::model()->addJsfile(Lonely::model()->configScript.'lonely.js');
+	}
+	
 	/* returns an array with css files to be loaded as design */
 	public function getCSSFiles() {
 		return array(Lonely::model()->configScript.'lonely.css');
@@ -2065,6 +2077,8 @@ class DefaultDesign extends \LonelyGallery\Design {
 	public function configAction(\LonelyGallery\Request $request) {
 		if ($request->action[0] == 'lonely.css') {
 			$this->displayCSS();
+		} else if ($request->action[0] == 'lonely.js') {
+			$this->displayJS();
 		}
 	}
 	
@@ -2271,6 +2285,30 @@ h1 a {
 .image-info p.title:after {
     content: " «";
 }
+<?php
+		exit;
+	}
+	
+	/* lonely.js */
+	public function displayJS() {
+		$lastmodified = filemtime(__FILE__);
+		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
+			header("HTTP/1.1 304 Not Modified", true, 304);
+			exit;
+		}
+		
+		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
+		header('Content-Type: text/css');
+		?>
+function adjustMaxImageHeight() {
+	document.getElementById('image').getElementsByTagName('img')[0].style.maxHeight = window.innerHeight + 'px';
+}
+function scrollToImage() {
+	var img = document.getElementById('image').getElementsByTagName('img')[0];
+	window.scrollTo(img.offsetTop, img.offsetWidth);
+}
+window.onload = adjustMaxImageHeight;
+window.onresize = adjustMaxImageHeight;
 <?php
 		exit;
 	}
