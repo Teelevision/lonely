@@ -2094,13 +2094,16 @@ class DefaultDesign extends \LonelyGallery\Design {
 		header('Content-Type: text/css');
 		?>
 body {
-    margin: 20px auto;
-	background-color: #222;
+    margin: 20px 0;
+	background-color: #111;
 	color: #fff;
 	font-family: Arial,Helvetica,sans-serif;
 	font-size: 14px;
-	width: 90%;
-	width: calc(100% - 60px);
+	width: 100%;
+}
+body > *:not(#content), #content > *:not(.image), .image > *:not(.image-box) {
+	margin-left: 20px;
+	margin-right: 20px;
 }
 a {
 	color: #f20;
