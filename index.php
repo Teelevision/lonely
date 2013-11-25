@@ -911,6 +911,102 @@ class Lonely extends Component {
 				}
 			}
 			
+			/* not empty */
+			else {
+				
+				$html .= "<p><a href=\"".self::escape($this->rootScript.$album->getPath())."large\">Large album view</a></p>\n\n";
+				
+			}
+			
+			$this->HTMLContent = $html;
+			$this->display();
+			exit;
+			
+		}
+		
+		/* nothing requested */
+		$this->error();
+	}
+	
+	/* show all images of an album */
+	protected function lonelyLargeAction(Request $request) {
+		
+		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
+		$album = new $classname($request->album);
+		$file = FileFactory::create($request->file, $album);
+		
+		/* file requested */
+		if ($file && $file->isAvailable()) {
+			$this->error();
+		}
+		
+		/* album requested */
+		if ($album->isAvailable()) {
+			
+			$html = $this->albumText ? '<div id="album-text">'.$this->albumText."</div>\n" : '';
+			
+			/* parent albums */
+			$parents = $album->getParents();
+			
+			/* title */
+			$title = $album->getName();
+			foreach ($parents as $element) {
+				$title .= " - ".$element->getName();
+			}
+			$this->HTMLTitle = $title;
+			
+			/* breadcrumbs */
+			if (count($parents)) {
+				$html .= "<nav class=\"breadcrumbs\">\n".
+					"\t<ul>\n";
+				foreach (array_reverse($parents) as $element) {
+					$path = $element->getPath();
+					$html .= "\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
+				}
+				$path = $album->getPath();
+				$html .= "\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($album->getName())."</a></li>\n".
+					"\t</ul>\n".
+					"</nav>\n\n";
+			}
+			
+			/* files */
+			$action = $this->defaultFileAction;
+			if (count($files = $album->getFiles())) {
+				foreach ($files as $file) {
+					
+					/* image */
+					$name = self::escape($file->getName());
+					$html .= "<div class=\"image\">\n";
+					
+					$html .= "\t<div id=\"image\" class=\"image-box\">\n".
+						"\t\t".$file->getPreviewHTML()."\n".
+						"\t</div>\n\n";
+					
+					/* info */
+					$html .= "\t<div class=\"image-info\">\n".
+						"\t\t<p class=\"title\"><a href=\"".self::escape($this->rootScript.$file->getPath().'/'.$action)."\">".$name."</a></p>\n".
+						"\t</div>\n";
+					
+					$html .= "</div>\n";
+				}
+			}
+					
+			/* resize js */
+			$html .= "<script type=\"text/javascript\">\n".
+				"<!--\n".
+				"adjustMaxImageHeight();\n".
+				"-->\n".
+				"</script>";
+			
+			/* empty album */
+			if (!count($albums) && !count($files)) {
+				if (empty($request->album)) {
+					$html .= "<p>This gallery is empty. Try adding some image files to the directory you placed this script in. You can also have albums by creating directories.</p>";
+				} else {
+					$html .= "<p>This album is empty.</p>";
+				}
+			}
+			
 			$this->HTMLContent = $html;
 			$this->display();
 			exit;
@@ -997,10 +1093,11 @@ class Lonely extends Component {
 			$html .= "\t</div>\n\n";
 			
 			/* resize js */
-			$html .= "\t<script type=\"text/javascript\">\n"
-				."\t\t<!--\n\t\tadjustMaxImageHeight();\n"
-				."\t\t-->\n"
-				."\t</script>";
+			$html .= "<script type=\"text/javascript\">\n".
+				"<!--\n".
+				"adjustMaxImageHeight();\n".
+				"-->\n".
+				"</script>";
 			
 			/* info */
 			$html .= "\t<div class=\"image-info\">\n".
@@ -2226,6 +2323,9 @@ h1 a {
 	max-width: 100%;
 	margin: 0 auto;
 }
+.breadcrumbs + .image, #album-text + .image, .image + .image, .image:first-child {
+	margin-top: 56px;
+}
 .image-box {
 	display: inline-block;
 	position: relative;
@@ -2303,7 +2403,14 @@ h1 a {
 		header('Content-Type: text/css');
 		?>
 function adjustMaxImageHeight() {
-	document.getElementById('image').getElementsByTagName('img')[0].style.maxHeight = window.innerHeight + 'px';
+	var maxHeight = window.innerHeight + 'px';
+	var divs = document.getElementById('content').getElementsByTagName('div');
+	for (var i = 0; i < divs.length; ++i) {
+		var div = divs[i];
+		if (div.className && div.className == 'image') {
+			div.getElementsByTagName('img')[0].style.maxHeight = maxHeight;
+		}
+	}
 }
 window.onload = adjustMaxImageHeight;
 window.onresize = adjustMaxImageHeight;
