@@ -57,6 +57,12 @@ Someone with special knowledge might be able to see your images after all.
 Place the PHP file into the 'config' directory. Create a file named
 'password.txt' in the same directory containing the plain text password.
 
+### Settings ###
+
+* password
+The clear text password to the gallery or album. Place a file named
+'password.txt' in the config directory of the gallery or album.
+
 */
 
 namespace LonelyGallery\PasswordModule;
