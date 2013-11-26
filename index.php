@@ -918,7 +918,7 @@ class Lonely extends Component {
 			}
 			
 			/* not empty */
-			else {
+			else if (count($files)) {
 				
 				$html .= "<p><a href=\"".self::escape($this->rootScript.$album->getPath())."large\">Large album view</a></p>\n\n";
 				
