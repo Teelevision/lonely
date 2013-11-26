@@ -875,7 +875,7 @@ class Lonely extends Component {
 			}
 			
 			/* albums */
-			$mode = '150sq';
+			$mode = '140sq';
 			if (count($albums = $album->getAlbums())) {
 				$html .= "<ul id=\"albums\">\n";
 				foreach ($albums as $element) {
@@ -1176,9 +1176,9 @@ class Lonely extends Component {
 		$this->error(500, 'Could not calculate Thumbnail.');
 	}
 	
-	/* shows 150px square thumbnail */
-	protected function thumb150sqAction(Request $request) {
-		$this->displayThumb($request, '150sq');
+	/* shows 140px square thumbnail */
+	protected function thumb140sqAction(Request $request) {
+		$this->displayThumb($request, '140sq');
 	}
 	
 	/* shows 300px square thumbnail */
@@ -1672,7 +1672,7 @@ class Album extends Element {
 		
 		/* mode for files. should be a mode that is used somewhere else to prevent rendering needless thumbnails */
 		switch ($mode) {
-			case '150sq':
+			case '140sq':
 			case '300sq':
 			default: $fileMode = '300sq';
 		}
@@ -1717,7 +1717,7 @@ class Album extends Element {
 		
 		/* create new image */
 		switch ($mode) {
-			case '150sq': $thumb = imagecreatetruecolor(150, 150); break;
+			case '140sq': $thumb = imagecreatetruecolor(140, 140); break;
 			case '300sq': $thumb = imagecreatetruecolor(300, 300); break;
 			default: return false;
 		}
@@ -1726,7 +1726,7 @@ class Album extends Element {
 		$square = false;
 		$upscaling = false;
 		switch ($mode) {
-			case '150sq': $square = true; $maxWidth = $maxHeight = 150/$num; break;
+			case '140sq': $square = true; $maxWidth = $maxHeight = 140/$num; break;
 			case '300sq': $square = true; $maxWidth = $maxHeight = 300/$num; break;
 			default: return false;
 		}
@@ -1918,7 +1918,7 @@ class ImageFile extends File {
 			$info = $this->getImageInfo();
 			
 			switch ($mode) {
-				case '150sq': $v = ($info[0] == $info[1] && $info[0] <= 150); break;
+				case '140sq': $v = ($info[0] == $info[1] && $info[0] <= 140); break;
 				case '300sq': $v = ($info[0] == $info[1] && $info[0] <= 300); break;
 				case '700px': $v = ($info[0] <= 700 && $info[1] <= 700); break;
 				default: $v = false;
@@ -1958,7 +1958,7 @@ class ImageFile extends File {
 		$square = false;
 		$upscaling = false;
 		switch ($mode) {
-			case '150sq': $square = true; $maxWidth = $maxHeight = 150; break;
+			case '140sq': $square = true; $maxWidth = $maxHeight = 140; break;
 			case '300sq': $square = true; $maxWidth = $maxHeight = 300; break;
 			case '700px': $maxWidth = $maxHeight = 700; break;
 			default: return false;
@@ -2101,10 +2101,10 @@ class GenericFile extends File {
 		/* save file */
 		switch ($mode) {
 			
-			case '150sq':
-				$thumb = imagecreatetruecolor(150, 150);
+			case '140sq':
+				$thumb = imagecreatetruecolor(140, 140);
 				$image = imagecreatefromstring(base64_decode($this->base64EncodedThumbFile));
-				imagecopyresampled($thumb, $image, 0, 0, 0, 0, 150, 150, 300, 300);
+				imagecopyresampled($thumb, $image, 0, 0, 0, 0, 140, 140, 300, 300);
 				imagedestroy($image);
 				return imagepng($thumb, $saveTo, Lonely::model()->PNGConpression);
 			
@@ -2240,6 +2240,9 @@ h1 a {
 	padding: 0 20px;
 	margin: 10px auto 20px;
 }
+#albums {
+	margin-bottom: 12px;
+}
 #albums a, #images a {
 	color: #fff;
 }
@@ -2247,12 +2250,13 @@ h1 a {
 	position: relative;
 	display: block;
 	float: left;
-	width: 150px;
-	height: 150px;
+	width: 140px;
+	height: 140px;
 	overflow: hidden;
 	background-color: #111;
 	text-align: center;
-	line-height: 130px;
+	line-height: 120px;
+	margin: 0 20px 20px 0;
 }
 #images li {
 	width: 300px;
@@ -2264,15 +2268,15 @@ h1 a {
 	width: 300px;
 }
 #albums li img {
-	height: 150px;
-	width: 150px;
+	height: 140px;
+	width: 140px;
 }
 #albums li a, #images li a {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 130px;
-	height: 130px;
+	width: 120px;
+	height: 120px;
 	padding: 10px;
 	background-color: rgba(0,0,0,0);
 	transition: background-color 0.3s;
