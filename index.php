@@ -624,12 +624,17 @@ class Lonely extends Component {
 	/* handle request */
 	public function handleRequest(Request $request) {
 		
+		/* let modules interrupt the request */
+		foreach ($this->modules as $module) {
+			if (method_exists($module, 'checkAccess') && !call_user_func(array($module, 'checkAccess'), $request)) {
+				$this->error(403, 'You are not allowed to access this page.');
+			}
+		}
+		
 		/* let modules handle the request */
 		foreach ($this->modules as $module) {
-			if (method_exists($module, 'handleRequest')) {
-				if (!call_user_func(array($module, 'handleRequest'), $request)) {
-					return;
-				}
+			if (method_exists($module, 'handleRequest') && !call_user_func(array($module, 'handleRequest'), $request)) {
+				return;
 			}
 		}
 		
@@ -1237,7 +1242,7 @@ class Lonely extends Component {
 	}
 	
 	/* displays the page */
-	protected function display() {
+	public function display() {
 		?><!DOCTYPE html>
 <html>
 <head>
