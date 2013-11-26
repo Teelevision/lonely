@@ -522,7 +522,8 @@ class Lonely extends Component {
 				.$_SERVER['SERVER_NAME'] // domain
 				.((($_SERVER['SERVER_PORT'] == 80 && empty($_SERVER['HTTPS'])) || ($_SERVER['SERVER_PORT'] == 443 && !empty($_SERVER['HTTPS']))) ? '' : ':'.$_SERVER['SERVER_PORT']); // port
 		/* root-relative path */
-		$this->rootPath = dirname($_SERVER['SCRIPT_NAME']).'/';
+		$this->rootPath = dirname($_SERVER['SCRIPT_NAME']);
+		$this->rootPath .= ($this->rootPath == '/') ? '' : '/';
 		$this->rootScript = $_SERVER['SCRIPT_NAME'].'?/';
 		$this->rootScriptClean = $_SERVER['SCRIPT_NAME'];
 		$this->thumbPath = $this->rootPath.$this->thumbDirectoryName.'/';
