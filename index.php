@@ -1655,7 +1655,7 @@ class Album extends Element {
 		if (is_file($nameFile) && (($pathes = @file($nameFile, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)) !== false)) {
 			foreach ($pathes as $path) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
-				if ($file->initThumb($fileMode)) {
+				if ($file && $file->initThumb($fileMode)) {
 					$files[] = $file->getThumbLocation($fileMode);
 					if ($file->getParent() === $this) {
 						$usedFiles[] = $file->getFilename();
