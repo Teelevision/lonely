@@ -1308,6 +1308,9 @@ class Lonely extends Component {
 
 abstract class Element extends Component {
 	
+	/* unique path within the gallery */
+	private $_galleryPath;
+	
 	/* reference to the parent album */
 	private $_parent;
 	
@@ -1331,7 +1334,8 @@ abstract class Element extends Component {
 	private static $_usedIds = array();
 	
 	
-	function __construct(Album $parent = null) {
+	function __construct(Array $galleryPath, Album $parent = null) {
+		$this->_galleryPath = $galleryPath;
 		$this->_parent = $parent;
 	}
 	
@@ -1350,6 +1354,11 @@ abstract class Element extends Component {
 	/* inits the id */
 	protected function initId($name) {
 		self::$_usedIds[] = $this->_id = self::createId($name);
+	}
+	
+	/* returns the gallery path */
+	public function getGalleryPath() {
+		return $this->_galleryPath;
 	}
 	
 	/* returns the id */
@@ -1465,9 +1474,6 @@ abstract class Element extends Component {
 
 class Album extends Element {
 	
-	/* array containing the album path */
-	protected $album;
-	
 	/* albums and files in this album */
 	private $_albums;
 	private $_files;
@@ -1477,13 +1483,13 @@ class Album extends Element {
 	
 	
 	function __construct(Array $album, self $parent = null) {
-		$this->album = $album;
-		parent::__construct($parent);
+		parent::__construct($album, $parent);
 		
-		$this->initId('album_'.end($this->album));
-		$this->location = Lonely::model()->rootDir.(count($this->album) ? implode(DIRECTORY_SEPARATOR, $this->album).DIRECTORY_SEPARATOR : '');
-		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<mode>'.DIRECTORY_SEPARATOR.(count($this->album) ? implode(DIRECTORY_SEPARATOR, $this->album).DIRECTORY_SEPARATOR : '');
-		$this->path = count($this->album) ? implode('/', array_map('rawurlencode', $this->album)).'/' : '';
+		$gPath = $this->getGalleryPath();
+		$this->initId('album_'.end($gPath));
+		$this->location = Lonely::model()->rootDir.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
+		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<mode>'.DIRECTORY_SEPARATOR.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
+		$this->path = count($gPath) ? implode('/', array_map('rawurlencode', $gPath)).'/' : '';
 	}
 	
 	/* loads the name of this element */
@@ -1491,7 +1497,8 @@ class Album extends Element {
 		if (($altname = $this->getAlternativeName()) !== null) {
 			return $altname;
 		}
-		$name = count($this->album) ? end($this->album) : Lonely::model()->title;
+		$gPath = $this->getGalleryPath();
+		$name = count($gPath) ? end($gPath) : Lonely::model()->title;
 		$name = strtr($name, '_', ' ');
 		return $name;
 	}
@@ -1499,8 +1506,9 @@ class Album extends Element {
 	/* returns the object of the parent album */
 	public function getParent() {
 		$parent = parent::getParent();
-		if (!$parent && count($this->album)) {
-			$this->setParent($parent = new self(array_slice($this->album, 0, -1)));
+		$gPath = $this->getGalleryPath();
+		if (!$parent && count($gPath)) {
+			$this->setParent($parent = new self(array_slice($gPath, 0, -1)));
 		}
 		return $parent;
 	}
@@ -1512,7 +1520,8 @@ class Album extends Element {
 		$this->_files = array();
 		
 		/* this is clean if this is a subdirectory which is not the config or thumb directory */
-		$cleanLocation = count($this->album) && !in_array(Lonely::model()->configDirectoryName, $this->album) && $this->album[0] !== Lonely::model()->thumbDirectoryName;
+		$gPath = $this->getGalleryPath();
+		$cleanLocation = count($gPath) && !in_array(Lonely::model()->configDirectoryName, $gPath) && $gPath[0] !== Lonely::model()->thumbDirectoryName;
 		
 		/* go through each element */
 		$dir = opendir($this->location);
@@ -1537,7 +1546,7 @@ class Album extends Element {
 					/* must not be config directory */
 					if (!Lonely::model()->isHiddenAlbumName($filename)) {
 						$classname = '\\'.__NAMESPACE__.'\\'.Lonely::model()->albumClass;
-						$album = new $classname(array_merge($this->album, array($filename)), $this);
+						$album = new $classname(array_merge($gPath, array($filename)), $this);
 						$this->_albums[$filename] = $album;
 					}
 					break;
@@ -1583,49 +1592,10 @@ class Album extends Element {
 			
 			/* by name file */
 			$nameFile = $this->location.Lonely::model()->albumThumbNameFile;
-			if (is_file($nameFile) && (($name = @file_get_contents($nameFile)) !== false)) {
-				$name = trim($name);
-				$path = explode('/', $name);
-				if ($c = count($path)) {
-					
-					/* root path */
-					if ($c >= 2 && $path[0] === '') {
-						$path = array_slice($path, 1);
-					}
-					/* relative path */
-					else {
-						$path = array_merge($this->album, $path);
-					}
-					
-					/* consolidate path (remove '.' and '..')*/
-					$num = count($path);
-					for ($a = $b = 0; $a < $num; ++$a) {
-						$b = $a - 1;
-						while ($b >= 0 && !isset($path[$b])) {
-							$b--;
-						}
-						/* remove '.' and empty parts */
-						if ($path[$a] == '.' || $path[$a] === '') {
-							unset($path[$a]);
-						}
-						/* implode with previous part */
-						else if ($path[$a] == '..') {
-							unset($path[$a]);
-							if ($b >= 0 && $b < $a) {
-								unset($path[$b]);
-							}
-						}
-					}
-					
-					/* load objects */
-					$album = array_slice($path, 0, -1);
-					$album = $this->album == $album ? $this : new Album($album);
-					$file = FileFactory::create(end($path), $album);
-					
-					/* check file */
-					if ($file && $file->isAvailable()) {
-						$this->_thumbImage = $file;
-					}
+			if (is_file($nameFile) && (($path = @file_get_contents($nameFile)) !== false)) {
+				$file = FileFactory::createByPath(trim($path), $this);
+				if ($file && $file->isAvailable()) {
+					$this->_thumbImage = $file;
 				}
 			}
 			
@@ -1684,13 +1654,32 @@ class Album extends Element {
 		/* get images */
 		$files = array();
 		$count = 0;
-		foreach($this->getFiles() as $file) {
-			if ($file->initThumb($fileMode)) {
-				$files[] = $file->getThumbLocation($fileMode);
-				++$count;
+		/* get files defined by the thumb file */
+		$usedFiles = array();
+		$nameFile = $this->location.Lonely::model()->albumThumbNameFile;
+		if (is_file($nameFile) && (($pathes = @file($nameFile, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)) !== false)) {
+			foreach ($pathes as $path) {
+				$file = FileFactory::createByPath(trim($path), $this);
+				if ($file->initThumb($fileMode)) {
+					$files[] = $file->getThumbLocation($fileMode);
+					if ($file->getParent()->getGalleryPath() === $this->getGalleryPath()) {
+						$usedFiles[] = $file->getFilename();
+					}
+					if (++$count >= $num2) {
+						break;
+					}
+				}
 			}
-			if ($count >= $num2) {
-				break;
+		}
+		/* not enough? get files that are in the album */
+		if ($count < $num2) {
+			foreach($this->getFiles() as $file) {
+				if ($file->initThumb($fileMode) && !in_array($file->getFilename(), $usedFiles)) {
+					$files[] = $file->getThumbLocation($fileMode);
+					if (++$count >= $num2) {
+						break;
+					}
+				}
 			}
 		}
 		/* not enough? add albums */
@@ -1698,10 +1687,9 @@ class Album extends Element {
 			foreach($this->getAlbums() as $album) {
 				if ($album->initThumb($mode)) {
 					array_unshift($files, $album->getThumbLocation($mode));
-					++$count;
-				}
-				if ($count >= $num2) {
-					break;
+					if (++$count >= $num2) {
+						break;
+					}
 				}
 			}
 		}
@@ -1712,7 +1700,6 @@ class Album extends Element {
 					$a = 0;
 				}
 				$files[$i] = $files[$a++];
-				++$count;
 			}
 		}
 		
@@ -1832,6 +1819,48 @@ class FileFactory {
 		}
 		return new GenericFile($filename, $parent);
 	}
+	
+	/* returns the instance of the object by gallery path or null if not supported */
+	public static function createByPath($path, Album $album) {
+		$path = explode('/', $path);
+		if (!($c = count($path))) {
+			return null;
+		}
+		
+		/* root path */
+		if ($c >= 2 && $path[0] === '') {
+			$path = array_slice($path, 1);
+		}
+		/* relative path */
+		else {
+			$path = array_merge($album->getGalleryPath(), $path);
+		}
+		
+		/* consolidate path (remove '.' and '..')*/
+		$num = count($path);
+		for ($a = $b = 0; $a < $num; ++$a) {
+			$b = $a - 1;
+			while ($b >= 0 && !isset($path[$b])) {
+				$b--;
+			}
+			/* remove '.' and empty parts */
+			if ($path[$a] == '.' || $path[$a] === '') {
+				unset($path[$a]);
+			}
+			/* implode with previous part */
+			else if ($path[$a] == '..') {
+				unset($path[$a]);
+				if ($b >= 0 && $b < $a) {
+					unset($path[$b]);
+				}
+			}
+		}
+		
+		/* load objects */
+		$albumpath = array_slice($path, 0, -1);
+		$album = $album->getGalleryPath() == $albumpath ? $album : new Album($albumpath);
+		return self::create(end($path), $album);
+	}
 }
 
 abstract class File extends Element {
@@ -1841,8 +1870,9 @@ abstract class File extends Element {
 	
 	
 	function __construct($filename, Album $parent) {
+		$gPath = array_merge($parent->getGalleryPath(), array($filename));
 		$this->_filename = $filename;
-		parent::__construct($parent);
+		parent::__construct($gPath, $parent);
 		
 		$this->initId('file_'.$this->_filename);
 		if ($this->_filename !== "") {
