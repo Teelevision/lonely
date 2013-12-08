@@ -2348,15 +2348,15 @@ h1 a {
 	top: 0;
 	left: 0;
 	height: 100%;
-	width: 30%;
+	width: 40%;
 	min-width: 50px;
 	color: #fff;
-	background-color: rgba(0,0,0,.4);
 	opacity: 0;
 	transition: opacity 0.3s;
 	-moz-transition: opacity 0.3s;
 	-webkit-transition: opacity 0.3s;
 	-o-transition: opacity 0.3s;
+	text-shadow: #000 0px 0px 10px;
 }
 .image-box a:hover, .image-box a:focus {
 	opacity: 1;
