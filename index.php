@@ -95,7 +95,7 @@ like every other setting within the 'config' directory.
 
 Album previews are rendered from the album's first 4 images and sub albums.
 Repitition is used to fill up gaps. If you want to set your own album preview
-image, place an image called '_album.jpg' in the album directory. If the preview
+image, place an image called '_thumb.jpg' in the album directory. If the preview
 is not updated when switching between the two variants try deleting the 'thumb'
 directory.
 
@@ -392,9 +392,9 @@ class Lonely extends Component {
 	public $configDirectoryName = 'config';
 	
 	/* name of the thumb file of albums */
-	public $albumThumbName = '_album.jpg';
+	public $albumThumbName = '_thumb.jpg';
 	
-	/* file containing the name of the thumb file of a album */
+	/* file containing the name of the thumb file of an album */
 	public $albumThumbNameFile = '_thumb.txt';
 	
 	/* album class to use */
