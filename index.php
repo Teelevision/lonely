@@ -834,9 +834,8 @@ class Lonely extends Component {
 	/* show album or image */
 	protected function lonelyIndexAction(Request $request) {
 		
-		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
-		$album = new $classname($request->album);
-		$file = FileFactory::create($request->file, $album);
+		$album = Factory::createAlbum($request->album);
+		$file = Factory::createFile($request->file, $album);
 		
 		/* file requested */
 		if ($file && $file->isAvailable()) {
@@ -937,9 +936,8 @@ class Lonely extends Component {
 	/* show all images of an album */
 	protected function lonelyLargeAction(Request $request) {
 		
-		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
-		$album = new $classname($request->album);
-		$file = FileFactory::create($request->file, $album);
+		$album = Factory::createAlbum($request->album);
+		$file = Factory::createFile($request->file, $album);
 		
 		/* file requested */
 		if ($file && $file->isAvailable()) {
@@ -1026,9 +1024,8 @@ class Lonely extends Component {
 	/* display thumb page */
 	protected function lonelyPreviewAction(Request $request) {
 		
-		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
-		$album = new $classname($request->album);
-		$file = FileFactory::create($request->file, $album);
+		$album = Factory::createAlbum($request->album);
+		$file = Factory::createFile($request->file, $album);
 		
 		/* file requested */
 		if ($file && $file->isAvailable()) {
@@ -1149,11 +1146,10 @@ class Lonely extends Component {
 	/* shows the thumbnail */
 	protected function displayThumb(Request $request, $mode) {
 		
-		$classname = '\\'.__NAMESPACE__.'\\'.$this->albumClass;
-		$element = $album = new $classname($request->album);
+		$element = $album = Factory::createAlbum($request->album);
 		/* file thumbnail */
 		if ($request->file) {
-			$element = FileFactory::create($request->file, $album);
+			$element = Factory::createFile($request->file, $album);
 		}
 		/* album thumbnail */
 		else {
@@ -1482,8 +1478,8 @@ class Album extends Element {
 	private $_thumbImage;
 	
 	
-	function __construct(Array $album, self $parent = null) {
-		parent::__construct($album, $parent);
+	function __construct(Array $gPath, self $parent = null) {
+		parent::__construct($gPath, $parent);
 		
 		$gPath = $this->getGalleryPath();
 		$this->initId('album_'.end($gPath));
@@ -1545,15 +1541,14 @@ class Album extends Element {
 				case 'dir':
 					/* must not be config directory */
 					if (!Lonely::model()->isHiddenAlbumName($filename)) {
-						$classname = '\\'.__NAMESPACE__.'\\'.Lonely::model()->albumClass;
-						$album = new $classname(array_merge($gPath, array($filename)), $this);
+						$album = Factory::createAlbum(array_merge($gPath, array($filename)));
 						$this->_albums[$filename] = $album;
 					}
 					break;
 				
 				case 'file':
 					if (!Lonely::model()->isHiddenFileName($filename)) {
-						$file = FileFactory::create($filename, $this);
+						$file = Factory::createFile($filename, $this);
 						if ($file) {
 							$this->_files[$filename] = $file;
 						}
@@ -1593,7 +1588,7 @@ class Album extends Element {
 			/* by name file */
 			$nameFile = $this->location.Lonely::model()->albumThumbNameFile;
 			if (is_file($nameFile) && (($path = @file_get_contents($nameFile)) !== false)) {
-				$file = FileFactory::createByPath(trim($path), $this);
+				$file = Factory::createFileByRelPath(trim($path), $this);
 				if ($file && $file->isAvailable()) {
 					$this->_thumbImage = $file;
 				}
@@ -1601,7 +1596,7 @@ class Album extends Element {
 			
 			/* default name */
 			if ($this->_thumbImage === null) {
-				$file = new ImageFile(Lonely::model()->albumThumbName, $this);
+				$file = Factory::createFile(Lonely::model()->albumThumbName, $this);
 				if ($file->isAvailable()) {
 					$this->_thumbImage = $file;
 				} else {
@@ -1659,10 +1654,10 @@ class Album extends Element {
 		$nameFile = $this->location.Lonely::model()->albumThumbNameFile;
 		if (is_file($nameFile) && (($pathes = @file($nameFile, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)) !== false)) {
 			foreach ($pathes as $path) {
-				$file = FileFactory::createByPath(trim($path), $this);
+				$file = Factory::createFileByRelPath(trim($path), $this);
 				if ($file->initThumb($fileMode)) {
 					$files[] = $file->getThumbLocation($fileMode);
-					if ($file->getParent()->getGalleryPath() === $this->getGalleryPath()) {
+					if ($file->getParent() === $this) {
 						$usedFiles[] = $file->getFilename();
 					}
 					if (++$count >= $num2) {
@@ -1804,10 +1799,40 @@ class Album extends Element {
 	}
 }
 
-class FileFactory {
+class Factory {
 	
-	/* returns the instance of the object or null if not supported */
-	public static function create($filename, Album $parent) {
+	/* elements */
+	private static $_albums = array();
+	private static $_files = array();
+	
+	
+	/* returns the instance of the album */
+	public static function createAlbum($gPath) {
+		$gPathStr = implode('/', $gPath);
+		
+		/* check if object was already created */
+		if (isset(self::$_albums[$gPathStr])) {
+			return self::$_albums[$gPathStr];
+		}
+		
+		/* create object */
+		$parentStr = implode('/', array_slice($gPath, 0, -1));
+		$parent = isset(self::$_albums[$parentStr]) ? self::$_albums[$parentStr] : null;
+		$classname = '\\'.__NAMESPACE__.'\\'.Lonely::model()->albumClass;
+		return self::$_albums[$gPathStr] = new $classname($gPath, $parent);
+	}
+	
+	/* returns the instance of the file or null if not supported */
+	public static function createFile($filename, Album $parent) {
+		$gPath = array_merge($parent->getGalleryPath(), array($filename));
+		$gPathStr = implode('/', $gPath);
+		
+		/* check if object was already created */
+		if (isset(self::$_files[$gPathStr])) {
+			return self::$_files[$gPathStr];
+		}
+		
+		/* create object */
 		$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 		if (!in_array($extension, Lonely::model()->extensions)) {
 			return null;
@@ -1815,14 +1840,14 @@ class FileFactory {
 		$extensionMap = Lonely::model()->extensionMap;
 		if (isset($extensionMap[$extension])) {
 			$classname = '\\'.__NAMESPACE__.'\\'.$extensionMap[$extension];
-			return new $classname($filename, $parent);
+			return self::$_files[$gPathStr] = new $classname($gPath, $filename, $parent);
 		}
-		return new GenericFile($filename, $parent);
+		return self::$_files[$gPathStr] = new GenericFile($gPath, $filename, $parent);
 	}
 	
 	/* returns the instance of the object by gallery path or null if not supported */
-	public static function createByPath($path, Album $album) {
-		$path = explode('/', $path);
+	public static function createFileByRelPath($gPath, Album $album) {
+		$path = explode('/', $gPath);
 		if (!($c = count($path))) {
 			return null;
 		}
@@ -1857,9 +1882,8 @@ class FileFactory {
 		}
 		
 		/* load objects */
-		$albumpath = array_slice($path, 0, -1);
-		$album = $album->getGalleryPath() == $albumpath ? $album : new Album($albumpath);
-		return self::create(end($path), $album);
+		$album = self::createAlbum(array_slice($path, 0, -1));
+		return self::createFile(end($path), $album);
 	}
 }
 
@@ -1869,8 +1893,7 @@ abstract class File extends Element {
 	private $_filename;
 	
 	
-	function __construct($filename, Album $parent) {
-		$gPath = array_merge($parent->getGalleryPath(), array($filename));
+	function __construct($gPath, $filename, Album $parent) {
 		$this->_filename = $filename;
 		parent::__construct($gPath, $parent);
 		
@@ -2095,8 +2118,8 @@ class GenericFile extends File {
 	protected $thumbLocationPattern;
 	protected $genericFileName = 'default.png';
 	
-	function __construct($filename, Album $parent) {
-		parent::__construct($filename, $parent);
+	function __construct($gPath, $filename, Album $parent) {
+		parent::__construct($gPath, $filename, $parent);
 		
 		if ($this->getFilename() !== "") {
 			$this->thumbLocationPattern = Lonely::model()->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<mode>'.DIRECTORY_SEPARATOR.$this->genericFileName;
