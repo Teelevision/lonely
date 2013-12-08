@@ -73,7 +73,7 @@ class PasswordModule extends \LonelyGallery\Module {
 	public function checkAccess(\LonelyGallery\Request $request) {
 		/* check if password is required */
 		$password = trim(Lonely::model()->password);
-		if ($password !== '' && !(count($request->scope) && $request->scope[0] == 'config')) {
+		if ($password !== '' && !(count($request->scope) && in_array($request->scope[0], array('config', 'thumb')))) {
 			/* make session available */
 			session_start();
 			/* login */
