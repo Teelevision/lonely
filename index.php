@@ -1628,7 +1628,7 @@ class Album extends Element {
 	/* checks if there is a up-to-date thumbnail file */
 	public function thumbAvailable($mode) {
 		if ($thumbImage = $this->getThumbImage()) {
-			return $thumbImage->thumbAvailable($mode);
+			return $thumbImage->initThumb($mode);
 		}
 		return parent::thumbAvailable($mode);
 	}
