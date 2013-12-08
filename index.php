@@ -1945,7 +1945,7 @@ class ImageFile extends File {
 	/* returns the image info */
 	public function getImageInfo() {
 		if (!$this->_imageInfo) {
-			$this->_imageInfo = getimagesize($this->location);
+			$this->_imageInfo = @getimagesize($this->location);
 		}
 		return $this->_imageInfo;
 	}
@@ -1971,11 +1971,13 @@ class ImageFile extends File {
 			/* get info */
 			$info = $this->getImageInfo();
 			
-			switch ($mode) {
-				case '140sq': $v = ($info[0] == $info[1] && $info[0] <= 140); break;
-				case '300sq': $v = ($info[0] == $info[1] && $info[0] <= 300); break;
-				case '700px': $v = ($info[0] <= 700 && $info[1] <= 700); break;
-				default: $v = false;
+			$v = false;
+			if ($info) {
+				switch ($mode) {
+					case '140sq': $v = ($info[0] == $info[1] && $info[0] <= 140); break;
+					case '300sq': $v = ($info[0] == $info[1] && $info[0] <= 300); break;
+					case '700px': $v = ($info[0] <= 700 && $info[1] <= 700); break;
+				}
 			}
 			$this->_useOriginalAsThumb[$mode] = $v;
 		}
