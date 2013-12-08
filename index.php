@@ -984,7 +984,7 @@ class Lonely extends Component {
 					$name = self::escape($file->getName());
 					$html .= "<div class=\"image\">\n";
 					
-					$html .= "\t<div id=\"image\" class=\"image-box\">\n".
+					$html .= "\t<div id=\"".$file->getId()."\" class=\"image-box\">\n".
 						"\t\t".$file->getPreviewHTML()."\n".
 						"\t</div>\n\n";
 					
@@ -1074,11 +1074,11 @@ class Lonely extends Component {
 			$next = ($pos+1) < $count ? $files[$pos+1] : null;
 			$last = ($pos+1) < $count ? $files[$count-1] : null;
 			if ($pos !== false) {
-				$html .= "<nav class=\"imagenav\">\n".
+				$html .= "<nav id=\"imagenav\">\n".
 					"\t<p>\n".
 					"\t\t".($first ? "<a href=\"".self::escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span>first</span>")."\n".
 					"\t\t".($prev ? "<a rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span>previous</span>")."\n".
-					"\t\t<a href=\"".self::escape($this->rootScript.$element->getPath())."#".$file->getId()."\">album</a>\n".
+					"\t\t<a id=\"imagenav-album\" href=\"".self::escape($this->rootScript.$element->getPath())."#".$file->getId()."\">album</a>\n".
 					"\t\t".($next ? "<a rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span>next</span>")."\n".
 					"\t\t".($last ? "<a href=\"".self::escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span>last</span>")."\n".
 					"\t</p>\n".
@@ -2309,22 +2309,22 @@ h1 a {
 	box-shadow: 0 0 2px #111;
 	vertical-align: middle;
 }
-.imagenav, .image {
+#imagenav, .image {
 	text-align: center;
 }
-.imagenav p {
+#imagenav p {
 	margin: 0;
 }
-.imagenav p * {
+#imagenav p * {
 	display: inline-block;
 	line-height: 400%;
 }
-.imagenav p *:nth-child(1):before { content: "<< "; }
-.imagenav p *:nth-child(2):before { content: "< "; }
-.imagenav p *:nth-child(3):before { content: "["; }
-.imagenav p *:nth-child(3):after { content: "]"; }
-.imagenav p *:nth-child(4):after { content: " >"; }
-.imagenav p *:nth-child(5):after { content: " >>"; }
+#imagenav p *:nth-child(1):before { content: "<< "; }
+#imagenav p *:nth-child(2):before { content: "< "; }
+#imagenav p *:nth-child(3):before { content: "["; }
+#imagenav p *:nth-child(3):after { content: "]"; }
+#imagenav p *:nth-child(4):after { content: " >"; }
+#imagenav p *:nth-child(5):after { content: " >>"; }
 .image {
 	margin: 0 auto;
 }
@@ -2410,7 +2410,7 @@ h1 a {
 		}
 		
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/css');
+		header('Content-Type: text/javascript');
 		?>
 function adjustMaxImageHeight() {
 	var maxHeight = window.innerHeight + 'px';
@@ -2422,8 +2422,27 @@ function adjustMaxImageHeight() {
 		}
 	}
 }
+function navigate(event) {
+	var k = event.keyCode;
+	switch (k) {
+		case 37: // left arrow
+		case 39: // right arrow
+			var i = document.getElementById('image');
+			if (i) {
+				var a = i.getElementsByTagName('a');
+				for (var i = 0; i < a.length; ++i) {
+					if ((k == 37 && a[i].className == 'prev') || (k == 39 && a[i].className == 'next')) {
+						window.location = a[i].href;
+						return false;
+					}
+				}
+			}
+			break;
+	}
+}
 window.onload = adjustMaxImageHeight;
 window.onresize = adjustMaxImageHeight;
+window.onkeydown = navigate;
 <?php
 		exit;
 	}
