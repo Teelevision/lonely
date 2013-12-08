@@ -96,12 +96,19 @@ class PasswordModule extends \LonelyGallery\Module {
 	
 	/* interrupt access */
 	private function displayLoginPage() {
-		$html = "<form action=\"".$_SERVER['REQUEST_URI']."\" method=\"post\">\n".
+		$html = "<form name=\"pw\" action=\"".$_SERVER['REQUEST_URI']."\" method=\"post\">\n".
 			"\t<p>Password:\n".
 			"\t\t<input type=\"password\" name=\"password\">\n".
 			"\t\t<input type=\"submit\" value=\"OK\">\n".
 			"\t</p>\n".
-			"</form>\n";
+			"</form>\n".
+			"<script type=\"text/javascript\">\n".
+			"<!--\n".
+			"window.addEventListener('load', function() {\n".
+			"\tdocument.pw.password.focus();\n".
+			"}, false);\n".
+			"-->\n".
+			"</script>\n\n";
 		Lonely::model()->HTMLContent = $html;
 		Lonely::model()->display();
 		exit;

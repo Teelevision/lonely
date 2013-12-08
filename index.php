@@ -2440,9 +2440,9 @@ function navigate(event) {
 			break;
 	}
 }
-window.onload = adjustMaxImageHeight;
-window.onresize = adjustMaxImageHeight;
-window.onkeydown = navigate;
+window.addEventListener('load', adjustMaxImageHeight);
+window.addEventListener('resize', adjustMaxImageHeight);
+window.addEventListener('keydown', navigate);
 <?php
 		exit;
 	}
