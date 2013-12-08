@@ -1,0 +1,6 @@
+Lonely PHP Gallery is a image gallery that aims to be simple in many ways: Its
+functionality is limited to the basics you need to properly display and navigate
+through your images and can be extended by modules if needed. Its design is
+plain - the focus should lie on your images. Its implementation uses widely
+supported and up to date standards like HTML5 and CSS3. Its configuration is
+based on text files and does not require any PHP knowledge.
