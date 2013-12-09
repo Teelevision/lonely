@@ -145,9 +145,6 @@ $settings = array(
 	/* whether to use the original file rather than a rendered version on a preview page */
 	// 'useOriginals' => false,
 	
-	/* whether to hide the download link on a preview page */
-	// 'hideDownload' => false,
-	
 	/* the number of images in an album thumbnail is the square of this value, e.g. "2" will result in 2x2=4 images */
 	// 'albumThumbSquare' => 2,
 	
@@ -396,9 +393,6 @@ class Lonely extends Component {
 	
 	/* whether to use the original file rather than a rendered version on a preview page */
 	public $useOriginals = false;
-	
-	/* whether to hide the download link on a preview page */
-	public $hideDownload = false;
 	
 	/* the number of images in an album thumbnail is the square of this value, e.g. "2" will result in 2x2=4 images */
 	public $albumThumbSquare = 2;
@@ -1092,10 +1086,8 @@ class Lonely extends Component {
 			
 			/* info */
 			$html .= "\t<div class=\"image-info\">\n".
-				"\t\t<p class=\"title\">".$name."</p>\n";
-			if (!$this->hideDownload) {
-				$html .= "\t\t<p class=\"download\"><a href=\"".self::escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
-			}
+				"\t\t<p class=\"title\">".$name."</p>\n".
+				"\t\t<p class=\"download\"><a href=\"".self::escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
 			$dlOpen = false;
 			foreach ($this->callEvent('fileInfo', $file) as $data) {
 				foreach ($data as $key => $value) {
