@@ -131,10 +131,10 @@ $settings = array(
 	// 'title' => 'Lonely Gallery',
 	
 	/* META data */
-	// 'metaDescription' => '',
-	// 'metaKeywords' => '',
-	// 'metaAuthor' => '',
-	// 'metaRobots' => '',
+	// 'description' => '',
+	// 'keywords' => '',
+	// 'author' => '',
+	// 'robots' => '',
 	
 	/* HTML to be displayed at the beginning of the album pages */
 	// 'albumText' => '',
@@ -349,20 +349,20 @@ class Lonely extends Component {
 	
 	/* map file extension on class */
 	public $extensionMap = array(
-		'jpg' => 'ImageFile',
-		'jpeg' => 'ImageFile',
-		'png' => 'ImageFile',
-		'gif' => 'ImageFile',
+		'jpg' => 'Image',
+		'jpeg' => 'Image',
+		'png' => 'Image',
+		'gif' => 'Image',
 	);
 	
 	/* gallery title */
 	public $title = 'Lonely Gallery';
 	
 	/* META data */
-	public $metaDescription = '';
-	public $metaKeywords = '';
-	public $metaAuthor = '';
-	public $metaRobots = '';
+	public $description = '';
+	public $keywords = '';
+	public $author = '';
+	public $robots = '';
 	
 	/* HTML to be displayed at the beginning of the album pages */
 	public $albumText = '';
@@ -371,16 +371,16 @@ class Lonely extends Component {
 	public $footer = '';
 	
 	/* name of the thumbnail sub directory */
-	public $thumbDirectoryName = 'thumb';
+	public $thumbDirectory = 'thumb';
 	
 	/* name of the config sub directory */
-	public $configDirectoryName = 'config';
+	public $configDirectory = 'config';
 	
 	/* name of the thumb file of albums */
-	public $albumThumbName = '_thumb.jpg';
+	public $albumThumb = '_thumb.jpg';
 	
 	/* file containing the name of the thumb file of an album */
-	public $albumThumbNameFile = '_thumb.txt';
+	public $albumThumbFile = '_thumb.txt';
 	
 	/* album class to use */
 	public $albumClass = 'Album';
@@ -397,10 +397,8 @@ class Lonely extends Component {
 	/* the number of images in an album thumbnail is the square of this value, e.g. "2" will result in 2x2=4 images */
 	public $albumThumbSquare = 2;
 	
-	/* css files to be loaded */
+	/* css and javascript files to be loaded */
 	public $cssfiles = array();
-	
-	/* javascript files to be loaded */
 	public $jsfiles = array();
 	
 	/* hidden names */
@@ -412,10 +410,10 @@ class Lonely extends Component {
 	public $hiddenAlbumNamesPattern = array();
 	
 	/* modules */
-	private $modules = array();
+	private $_modules = array();
 	
 	/* design */
-	private $design = null;
+	private $_design = null;
 	
 	/* singleton model */
 	protected static $_model;
@@ -470,10 +468,10 @@ class Lonely extends Component {
 		}
 		
 		/* config directory */
-		$this->configDir = $this->rootDir.$this->configDirectoryName.DIRECTORY_SEPARATOR;
+		$this->configDir = $this->rootDir.$this->configDirectory.DIRECTORY_SEPARATOR;
 		if (!is_dir($this->configDir)) {
 			if (!mkdir($this->configDir)) {
-				$this->error(500, 'Config directory (/'.$this->configDirectoryName.') could not be created. Check if your user has permission to write to your gallery directory.');
+				$this->error(500, 'Config directory (/'.$this->configDirectory.') could not be created. Check if your user has permission to write to your gallery directory.');
 			}
 		}
 		
@@ -482,20 +480,20 @@ class Lonely extends Component {
 			$this->readConfig($this->configDir);
 		} else {
 			if (!is_readable($this->configDir)) {
-				$this->error(500, 'Config directory (/'.$this->configDirectoryName.') is not readable.');
+				$this->error(500, 'Config directory (/'.$this->configDirectory.') is not readable.');
 			} else {
-				$this->error(500, 'Config directory (/'.$this->configDirectoryName.') cannot be entered due to missing executing rights.');
+				$this->error(500, 'Config directory (/'.$this->configDirectory.') cannot be entered due to missing executing rights.');
 			}
 		}
 		
 		/* render directory */
-		$this->thumbDir = $this->rootDir.$this->thumbDirectoryName.DIRECTORY_SEPARATOR;
+		$this->thumbDir = $this->rootDir.$this->thumbDirectory.DIRECTORY_SEPARATOR;
 		if (!is_dir($this->thumbDir)) {
 			if (!mkdir($this->thumbDir)) {
-				$this->error(500, 'Thumbnail directory (/'.$this->thumbDirectoryName.') could not be created. Check if your user has permission to write to your gallery directory.');
+				$this->error(500, 'Thumbnail directory (/'.$this->thumbDirectory.') could not be created. Check if your user has permission to write to your gallery directory.');
 			}
 			if (!is_readable($this->thumbDir)) {
-				$this->error(500, 'Thumbnail directory (/'.$this->thumbDirectoryName.') is not readable.');
+				$this->error(500, 'Thumbnail directory (/'.$this->thumbDirectory.') is not readable.');
 			}
 		}
 		
@@ -508,15 +506,15 @@ class Lonely extends Component {
 		$this->rootPath .= ($this->rootPath == '/') ? '' : '/';
 		$this->rootScript = $_SERVER['SCRIPT_NAME'].'?/';
 		$this->rootScriptClean = $_SERVER['SCRIPT_NAME'];
-		$this->thumbPath = $this->rootPath.$this->thumbDirectoryName.'/';
-		$this->thumbScript = $this->rootScript.$this->thumbDirectoryName.'/';
-		$this->configPath = $this->rootPath.$this->configDirectoryName.'/';
-		$this->configScript = $this->rootScript.$this->configDirectoryName.'/';
+		$this->thumbPath = $this->rootPath.$this->thumbDirectory.'/';
+		$this->thumbScript = $this->rootScript.$this->thumbDirectory.'/';
+		$this->configPath = $this->rootPath.$this->configDirectory.'/';
+		$this->configScript = $this->rootScript.$this->configDirectory.'/';
 		
 		/* init request */
 		$scopes = array(
-			array(Request::MATCH_STRING, $this->configDirectoryName),
-			array(Request::MATCH_REGEX, $this->thumbDirectoryName.'/[0-9]+(px|sq)'),
+			array(Request::MATCH_STRING, $this->configDirectory),
+			array(Request::MATCH_REGEX, $this->thumbDirectory.'/[0-9]+(px|sq)'),
 		);
 		$this->request = new Request($scopes);
 		$album = $this->request->album;
@@ -524,7 +522,7 @@ class Lonely extends Component {
 		/* read data from album config dir */
 		$num = count($album);
 		for ($n = 1; $n <= $num; ++$n) {
-			$dir = $this->rootDir.implode(DIRECTORY_SEPARATOR, array_slice($album, 0, $n)).DIRECTORY_SEPARATOR.$this->configDirectoryName.DIRECTORY_SEPARATOR;
+			$dir = $this->rootDir.implode(DIRECTORY_SEPARATOR, array_slice($album, 0, $n)).DIRECTORY_SEPARATOR.$this->configDirectory.DIRECTORY_SEPARATOR;
 			if (is_readable($dir) && is_executable($dir)) {
 				$this->readConfig($dir);
 			}
@@ -608,14 +606,14 @@ class Lonely extends Component {
 	public function handleRequest(Request $request) {
 		
 		/* let modules interrupt the request */
-		foreach ($this->modules as $module) {
+		foreach ($this->_modules as $module) {
 			if (method_exists($module, 'checkAccess') && !call_user_func(array($module, 'checkAccess'), $request)) {
 				$this->error(403, 'You are not allowed to access this page.');
 			}
 		}
 		
 		/* let modules handle the request */
-		foreach ($this->modules as $module) {
+		foreach ($this->_modules as $module) {
 			if (method_exists($module, 'handleRequest') && !call_user_func(array($module, 'handleRequest'), $request)) {
 				return;
 			}
@@ -627,9 +625,9 @@ class Lonely extends Component {
 		switch ($scope[0]) {
 			
 			/* thumb */
-			case $this->thumbDirectoryName:
+			case $this->thumbDirectory:
 			/* config */
-			case $this->configDirectoryName:
+			case $this->configDirectory:
 				$method = $scope[0];
 				foreach (array_slice($scope, 1) as $scope) {
 					$method .= ucfirst($scope);
@@ -641,7 +639,7 @@ class Lonely extends Component {
 			case 'lonely':
 			default:
 				/* don't display album files */
-				if ($request->file == $this->albumThumbName) {
+				if ($request->file == $this->albumThumb) {
 					$this->error();
 				}
 				$method = $scope[0];
@@ -658,7 +656,7 @@ class Lonely extends Component {
 			call_user_func(array($this, $method), $this->request);
 			$somethingCalled = true;
 		}
-		foreach ($this->modules as $module) {
+		foreach ($this->_modules as $module) {
 			if (method_exists($module, $method)) {
 				call_user_func(array($module, $method), $this->request);
 				$somethingCalled = true;
@@ -686,7 +684,7 @@ class Lonely extends Component {
 	
 	/* evaluates if the file name is hidden */
 	public function isHiddenFileName($name) {
-		if ($this->isHiddenName($name) || $name == $this->albumThumbName || $name == $this->albumThumbNameFile || in_array($name, $this->hiddenFileNames)) {
+		if ($this->isHiddenName($name) || $name == $this->albumThumb || $name == $this->albumThumbFile || in_array($name, $this->hiddenFileNames)) {
 			return true;
 		}
 		foreach ($this->hiddenFileNamesPattern as $pattern) {
@@ -699,7 +697,7 @@ class Lonely extends Component {
 	
 	/* evaluates if the dir name is hidden */
 	public function isHiddenAlbumName($name) {
-		if ($this->isHiddenName($name) || $name == $this->configDirectoryName || $name == $this->thumbDirectoryName || in_array($name, $this->hiddenAlbumNames)) {
+		if ($this->isHiddenName($name) || $name == $this->configDirectory || $name == $this->thumbDirectory || in_array($name, $this->hiddenAlbumNames)) {
 			return true;
 		}
 		foreach ($this->hiddenAlbumNamesPattern as $pattern) {
@@ -711,38 +709,34 @@ class Lonely extends Component {
 	}
 	
 	/* add module */
-	public function addModule($modules) {
-		foreach ((array)$modules as $module) {
-			$this->modules[$module] = null;
-		}
+	public function addModule($module) {
+		$this->_modules[$module] = null;
 	}
 	
 	/* remove module */
-	public function removeModule($modules) {
-		foreach ((array)$modules as $module) {
-			if (array_key_exists($module, $this->modules)) {
-				unset($this->modules[$module]);
-			}
+	public function removeModule($module) {
+		if (array_key_exists($module, $this->_modules)) {
+			unset($this->_modules[$module]);
 		}
 	}
 	
 	/* returns the list of modules */
 	public function getModules() {
-		return $this->modules;
+		return $this->_modules;
 	}
 	
 	/* initializes the modules */
 	public function initModules() {
 		
 		/* first load all files to prevent missing requirements */
-		foreach ($this->modules as $name => &$module) {
+		foreach ($this->_modules as $name => &$module) {
 			if (!class_exists('\\'.__NAMESPACE__.'\\'.$name.'\\'.$name)) {
 				require($this->configDir.$name.'.php');
 			}
 		}
 		
 		/* init objects */
-		foreach ($this->modules as $name => &$module) {
+		foreach ($this->_modules as $name => &$module) {
 			
 			/* initialize module */
 			$classname = '\\'.__NAMESPACE__.'\\'.$name.'\\'.$name;
@@ -763,7 +757,7 @@ class Lonely extends Component {
 			
 			/* switch designs */
 			if ($module instanceof Design) {
-				$this->design = $module;
+				$this->_design = $module;
 			}
 			
 		}
@@ -778,7 +772,7 @@ class Lonely extends Component {
 			$args = func_get_args();
 			$method = $args[0].'Event';
 			$data = array();
-			foreach ($this->modules as $moduleName => $module) {
+			foreach ($this->_modules as $moduleName => $module) {
 				if (method_exists($module, $method)) {
 					$data[$moduleName] = call_user_func_array(array($module, $method), array_slice($args, 1));
 				}
@@ -801,16 +795,6 @@ class Lonely extends Component {
 	/* map file extensions to class */
 	public function addExtensionmap(Array $map) {
 		$this->extensionMap = array_merge($this->extensionMap, $map);
-	}
-	
-	/* css files to include */
-	public function addCssfile($files) {
-		$this->cssfiles = array_merge($this->cssfiles, (array)$files);
-	}
-	
-	/* JavaScript files to include */
-	public function addJsfile($files) {
-		$this->jsfiles = array_merge($this->jsfiles, (array)$files);
 	}
 	
 	/* show album or image */
@@ -1179,7 +1163,7 @@ class Lonely extends Component {
 				$this->initModules();
 			} catch (Exception $e) {
 				/* reset all modules */
-				$this->modules = array();
+				$this->_modules = array();
 			}
 		}
 		
@@ -1227,21 +1211,21 @@ class Lonely extends Component {
 <?php
 		
 		/* optional meta information */
-		if (($m = $this->metaDescription) != "") {
+		if (($m = $this->description) != "") {
 			echo "\t<meta name=\"description\" content=\"", self::escape($m), "\">\n";
 		}
-		if (($m = $this->metaKeywords) != "") {
+		if (($m = $this->keywords) != "") {
 			echo "\t<meta name=\"keywords\" content=\"", self::escape($m), "\">\n";
 		}
-		if (($m = $this->metaAuthor) != "") {
+		if (($m = $this->author) != "") {
 			echo "\t<meta name=\"author\" content=\"", self::escape($m), "\">\n";
 		}
-		if (($m = $this->metaRobots) != "") {
+		if (($m = $this->robots) != "") {
 			echo "\t<meta name=\"robots\" content=\"", self::escape($m), "\">\n";
 		}
 		
 		/* CSS */
-		$cssfiles = array_merge($this->design->getCSSFiles(), $this->cssfiles);
+		$cssfiles = array_merge($this->_design->getCSSFiles(), $this->cssfiles);
 		foreach ($cssfiles as $file) {
 			echo "\t<link type=\"text/css\" rel=\"stylesheet\" media=\"screen\" href=\"", self::escape($file), "\">\n";
 		}
@@ -1497,7 +1481,7 @@ class Album extends Element {
 		
 		/* this is clean if this is a subdirectory which is not the config or thumb directory */
 		$gPath = $this->getGalleryPath();
-		$cleanLocation = count($gPath) && !in_array(Lonely::model()->configDirectoryName, $gPath) && $gPath[0] !== Lonely::model()->thumbDirectoryName;
+		$cleanLocation = count($gPath) && !in_array(Lonely::model()->configDirectory, $gPath) && $gPath[0] !== Lonely::model()->thumbDirectory;
 		
 		/* go through each element */
 		$dir = opendir($this->location);
@@ -1566,7 +1550,7 @@ class Album extends Element {
 		if ($this->_thumbImage === null) {
 			
 			/* by name file */
-			$nameFile = $this->location.Lonely::model()->albumThumbNameFile;
+			$nameFile = $this->location.Lonely::model()->albumThumbFile;
 			if (is_file($nameFile) && (($path = @file_get_contents($nameFile)) !== false)) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
 				if ($file && $file->isAvailable()) {
@@ -1576,7 +1560,7 @@ class Album extends Element {
 			
 			/* default name */
 			if ($this->_thumbImage === null) {
-				$file = Factory::createFile(Lonely::model()->albumThumbName, $this);
+				$file = Factory::createFile(Lonely::model()->albumThumb, $this);
 				if ($file->isAvailable()) {
 					$this->_thumbImage = $file;
 				} else {
@@ -1594,7 +1578,7 @@ class Album extends Element {
 		if ($thumbImage = $this->getThumbImage()) {
 			return $thumbImage->getThumbLocation($mode);
 		}
-		return parent::getThumbLocation($mode).rawurlencode(Lonely::model()->albumThumbName);
+		return parent::getThumbLocation($mode).rawurlencode(Lonely::model()->albumThumb);
 	}
 	
 	/* returns the web thumb path */
@@ -1602,7 +1586,7 @@ class Album extends Element {
 		if ($thumbImage = $this->getThumbImage()) {
 			return $thumbImage->getThumbPath($mode);
 		}
-		return parent::getThumbPath($mode).rawurlencode(Lonely::model()->albumThumbName);
+		return parent::getThumbPath($mode).rawurlencode(Lonely::model()->albumThumb);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
@@ -1631,7 +1615,7 @@ class Album extends Element {
 		$count = 0;
 		/* get files defined by the thumb file */
 		$usedFiles = array();
-		$nameFile = $this->location.Lonely::model()->albumThumbNameFile;
+		$nameFile = $this->location.Lonely::model()->albumThumbFile;
 		if (is_file($nameFile) && (($pathes = @file($nameFile, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)) !== false)) {
 			foreach ($pathes as $path) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
@@ -1905,7 +1889,7 @@ abstract class File extends Element {
 	}
 }
 
-class ImageFile extends File {
+class Image extends File {
 	
 	private $_imageInfo;
 	private $_useOriginalAsThumb = array();
@@ -2202,7 +2186,7 @@ class DefaultDesign extends \LonelyGallery\Design {
 	
 	/* returns settings for default design */
 	public function afterConstruct() {
-		Lonely::model()->addJsfile(Lonely::model()->configScript.'lonely.js');
+		Lonely::model()->jsfiles[] = Lonely::model()->configScript.'lonely.js';
 	}
 	
 	/* returns an array with css files to be loaded as design */
