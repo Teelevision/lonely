@@ -142,12 +142,6 @@ $settings = array(
 	/* HTML to be displayed at the end of the page */
 	// 'footer' => '',
 	
-	/* quality of JPEG thumbnails */
-	// 'JPEGQuality' => 80,
-	
-	/* compression of PNG thumbnails: 0 to 9 (max) */
-	// 'PNGConpression' => 9,
-	
 	/* whether to use the original file rather than a rendered version on a preview page */
 	// 'useOriginals' => false,
 	
@@ -378,12 +372,6 @@ class Lonely extends Component {
 	
 	/* HTML to be displayed at the end of the page */
 	public $footer = '';
-	
-	/* quality of JPEG thumbnails */
-	public $JPEGQuality = 80;
-	
-	/* compression of PNG thumbnails: 0 to 9 (max) */
-	public $PNGConpression = 9;
 	
 	/* name of the thumbnail sub directory */
 	public $thumbDirectoryName = 'thumb';
@@ -1795,7 +1783,7 @@ class Album extends Element {
 		}
 		
 		/* write to file */
-		return imagejpeg($thumb, $saveTo, Lonely::model()->JPEGQuality);
+		return imagejpeg($thumb, $saveTo, 80);
 	}
 }
 
@@ -2108,8 +2096,8 @@ class ImageFile extends File {
 		/* write to file */
 		switch ($info[2]) {
 			case IMAGETYPE_GIF: return imagegif($thumb, $saveTo);
-			case IMAGETYPE_JPEG: return imagejpeg($thumb, $saveTo, Lonely::model()->JPEGQuality);
-			case IMAGETYPE_PNG: return imagepng($thumb, $saveTo, Lonely::model()->PNGConpression);
+			case IMAGETYPE_JPEG: return imagejpeg($thumb, $saveTo, 80);
+			case IMAGETYPE_PNG: return imagepng($thumb, $saveTo, 9);
 			case IMAGETYPE_WBMP: return imagewbmp($thumb, $saveTo);
 		}
 	}
@@ -2162,7 +2150,7 @@ class GenericFile extends File {
 				$image = imagecreatefromstring(base64_decode($this->base64EncodedThumbFile));
 				imagecopyresampled($thumb, $image, 0, 0, 0, 0, 140, 140, 300, 300);
 				imagedestroy($image);
-				return imagepng($thumb, $saveTo, Lonely::model()->PNGConpression);
+				return imagepng($thumb, $saveTo, 9);
 			
 			case '300sq':
 			default:
