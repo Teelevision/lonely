@@ -63,7 +63,7 @@ any extension.
 
 namespace LonelyGallery\ImageInfoModule;
 use \LonelyGallery\Lonely as Lonely;
-class ImageInfoModule extends \LonelyGallery\Module {
+class Module extends \LonelyGallery\Module {
 	
 	private $_tmp_names = array();
 	

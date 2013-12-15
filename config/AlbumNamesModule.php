@@ -50,7 +50,7 @@ Place the PHP file into the 'config' directory.
 
 namespace LonelyGallery\AlbumNamesModule;
 use \LonelyGallery\Lonely as Lonely;
-class AlbumNamesModule extends \LonelyGallery\Module {
+class Module extends \LonelyGallery\Module {
 	
 	private $_nameFile = '_name.txt';
 	private $_tmp_names = '';

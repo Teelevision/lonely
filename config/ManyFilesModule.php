@@ -54,7 +54,7 @@ None.
 namespace LonelyGallery\ManyFilesModule;
 use \LonelyGallery\Lonely as Lonely;
 use \LonelyGallery\GenericFile as GenericFile;
-class ManyFilesModule extends \LonelyGallery\Module {
+class Module extends \LonelyGallery\Module {
 	
 	/* returns array of file classes */
 	public function fileClasses() {

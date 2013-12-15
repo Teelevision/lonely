@@ -521,9 +521,9 @@ class Lonely extends Component {
 		$this->initModules();
 		
 		/* init default files */
-		$this->registerFileClass('\\'.__NAMESPACE__.'\\Image');
+		$this->registerFileClass('\\LonelyGallery\\Image');
 		if ($this->extensions) {
-			$this->registerFileClass('\\'.__NAMESPACE__.'\\GenericFile');
+			$this->registerFileClass('\\LonelyGallery\\GenericFile');
 		}
 		
 		/* check for hidden files and directories */
@@ -725,7 +725,7 @@ class Lonely extends Component {
 		
 		/* first load all files to prevent missing requirements */
 		foreach ($this->_modules as $name => &$module) {
-			if (!class_exists('\\'.__NAMESPACE__.'\\'.$name.'\\'.$name)) {
+			if (!class_exists('\\LonelyGallery\\'.$name.'\\Module')) {
 				require($this->configDir.$name.'.php');
 			}
 		}
@@ -734,7 +734,7 @@ class Lonely extends Component {
 		foreach ($this->_modules as $name => &$module) {
 			
 			/* initialize module */
-			$classname = '\\'.__NAMESPACE__.'\\'.$name.'\\'.$name;
+			$classname = '\\LonelyGallery\\'.$name.'\\Module';
 			$module = new $classname();
 			
 			/* fetch settings from module */
@@ -742,7 +742,7 @@ class Lonely extends Component {
 			
 			/* file classes */
 			foreach ($module->fileClasses() as $fileclass) {
-				$this->registerFileClass('\\'.__NAMESPACE__.'\\'.$name.'\\'.$fileclass);
+				$this->registerFileClass('\\LonelyGallery\\'.$name.'\\'.$fileclass);
 			}
 			
 			/* switch designs */
@@ -1676,7 +1676,7 @@ class Factory {
 		/* create object */
 		$parentStr = implode('/', array_slice($gPath, 0, -1));
 		$parent = isset(self::$_albums[$parentStr]) ? self::$_albums[$parentStr] : null;
-		$classname = '\\'.__NAMESPACE__.'\\'.Lonely::model()->albumClass;
+		$classname = '\\LonelyGallery\\'.Lonely::model()->albumClass;
 		return self::$_albums[$gPathStr] = new $classname($gPath, $parent);
 	}
 	
@@ -2088,7 +2088,7 @@ abstract class Design extends Module {
 /* default design */
 namespace LonelyGallery\DefaultDesign;
 use \LonelyGallery\Lonely as Lonely;
-class DefaultDesign extends \LonelyGallery\Design {
+class Module extends \LonelyGallery\Design {
 	
 	/* returns settings for default design */
 	public function afterConstruct() {

@@ -53,7 +53,7 @@ None.
 
 namespace LonelyGallery\BrightDesign;
 use \LonelyGallery\Lonely as Lonely;
-class BrightDesign extends \LonelyGallery\Design {
+class Module extends \LonelyGallery\Design {
 	
 	/* returns an array with css files to be loaded as design */
 	public function getCSSFiles() {

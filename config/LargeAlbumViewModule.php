@@ -50,7 +50,7 @@ Place the PHP file into the 'config' directory.
 
 namespace LonelyGallery\LargeAlbumViewModule;
 use \LonelyGallery\Lonely as Lonely;
-class LargeAlbumViewModule extends \LonelyGallery\Module {
+class Module extends \LonelyGallery\Module {
 	
 	/* returns html to display at the bottom of album index pages */
 	public function albumBottomHtmlEvent(\LonelyGallery\Album $album) {
