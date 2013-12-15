@@ -1494,19 +1494,17 @@ class Album extends Element {
 	/* creates a thumbnail */
 	protected function createThumb($mode, $saveTo) {
 		
-		/* mode for files. should be a mode that is used somewhere else to prevent rendering needless thumbnails */
-		switch ($mode) {
-			case '140sq':
-			case '300sq':
-			default: $fileMode = '300sq';
-		}
+		/* only 140sq */
+		if ($mode != '140sq') return false;
 		
+		/* number of images */
 		$num = max(1, Lonely::model()->albumThumbSquare);
 		$num2 = $num * $num;
 		
 		/* get images */
 		$files = array();
 		$count = 0;
+		$fileMode = '300sq';
 		/* get files defined by the thumb file */
 		$usedFiles = array();
 		$nameFile = $this->location.Lonely::model()->albumThumbFile;
@@ -1557,20 +1555,8 @@ class Album extends Element {
 		}
 		
 		/* create new image */
-		switch ($mode) {
-			case '140sq': $thumb = imagecreatetruecolor(140, 140); break;
-			case '300sq': $thumb = imagecreatetruecolor(300, 300); break;
-			default: return false;
-		}
-		
-		/* modes */
-		$square = false;
-		$upscaling = false;
-		switch ($mode) {
-			case '140sq': $square = true; $maxWidth = $maxHeight = 140/$num; break;
-			case '300sq': $square = true; $maxWidth = $maxHeight = 300/$num; break;
-			default: return false;
-		}
+		$thumb = imagecreatetruecolor(140, 140);
+		$maxWidth = $maxHeight = 140/$num;
 		
 		/* go through files and add them to the thumbnail */
 		$nr = 0;
@@ -1580,49 +1566,22 @@ class Album extends Element {
 			$info = getimagesize($file);
 			
 			/* calculate dimensions */
-			
 			$imageWidth = $info[0];
 			$imageHeight = $info[1];
 			$imageX = $imageY = 0;
 			
-			/* square mode */
-			if ($square) {
-				
-				$thumbWidth = $maxWidth;
-				$thumbHeight = $maxHeight;
-				
-				/* wider than high */
-				if ($imageWidth > $imageHeight) {
-					$imageX = floor(($imageWidth - $imageHeight) / 2);
-					$imageWidth = $imageHeight;
-				}
-				/* higher than wide */
-				else {
-					$imageY = floor(($imageHeight - $imageWidth) / 2);
-					$imageHeight = $imageWidth;
-				}
-				
-			}
+			$thumbWidth = $maxWidth;
+			$thumbHeight = $maxHeight;
 			
-			/* normal mode */
+			/* wider than high */
+			if ($imageWidth > $imageHeight) {
+				$imageX = floor(($imageWidth - $imageHeight) / 2);
+				$imageWidth = $imageHeight;
+			}
+			/* higher than wide */
 			else {
-				
-				/* image is smaller than the max dimension: keep original width and height */
-				if (!$upscaling && $imageWidth < $maxWidth && $imageHeight < $maxHeight) {
-					$thumbWidth = $imageWidth;
-					$thumbHeight = $imageHeight;
-				}
-				/* wider than high */
-				else if ($imageWidth > $imageHeight) {
-					$thumbWidth = $maxWidth;
-					$thumbHeight = $maxWidth / $imageWidth * $imageHeight;
-				}
-				/* higher than wide */
-				else {
-					$thumbWidth = $maxHeight / $imageHeight * $imageWidth;
-					$thumbHeight = $maxHeight;
-				}
-				
+				$imageY = floor(($imageHeight - $imageWidth) / 2);
+				$imageHeight = $imageWidth;
 			}
 			
 			/* load image from file */
@@ -1630,7 +1589,6 @@ class Album extends Element {
 				case IMAGETYPE_GIF: $image = imagecreatefromgif($file); break;
 				case IMAGETYPE_JPEG: $image = imagecreatefromjpeg($file); break;
 				case IMAGETYPE_PNG: $image = imagecreatefrompng($file); break;
-				case IMAGETYPE_WBMP: $image = imagecreatefromwbmp($file); break;
 				default: return false;
 			}
 			
@@ -1876,17 +1834,14 @@ class Image extends File {
 		$info = $this->getImageInfo();
 		
 		/* modes */
-		$square = false;
-		$upscaling = false;
 		switch ($mode) {
 			case '140sq': $square = true; $maxWidth = $maxHeight = 140; break;
 			case '300sq': $square = true; $maxWidth = $maxHeight = 300; break;
-			case '700px': $maxWidth = $maxHeight = 700; break;
+			case '700px': $square = false; $maxWidth = $maxHeight = 700; break;
 			default: return false;
 		}
 		
 		/* calculate dimensions */
-		
 		$imageWidth = $info[0];
 		$imageHeight = $info[1];
 		$imageX = $imageY = 0;
@@ -1895,7 +1850,7 @@ class Image extends File {
 		if ($square) {
 			
 			/* thumb dimensions */
-			if (!$upscaling && ($imageWidth < $maxWidth || $imageHeight < $maxHeight)) {
+			if ($imageWidth < $maxWidth || $imageHeight < $maxHeight) {
 				$thumbWidth = $thumbHeight = min($imageWidth, $imageHeight);
 			} else {
 				$thumbWidth = $maxWidth;
@@ -1919,7 +1874,7 @@ class Image extends File {
 		else {
 			
 			/* image is smaller than the max dimension: keep original width and height */
-			if (!$upscaling && $imageWidth < $maxWidth && $imageHeight < $maxHeight) {
+			if ($imageWidth < $maxWidth && $imageHeight < $maxHeight) {
 				$thumbWidth = $imageWidth;
 				$thumbHeight = $imageHeight;
 			}
@@ -1941,7 +1896,6 @@ class Image extends File {
 			case IMAGETYPE_GIF: $image = imagecreatefromgif($this->location); break;
 			case IMAGETYPE_JPEG: $image = imagecreatefromjpeg($this->location); break;
 			case IMAGETYPE_PNG: $image = imagecreatefrompng($this->location); break;
-			case IMAGETYPE_WBMP: $image = imagecreatefromwbmp($this->location); break;
 			default: return false;
 		}
 		
@@ -1975,7 +1929,6 @@ class Image extends File {
 			case IMAGETYPE_GIF: return imagegif($thumb, $saveTo);
 			case IMAGETYPE_JPEG: return imagejpeg($thumb, $saveTo, 80);
 			case IMAGETYPE_PNG: return imagepng($thumb, $saveTo, 9);
-			case IMAGETYPE_WBMP: return imagewbmp($thumb, $saveTo);
 		}
 	}
 }
