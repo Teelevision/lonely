@@ -124,9 +124,6 @@ error_reporting(E_ALL ^ E_NOTICE ^ E_STRICT);
 /* you can make settings here */
 $settings = array(
 	
-	/* file extensions of the files that should appear in the gallery */
-	// 'extensions' => array('jpg', 'jpeg', 'png', 'gif'),
-	
 	/* gallery title */
 	// 'title' => 'Lonely Gallery',
 	
@@ -344,17 +341,6 @@ class Request extends Component {
 
 class Lonely extends Component {
 	
-	/* file extensions of the files that should appear in the gallery */
-	public $extensions = array('jpg', 'jpeg', 'png', 'gif');
-	
-	/* map file extension on class */
-	public $extensionMap = array(
-		'jpg' => 'Image',
-		'jpeg' => 'Image',
-		'png' => 'Image',
-		'gif' => 'Image',
-	);
-	
 	/* gallery title */
 	public $title = 'Lonely Gallery';
 	
@@ -414,6 +400,9 @@ class Lonely extends Component {
 	
 	/* design */
 	private $_design = null;
+	
+	/* files */
+	private $_files = array();
 	
 	/* singleton model */
 	protected static $_model;
@@ -530,6 +519,12 @@ class Lonely extends Component {
 		
 		/* initialize modules */
 		$this->initModules();
+		
+		/* init default files */
+		$this->registerFileClass('\\'.__NAMESPACE__.'\\Image');
+		if ($this->extensions) {
+			$this->registerFileClass('\\'.__NAMESPACE__.'\\GenericFile');
+		}
 		
 		/* check for hidden files and directories */
 		$file = $this->request->file;
@@ -745,14 +740,9 @@ class Lonely extends Component {
 			/* fetch settings from module */
 			$this->set($module->settings());
 			
-			/* file types */
-			$filetypes = $module->fileTypes();
-			if (is_array($filetypes) && count($filetypes)) {
-				foreach ($filetypes as &$filetype) {
-					$filetype = $name.'\\'.$filetype;
-				}
-				$this->setExtensions(array_keys($filetypes));
-				$this->addExtensionmap($filetypes);
+			/* file classes */
+			foreach ($module->fileClasses() as $fileclass) {
+				$this->registerFileClass('\\'.__NAMESPACE__.'\\'.$name.'\\'.$fileclass);
 			}
 			
 			/* switch designs */
@@ -764,6 +754,16 @@ class Lonely extends Component {
 		
 		$this->_modulesInitialized = true;
 		
+	}
+	
+	/* map file patterns to class */
+	public function registerFileClass($classname) {
+		$this->_files[$classname::pattern()] = $classname;
+	}
+	
+	/* returns map from name pattern to file class */
+	public function getFilePatterns() {
+		return $this->_files;
 	}
 	
 	/* calls an event */
@@ -779,22 +779,6 @@ class Lonely extends Component {
 			}
 			return $data;
 		}
-	}
-	
-	/* add file extensions */
-	public function setExtensions($value) {
-		if (!is_array($value)) {
-			preg_match_all('#[[:alnum:]]+#i', $value, $matches);
-			$value = $matches[0];
-		}
-		foreach ($value as $v) {
-			$this->extensions[] = strtolower($v);
-		}
-	}
-	
-	/* map file extensions to class */
-	public function addExtensionmap(Array $map) {
-		$this->extensionMap = array_merge($this->extensionMap, $map);
 	}
 	
 	/* show album or image */
@@ -1707,16 +1691,13 @@ class Factory {
 		}
 		
 		/* create object */
-		$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-		if (!in_array($extension, Lonely::model()->extensions)) {
-			return null;
+		$patterns = Lonely::model()->getFilePatterns();
+		foreach ($patterns as $pattern => $classname) {
+			if (preg_match($pattern, $filename)) {
+				return self::$_files[$gPathStr] = new $classname($gPath, $filename, $parent);
+			}
 		}
-		$extensionMap = Lonely::model()->extensionMap;
-		if (isset($extensionMap[$extension])) {
-			$classname = '\\'.__NAMESPACE__.'\\'.$extensionMap[$extension];
-			return self::$_files[$gPathStr] = new $classname($gPath, $filename, $parent);
-		}
-		return self::$_files[$gPathStr] = new GenericFile($gPath, $filename, $parent);
+		return null;
 	}
 	
 	/* returns the instance of the object by gallery path or null if not supported */
@@ -1780,6 +1761,11 @@ abstract class File extends Element {
 		}
 	}
 	
+	/* file pattern */
+	public static function pattern() {
+		return '/^$/'; // empty pattern to match nothing
+	}
+	
 	/* loads the name of this element */
 	protected function loadName() {
 		if (($altname = $this->getAlternativeName()) !== null) {
@@ -1804,6 +1790,11 @@ class Image extends File {
 	private $_imageInfo;
 	private $_useOriginalAsThumb = array();
 	
+	
+	/* file pattern */
+	public static function pattern() {
+		return '/\.(png|jpe?g|gif)$/i';
+	}
 	
 	/* loads the name of this element */
 	protected function loadName() {
@@ -2002,6 +1993,11 @@ class GenericFile extends File {
 		}
 	}
 	
+	/* file pattern */
+	public static function pattern() {
+		return '/('.implode('|', Lonely::model()->extensions).')$/i';
+	}
+	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
 		$path = Lonely::escape($this->getThumbPath('700px'));
@@ -2067,8 +2063,8 @@ abstract class Module {
 		return array();
 	}
 	
-	/* returns array of file types like this: array('ext'=>'FileClassName', ...) */
-	public function fileTypes() {
+	/* returns array of file classes */
+	public function fileClasses() {
 		return array();
 	}
 	
