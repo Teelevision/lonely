@@ -58,10 +58,7 @@ class Module extends \LonelyGallery\Module {
 	
 	/* executed after __construct() */
 	public function afterConstruct() {
-		Lonely::model()->hiddenFileNames = array_merge(
-			Lonely::model()->hiddenFileNames,
-			array($this->_nameFile)
-		);
+		Lonely::model()->hiddenFileNames[] = '/^'.preg_quote($this->_nameFile).'$/i';
 	}
 	
 	/* returns the replacing title of the file or null on none replacement */

@@ -225,10 +225,6 @@ class Request extends Component {
 	
 	const MATCH_STRING = 0;
 	const MATCH_REGEX = 1;
-	/* scopes to match against */
-	private static $scopes = array(
-		array(self::MATCH_STRING, 'lonely'),
-	);
 	
 	/* scope, defaults to 'lonely' */
 	private $scope = array('lonely');
@@ -240,7 +236,7 @@ class Request extends Component {
 	private $action = array('index');
 	
 	
-	function __construct(Array $scopes) {
+	function __construct($scopePatterns) {
 		
 		/* get request string */
 		$request = rawurldecode($_SERVER['REQUEST_URI']);
@@ -254,36 +250,11 @@ class Request extends Component {
 		
 		/* convert to array and remove empty entries, then rebuild keys */
 		$requestArray = array_values(array_diff(explode('/', $request), array('')));
-		/* glue back together to have a clean string */
-		$request = implode('/', $requestArray);
 		
 		/* match scope */
-		foreach (array_merge(self::$scopes, $scopes) as $scope) {
-			/* scope = array(0=>type, 1=>match string) */
-			switch ($scope[0]) {
-				case self::MATCH_STRING:
-					/* match string */
-					if (strpos($request, $scope[1]) === 0) {
-						$this->scope = explode('/', $scope[1]);
-						/* adjust request data */
-						$request = substr($request, strlen($scope[1]) + 1);
-						$requestArray = array_slice($requestArray, count($this->scope));
-						/* stop matching */
-						break 2;
-					}
-					break;
-				case self::MATCH_REGEX:
-					/* match regex */
-					if (preg_match('#^('.$scope[1].')(/|$)#', $request, $match)) {
-						$this->scope = explode('/', $match[1]);
-						/* adjust request data */
-						$request = substr($request, strlen($match[1]) + 1);
-						$requestArray = array_slice($requestArray, count($this->scope));
-						/* stop matching */
-						break 2;
-					}
-					break;
-			}
+		if (preg_match_any((array)$scopePatterns, implode('/', $requestArray), $match)) {
+			$this->scope = explode('/', $match[1]);
+			$requestArray = array_slice($requestArray, count($this->scope));
 		}
 		
 		/* match album, file and action */
@@ -371,7 +342,7 @@ class Lonely extends Component {
 	/* album class to use */
 	public $albumClass = 'Album';
 	
-	/* class name of the default design which is used if there is no design module */
+	/* class namespace of the default design which is used if there is no design module */
 	public $defaultDesign = 'DefaultDesign';
 	
 	/* default file action */
@@ -387,13 +358,10 @@ class Lonely extends Component {
 	public $cssfiles = array();
 	public $jsfiles = array();
 	
-	/* hidden names */
-	public $hiddenNames = array();
+	/* hidden elements */
+	public $hiddenNames = array('/^($|\.|-)/');
 	public $hiddenFileNames = array();
 	public $hiddenAlbumNames = array();
-	public $hiddenNamesPattern = array();
-	public $hiddenFileNamesPattern = array();
-	public $hiddenAlbumNamesPattern = array();
 	
 	/* modules */
 	private $_modules = array();
@@ -468,11 +436,7 @@ class Lonely extends Component {
 		if (is_readable($this->configDir) && is_executable($this->configDir)) {
 			$this->readConfig($this->configDir);
 		} else {
-			if (!is_readable($this->configDir)) {
-				$this->error(500, 'Config directory (/'.$this->configDirectory.') is not readable.');
-			} else {
-				$this->error(500, 'Config directory (/'.$this->configDirectory.') cannot be entered due to missing executing rights.');
-			}
+			$this->error(500, 'Config directory (/'.$this->configDirectory.') is missing some rights.');
 		}
 		
 		/* render directory */
@@ -500,12 +464,13 @@ class Lonely extends Component {
 		$this->configPath = $this->rootPath.$this->configDirectory.'/';
 		$this->configScript = $this->rootScript.$this->configDirectory.'/';
 		
+		/* hidden files */
+		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).')$/i';
+		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).')$/i';
+		
 		/* init request */
-		$scopes = array(
-			array(Request::MATCH_STRING, $this->configDirectory),
-			array(Request::MATCH_REGEX, $this->thumbDirectory.'/[0-9]+(px|sq)'),
-		);
-		$this->request = new Request($scopes);
+		$scopePattern = '#^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'/[0-9]+(px|sq))(/|$)#';
+		$this->request = new Request($scopePattern);
 		$album = $this->request->album;
 		
 		/* read data from album config dir */
@@ -666,41 +631,17 @@ class Lonely extends Component {
 	
 	/* evaluates if the file or dir name is hidden */
 	public function isHiddenName($name) {
-		if ($name === '' || $name[0] == '.' || $name[0] == '-' || in_array($name, $this->hiddenNames)) {
-			return true;
-		}
-		foreach ($this->hiddenNamesPattern as $pattern) {
-			if (preg_match($pattern, $name)) {
-				return true;
-			}
-		}
-		return false;
+		return preg_match_any($this->hiddenNames, $name);
 	}
 	
 	/* evaluates if the file name is hidden */
 	public function isHiddenFileName($name) {
-		if ($this->isHiddenName($name) || $name == $this->albumThumb || $name == $this->albumThumbFile || in_array($name, $this->hiddenFileNames)) {
-			return true;
-		}
-		foreach ($this->hiddenFileNamesPattern as $pattern) {
-			if (preg_match($pattern, $name)) {
-				return true;
-			}
-		}
-		return false;
+		return $name == preg_match_any($this->hiddenFileNames, $name) || $this->isHiddenName($name);
 	}
 	
 	/* evaluates if the dir name is hidden */
 	public function isHiddenAlbumName($name) {
-		if ($this->isHiddenName($name) || $name == $this->configDirectory || $name == $this->thumbDirectory || in_array($name, $this->hiddenAlbumNames)) {
-			return true;
-		}
-		foreach ($this->hiddenAlbumNamesPattern as $pattern) {
-			if (preg_match($pattern, $name)) {
-				return true;
-			}
-		}
-		return false;
+		return $name == preg_match_any($this->hiddenAlbumNames, $name) || $this->isHiddenName($name);
 	}
 	
 	/* add module */
@@ -1159,6 +1100,18 @@ class Lonely extends Component {
 	}
 }
 
+/* help functions */
+
+/* returns whether any of the patterns is matched */
+function preg_match_any(Array $patterns, $value, &$match = null) {
+	foreach ($patterns as $pattern) {
+		if (preg_match($pattern, $value, $match)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 
 abstract class Element extends Component {
 	
@@ -1444,8 +1397,7 @@ class Album extends Element {
 		if ($this->_thumbImage === null) {
 			
 			/* by name file */
-			$nameFile = $this->location.Lonely::model()->albumThumbFile;
-			if (is_file($nameFile) && (($path = @file_get_contents($nameFile)) !== false)) {
+			if (($path = @file_get_contents($this->location.Lonely::model()->albumThumbFile)) !== false) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
 				if ($file && $file->isAvailable()) {
 					$this->_thumbImage = $file;
@@ -1499,64 +1451,55 @@ class Album extends Element {
 		
 		/* number of images */
 		$num = max(1, Lonely::model()->albumThumbSquare);
-		$num2 = $num * $num;
+		$n = $num * $num;
 		
 		/* get images */
 		$files = array();
-		$count = 0;
 		$fileMode = '300sq';
 		/* get files defined by the thumb file */
-		$usedFiles = array();
-		$nameFile = $this->location.Lonely::model()->albumThumbFile;
-		if (is_file($nameFile) && (($pathes = @file($nameFile, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)) !== false)) {
+		if ($pathes = @file($this->location.Lonely::model()->albumThumbFile, FILE_SKIP_EMPTY_LINES)) {
 			foreach ($pathes as $path) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
 				if ($file && $file->initThumb($fileMode)) {
 					$files[] = $file->getThumbLocation($fileMode);
-					if ($file->getParent() === $this) {
-						$usedFiles[] = $file->getFilename();
-					}
-					if (++$count >= $num2) {
+					if (!--$n) {
 						break;
 					}
 				}
 			}
 		}
 		/* not enough? get files that are in the album */
-		if ($count < $num2) {
+		if ($n) {
 			foreach($this->getFiles() as $file) {
-				if ($file->initThumb($fileMode) && !in_array($file->getFilename(), $usedFiles)) {
-					$files[] = $file->getThumbLocation($fileMode);
-					if (++$count >= $num2) {
+				if ($file->initThumb($fileMode) && ($thumb = $file->getThumbLocation($fileMode)) && !in_array($thumb, $files)) {
+					$files[] = $thumb;
+					if (!--$n) {
 						break;
 					}
 				}
 			}
 		}
 		/* not enough? add albums */
-		if ($count < $num2) {
+		if ($n) {
 			foreach($this->getAlbums() as $album) {
 				if ($album->initThumb($mode)) {
 					array_unshift($files, $album->getThumbLocation($mode));
-					if (++$count >= $num2) {
+					if (!--$n) {
 						break;
 					}
 				}
 			}
 		}
 		/* not enough? add duplicates */
-		if ($count && $count < $num2) {
-			for ($i = $num2 - 1, $a = 0; $i >= 0 && !isset($files[$i]); $i--) {
-				if (!isset($files[$a])) {
-					$a = 0;
-				}
-				$files[$i] = $files[$a++];
+		if ($n && $n < ($num * $num)) {
+			for ($a = 0; $n; $n--) {
+				$files[] = $files[$a++];
 			}
 		}
 		
 		/* create new image */
 		$thumb = imagecreatetruecolor(140, 140);
-		$maxWidth = $maxHeight = 140/$num;
+		$thumbSize = 140/$num;
 		
 		/* go through files and add them to the thumbnail */
 		$nr = 0;
@@ -1566,22 +1509,17 @@ class Album extends Element {
 			$info = getimagesize($file);
 			
 			/* calculate dimensions */
-			$imageWidth = $info[0];
-			$imageHeight = $info[1];
-			$imageX = $imageY = 0;
-			
-			$thumbWidth = $maxWidth;
-			$thumbHeight = $maxHeight;
+			$imageSize = $imageX = $imageY = 0;
 			
 			/* wider than high */
-			if ($imageWidth > $imageHeight) {
-				$imageX = floor(($imageWidth - $imageHeight) / 2);
-				$imageWidth = $imageHeight;
+			if ($info[0] > $info[1]) {
+				$imageX = (int)(($info[0] - $info[1]) / 2);
+				$imageSize = $info[1];
 			}
 			/* higher than wide */
 			else {
-				$imageY = floor(($imageHeight - $imageWidth) / 2);
-				$imageHeight = $imageWidth;
+				$imageY = (int)(($info[1] - $info[0]) / 2);
+				$imageSize = $info[0];
 			}
 			
 			/* load image from file */
@@ -1593,9 +1531,9 @@ class Album extends Element {
 			}
 			
 			/* resize */
-			$toX = ($nr % $num) * $maxWidth;
-			$toY = floor($nr / $num) * $maxHeight;
-			imagecopyresampled($thumb, $image, $toX, $toY, $imageX, $imageY, $thumbWidth, $thumbHeight, $imageWidth, $imageHeight);
+			$toX = ($nr % $num) * $thumbSize;
+			$toY = (int)($nr / $num) * $thumbSize;
+			imagecopyresampled($thumb, $image, $toX, $toY, $imageX, $imageY, $thumbSize, $thumbSize, $imageSize, $imageSize);
 			
 			imagedestroy($image);
 			
@@ -1661,36 +1599,20 @@ class Factory {
 	/* returns the instance of the object by gallery path or null if not supported */
 	public static function createFileByRelPath($gPath, Album $album) {
 		$path = explode('/', $gPath);
-		if (!($c = count($path))) {
-			return null;
-		}
 		
-		/* root path */
-		if ($c >= 2 && $path[0] === '') {
-			$path = array_slice($path, 1);
-		}
 		/* relative path */
-		else {
+		if (count($path) == 1 || $path[0] != '') {
 			$path = array_merge($album->getGalleryPath(), $path);
 		}
 		
-		/* consolidate path (remove '.' and '..')*/
-		$num = count($path);
-		for ($a = $b = 0; $a < $num; ++$a) {
-			$b = $a - 1;
-			while ($b >= 0 && !isset($path[$b])) {
-				$b--;
-			}
-			/* remove '.' and empty parts */
-			if ($path[$a] == '.' || $path[$a] === '') {
+		/* consolidate path (remove '', '.' and '..')*/
+		$path = array_diff($path, array('', '.'));
+		foreach ($path as $a => $v) {
+			/* delete with previous part */
+			if ($v == '..') {
 				unset($path[$a]);
-			}
-			/* implode with previous part */
-			else if ($path[$a] == '..') {
-				unset($path[$a]);
-				if ($b >= 0 && $b < $a) {
-					unset($path[$b]);
-				}
+				for ($b = $a - 1; $b > 0 && !isset($path[$b]); ) --$b;
+				unset($path[$b]);
 			}
 		}
 		
