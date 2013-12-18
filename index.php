@@ -75,9 +75,6 @@ Settings can be disabled by appending a minus '-' in front of the file name.
 Settings (only a subset):
 * title
 Title of the gallery. Use 'title.txt'.
-* albumText
-A text that is displayed on the main page and in every album. Use
-'albumText.txt'.
 * footer
 A text that is displayed on every page below every other content. Use
 'footer.txt'.
@@ -132,9 +129,6 @@ $settings = array(
 	// 'keywords' => '',
 	// 'author' => '',
 	// 'robots' => '',
-	
-	/* HTML to be displayed at the beginning of the album pages */
-	// 'albumText' => '',
 	
 	/* HTML to be displayed at the end of the page */
 	// 'footer' => '',
@@ -321,9 +315,6 @@ class Lonely extends Component {
 	public $author = '';
 	public $robots = '';
 	
-	/* HTML to be displayed at the beginning of the album pages */
-	public $albumText = '';
-	
 	/* HTML to be displayed at the end of the page */
 	public $footer = '';
 	
@@ -338,6 +329,9 @@ class Lonely extends Component {
 	
 	/* file containing the name of the thumb file of an album */
 	public $albumThumbFile = '_thumb.txt';
+	
+	/* file containing text/html to display at top of an album */
+	public $albumText = '_text.txt';
 	
 	/* album class to use */
 	public $albumClass = 'Album';
@@ -740,7 +734,8 @@ class Lonely extends Component {
 		/* album requested */
 		else if ($album->isAvailable()) {
 			
-			$html = $this->albumText ? '<div id="album-text">'.$this->albumText."</div>\n" : '';
+			$albumText = $album->getText();
+			$html = $albumText ? '<div id="album-text">'.$albumText."</div>\n" : '';
 			
 			/* parent albums */
 			$parents = $album->getParents();
@@ -1288,6 +1283,9 @@ class Album extends Element {
 	/* file to use as thumbnail */
 	private $_thumbImage;
 	
+	/* album description */
+	private $_text;
+	
 	
 	function __construct(Array $gPath, self $parent = null) {
 		parent::__construct($gPath, $parent);
@@ -1390,6 +1388,15 @@ class Album extends Element {
 			$this->loadElements();
 		}
 		return $this->_files;
+	}
+	
+	/* returns the description text */
+	public function getText() {
+		if ($this->_text === null) {
+			$text = @file_get_contents($this->location.Lonely::model()->albumText);
+			$this->_text = $text ?: '';
+		}
+		return $this->_text;
 	}
 	
 	/* returns the thumb image object or false if an own should be rendered */
