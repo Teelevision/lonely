@@ -72,7 +72,7 @@ class Module extends \LonelyGallery\Module {
 		/* album requested */
 		if ($album->isAvailable()) {
 			
-			$html = $lonely->albumText ? '<div id="album-text">'.$lonely->albumText."</div>\n" : '';
+			$html = $albumText ? '<div id="album-text">'.$albumText."</div>\n" : '';
 			
 			/* parent albums */
 			$parents = $album->getParents();
