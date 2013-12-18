@@ -353,7 +353,7 @@ class Lonely extends Component {
 	public $jsfiles = array();
 	
 	/* hidden elements */
-	public $hiddenNames = array('/^($|\.|-)/');
+	public $hiddenNames = array('/^($|\.|-|_)/');
 	public $hiddenFileNames = array();
 	public $hiddenAlbumNames = array();
 	
@@ -459,7 +459,7 @@ class Lonely extends Component {
 		$this->configScript = $this->rootScript.$this->configDirectory.'/';
 		
 		/* hidden files */
-		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).')$/i';
+		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).'|'.preg_quote($this->albumText).')$/i';
 		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).')$/i';
 		
 		/* init request */
