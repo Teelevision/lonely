@@ -233,13 +233,17 @@ class Request extends Component {
 	function __construct($scopePatterns) {
 		
 		/* get request string */
-		$request = rawurldecode($_SERVER['REQUEST_URI']);
-		if (strpos($request, $_SERVER['SCRIPT_NAME']) === 0) {
-			/* cut off path and filename of this script */
-			$request = substr($request, 1 + strlen($_SERVER['SCRIPT_NAME']));
+		if (isset($_SERVER['QUERY_STRING'])) {
+			$request = rawurldecode($_SERVER['QUERY_STRING']);
 		} else {
-			/* cut off path of this script */
-			$request = substr($request, 1 + strlen(dirname($_SERVER['SCRIPT_NAME'])));
+			$request = rawurldecode($_SERVER['REQUEST_URI']);
+			if (strpos($request, $_SERVER['SCRIPT_NAME']) === 0) {
+				/* cut off path and filename of this script */
+				$request = substr($request, 1 + strlen($_SERVER['SCRIPT_NAME']));
+			} else {
+				/* cut off path of this script */
+				$request = substr($request, 1 + strlen(dirname($_SERVER['SCRIPT_NAME'])));
+			}
 		}
 		
 		/* convert to array and remove empty entries, then rebuild keys */
@@ -348,6 +352,14 @@ class Lonely extends Component {
 	/* the number of images in an album thumbnail is the square of this value, e.g. "2" will result in 2x2=4 images */
 	public $albumThumbSquare = 2;
 	
+	/* omit the script in the url: instead of "/index.php?/foo", urls will look like "/foo"; works only if your webserver is configured to serve these urls right */
+	public $shortUrls = false;
+	/* for nginx something like this could work if your gallery is in the web root directory:
+		if (!-f $request_filename) {
+			rewrite ^(.+)$ /index.php?$1 last;
+		}
+	*/
+	
 	/* css and javascript files to be loaded */
 	public $cssfiles = array();
 	public $jsfiles = array();
@@ -451,17 +463,17 @@ class Lonely extends Component {
 		/* root-relative path */
 		$this->rootPath = dirname($_SERVER['SCRIPT_NAME']);
 		$this->rootPath .= ($this->rootPath == '/') ? '' : '/';
-		$this->rootScript = $_SERVER['SCRIPT_NAME'].'?/';
-		$this->rootScriptClean = $_SERVER['SCRIPT_NAME'];
+		$this->rootScriptClean = $this->shortUrls ? $this->rootPath : $_SERVER['SCRIPT_NAME'];
+		$this->rootScript = $this->shortUrls ? $this->rootPath : $this->rootScriptClean.'?/';
 		$this->thumbPath = $this->rootPath.$this->thumbDirectory.'/';
 		$this->thumbScript = $this->rootScript.$this->thumbDirectory.'/';
 		$this->configPath = $this->rootPath.$this->configDirectory.'/';
 		$this->configScript = $this->rootScript.$this->configDirectory.'/';
-		
+		// var_dump($_SERVER); exit;
 		/* hidden files */
 		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).'|'.preg_quote($this->albumText).')$/i';
 		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).')$/i';
-		
+		// var_dump($_SERVER);
 		/* init request */
 		$scopePattern = '#^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'/[0-9]+(px|sq))(/|$)#';
 		$this->request = new Request($scopePattern);
@@ -495,7 +507,7 @@ class Lonely extends Component {
 				$this->error();
 			}
 		}
-		
+		// var_dump($this->request); exit;
 		/* build the method to call */
 		$this->handleRequest($this->request);
 		
@@ -1710,7 +1722,7 @@ class Image extends File {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath('700px') : $this->getPath();
+		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath('700px') : Lonely::model()->rootPath.$this->path;
 		$name = Lonely::escape($this->getName());
 		return "<img src=\"".Lonely::escape($path)."\" alt=\"".$name."\">";
 	}
@@ -1743,7 +1755,7 @@ class Image extends File {
 	
 	/* returns the web thumb path */
 	public function getThumbPath($mode) {
-		return $this->canUseOriginalAsThumb($mode) ? Lonely::model()->rootPath.$this->getPath() : parent::getThumbPath($mode);
+		return $this->canUseOriginalAsThumb($mode) ? Lonely::model()->rootPath.$this->path : parent::getThumbPath($mode);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
