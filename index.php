@@ -787,7 +787,7 @@ class Lonely extends Component {
 					$name = self::escape($element->getName());
 					$html .= "\t<li id=\"".$element->getId()."\">\n".
 						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
-						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
+						"\t\t<a href=\"".$path."#image\"><span>".$name."</span></a>\n".
 						"\t</li>\n";
 				}
 				$html .= "</ul>\n\n";
