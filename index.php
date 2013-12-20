@@ -469,11 +469,11 @@ class Lonely extends Component {
 		$this->thumbScript = $this->rootScript.$this->thumbDirectory.'/';
 		$this->configPath = $this->rootPath.$this->configDirectory.'/';
 		$this->configScript = $this->rootScript.$this->configDirectory.'/';
-		// var_dump($_SERVER); exit;
+		
 		/* hidden files */
 		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).'|'.preg_quote($this->albumText).')$/i';
 		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).')$/i';
-		// var_dump($_SERVER);
+		
 		/* init request */
 		$scopePattern = '#^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'/[0-9]+(px|sq))(/|$)#';
 		$this->request = new Request($scopePattern);
@@ -507,7 +507,7 @@ class Lonely extends Component {
 				$this->error();
 			}
 		}
-		// var_dump($this->request); exit;
+		
 		/* build the method to call */
 		$this->handleRequest($this->request);
 		
