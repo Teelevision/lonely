@@ -463,12 +463,14 @@ class Lonely extends Component {
 		/* root-relative path */
 		$this->rootPath = dirname($_SERVER['SCRIPT_NAME']);
 		$this->rootPath .= ($this->rootPath == '/') ? '' : '/';
-		$this->rootScriptClean = $this->shortUrls ? $this->rootPath : $_SERVER['SCRIPT_NAME'];
-		$this->rootScript = $this->shortUrls ? $this->rootPath : $this->rootScriptClean.'?/';
+		$this->realRootScript = $_SERVER['SCRIPT_NAME'].'?/';
+		$this->realRootScriptClean = $_SERVER['SCRIPT_NAME'];
+		$this->rootScript = $this->shortUrls ? $this->rootPath : $this->realRootScript;
+		$this->rootScriptClean = $this->shortUrls ? $this->rootPath : $this->realRootScriptClean;
 		$this->thumbPath = $this->rootPath.$this->thumbDirectory.'/';
-		$this->thumbScript = $this->rootScript.$this->thumbDirectory.'/';
+		$this->thumbScript = $this->realRootScript.$this->thumbDirectory.'/';
 		$this->configPath = $this->rootPath.$this->configDirectory.'/';
-		$this->configScript = $this->rootScript.$this->configDirectory.'/';
+		$this->configScript = $this->realRootScript.$this->configDirectory.'/';
 		
 		/* hidden files */
 		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).'|'.preg_quote($this->albumText).')$/i';
@@ -1459,7 +1461,11 @@ class Album extends Element {
 		if ($thumbImage = $this->getThumbImage()) {
 			return $thumbImage->initThumb($mode);
 		}
-		return parent::thumbAvailable($mode);
+		$thumbPath = $this->getThumbLocation($mode);
+		return ($thumbPath && ($tTime = @filemtime($thumbPath)) &&
+			($oTime = @filemtime($this->location)) && $tTime >= $oTime
+			&& (!($oTime = @filemtime($this->location.Lonely::model()->albumThumbFile)) || $tTime >= $oTime)
+		);
 	}
 	
 	/* creates a thumbnail */
@@ -1477,15 +1483,16 @@ class Album extends Element {
 		$fileMode = '300sq';
 		/* get files defined by the thumb file */
 		if ($pathes = @file($this->location.Lonely::model()->albumThumbFile, FILE_SKIP_EMPTY_LINES)) {
+			$numPathes = 0;
 			foreach ($pathes as $path) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
 				if ($file && $file->initThumb($fileMode)) {
 					$files[] = $file->getThumbLocation($fileMode);
-					if (!--$n) {
-						break;
-					}
+					++$numPathes;
 				}
 			}
+			$num = ceil(sqrt($numPathes));
+			$n = $num * $num - $numPathes;
 		}
 		/* not enough? get files that are in the album */
 		if ($n) {
