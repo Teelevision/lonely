@@ -117,7 +117,7 @@ class Module extends \LonelyGallery\Module {
 	
 	/* returns an array of information about the image */
 	public function fileInfoEvent(\LonelyGallery\File $file) {
-		if ($file instanceof \LonelyGallery\ImageFile) {
+		if ($file instanceof \LonelyGallery\Image) {
 			switch ($file->getMime()) {
 				case 'image/jpeg':
 					return $this->getMetadata($file);
@@ -131,7 +131,7 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* returns the EXIF data */
-	protected function getFiledata(\LonelyGallery\ImageFile $file) {
+	protected function getFiledata(\LonelyGallery\Image $file) {
 		
 		$metadata = array();
 		
@@ -139,7 +139,7 @@ class Module extends \LonelyGallery\Module {
 		
 		/* resolution */
 		if (!empty($info[0]) && !empty($info[1])) {
-			$metadata['Resolution'] = $info[0].' x '.$info[1].' pixel';
+			$metadata['Resolution'] = $info[0].' x '.$info[1].' px';
 		}
 		
 		/* filesize */
@@ -154,7 +154,7 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* returns the EXIF data */
-	protected function getMetadata(\LonelyGallery\ImageFile $file) {
+	protected function getMetadata(\LonelyGallery\Image $file) {
 		
 		$metadata = array();
 		$location = $file->getLocation();
@@ -165,8 +165,8 @@ class Module extends \LonelyGallery\Module {
 			$exif = array();
 		}
 		/* IPTC */
-		if (($gis = getimagesize($location, $info)) && isset($info['APP13'])) {
-			if (!($iptc = iptcparse($info['APP13']))) {
+		if (($gis = getimagesize($location, $data)) && isset($data['APP13'])) {
+			if (!($iptc = iptcparse($data['APP13']))) {
 				$iptc = array();
 			}
 		}
@@ -228,9 +228,9 @@ class Module extends \LonelyGallery\Module {
 		}
 		/* resolution */
 		if (!empty($exif['COMPUTED']['Width']) && !empty($exif['COMPUTED']['Height'])) {
-			$metadata['Resolution'] = $exif['COMPUTED']['Width'].' x '.$exif['COMPUTED']['Height'].' pixel';
-		} else if (!empty($gis[0]) && !empty($gis[1])) {
-			$metadata['Resolution'] = $gis[0].' x '.$gis[1].' pixel';
+			$metadata['Resolution'] = $exif['COMPUTED']['Width'].' x '.$exif['COMPUTED']['Height'].' px';
+		} else if (!empty($info[0]) && !empty($info[1])) {
+			$metadata['Resolution'] = $info[0].' x '.$info[1].' px';
 		}
 		/* filesize */
 		if (isset($exif['FileSize']) && !self::isEmpty($exif['FileSize'])) {
@@ -261,13 +261,7 @@ class Module extends \LonelyGallery\Module {
 			}
 			/* flash */
 			if (isset($exif['Flash'])) {
-				if ($exif['Flash'] & 1) {
-					$metadata['Flash'] = 'yes';
-					// if ($exif['Flash'] & 24) $metadata['Flash'] .= ", auto";
-					// if ($exif['Flash'] & 64) $metadata['Flash'] .= ", red-eye reduction";
-				} else {
-					$metadata['Flash'] = 'no';
-				}
+				$metadata['Flash'] = ($exif['Flash'] & 1) ? 'yes' : 'no';
 			}
 		}
 		
