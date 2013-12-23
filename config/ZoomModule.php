@@ -95,6 +95,7 @@ function initZoom() {
 			zoom_div.style.margin = 0;
 			zoom_div.style.textAlign = 'center';
 			zoom_div.style.backgroundColor = '#111';
+			zoom_div.style.cursor = 'none';
 			zoom_div.onclick = function(){
 				window.removeEventListener('mousemove', zoomPos);
 				document.body.removeChild(zoom_div);
