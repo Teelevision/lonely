@@ -71,9 +71,7 @@ class Module extends \LonelyGallery\Module {
 		
 		/* album requested */
 		if ($album->isAvailable()) {
-			
-			$albumText = $album->getText();
-			$html = $albumText ? '<div id="album-text">'.$albumText."</div>\n" : '';
+			$html = '';
 			
 			/* parent albums */
 			$parents = $album->getParents();
@@ -98,6 +96,10 @@ class Module extends \LonelyGallery\Module {
 					"\t</ul>\n".
 					"</nav>\n\n";
 			}
+			
+			/* album text */
+			$albumText = $album->getText();
+			$html .= $albumText ? '<div id="album-text">'.$albumText."</div>\n" : '';
 			
 			/* files */
 			$action = $lonely->defaultFileAction;

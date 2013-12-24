@@ -781,9 +781,7 @@ class Lonely extends Component {
 		
 		/* album requested */
 		else if ($album->isAvailable()) {
-			
-			$albumText = $album->getText();
-			$html = $albumText ? '<div id="album-text">'.$albumText."</div>\n" : '';
+			$html = '';
 			
 			/* parent albums */
 			$parents = $album->getParents();
@@ -807,6 +805,10 @@ class Lonely extends Component {
 					"\t</ul>\n".
 					"</nav>\n\n";
 			}
+			
+			/* album text */
+			$albumText = $album->getText();
+			$html .= $albumText ? '<div id="album-text">'.$albumText."</div>\n" : '';
 			
 			/* albums */
 			$mode = '140sq';
