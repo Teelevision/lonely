@@ -9,7 +9,7 @@
 ### Version ###
 
 1.1.0 beta 1
-date: 2013-12-09
+date: 2013-12-24
 
 ### Requirements ###
 
@@ -39,7 +39,7 @@ THE SOFTWARE.
 
 ### Description ###
 
-
+Provides a JavaScript Zoom for images that don't fit the screen.
 
 ### Installation ###
 
@@ -54,16 +54,20 @@ class Module extends \LonelyGallery\Module {
 	/* returns settings for default design */
 	public function afterConstruct() {
 		Lonely::model()->jsfiles[] = Lonely::model()->configScript.'zoom/main.js';
+		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'zoom/main.css';
 	}
 	
 	/* config files */
 	public function configAction(\LonelyGallery\Request $request) {
-		if ($request->action == array('zoom', 'main.js')) {
-			$this->displayJS();
+		if (count($request->action) > 1 && $request->action[0] == 'zoom') {
+			switch ($request->action[1]) {
+				case 'main.js': $this->displayJS();
+				case 'main.css': $this->displayCSS();
+			}
 		}
 	}
 	
-	/* lonely.js */
+	/* main.js */
 	public function displayJS() {
 		$lastmodified = filemtime(__FILE__);
 		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
@@ -76,61 +80,97 @@ class Module extends \LonelyGallery\Module {
 		?>
 var zoom_img, zoom_div;
 function initZoom() {
-	var image = document.getElementById('image');
-	var img = image.getElementsByTagName('img');
-	if (img.length > 0 && (window.innerHeight <= img[0].height || window.innerWidth <= img[0].width)) {
-		var aZoom = document.createElement('a');
-		aZoom.href = '#';
-		aZoom.innerHTML = '^';
-		aZoom.style.fontSize = '80px';
-		aZoom.onclick = function(){
-			zoom_div = document.createElement('div');
-			zoom_div.id = 'zoombox';
-			zoom_div.style.position = 'fixed';
-			zoom_div.style.top = 0;
-			zoom_div.style.left = 0;
-			zoom_div.style.width = '100%';
-			zoom_div.style.height = '100%';
-			zoom_div.style.overflow = 'hidden';
-			zoom_div.style.margin = 0;
-			zoom_div.style.textAlign = 'center';
-			zoom_div.style.backgroundColor = '#111';
-			zoom_div.style.cursor = 'none';
-			zoom_div.onclick = function(){
-				window.removeEventListener('mousemove', zoomPos);
-				document.body.removeChild(zoom_div);
-			};
-			zoom_img = img[0].cloneNode();
-			zoom_img.style.position = 'relative';
-			zoom_img.style.width = '';
-			zoom_img.style.height = '';
-			zoom_img.style.maxHeight = '';
-			zoom_div.appendChild(zoom_img);
-			zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
-			document.body.appendChild(zoom_div);
-			window.addEventListener('mousemove', zoomPos);
-			return false;
-		};
-		aZoom.style.width = '20%';
-		aZoom.style.left = '40%';
-		image.appendChild(aZoom);
+	var divs = document.getElementById('content').getElementsByTagName('div');
+	for (var i = 0; i < divs.length; ++i) {
+		var div = divs[i];
+		if (div.className && div.className == 'image') {
+			var image = div.getElementsByTagName('div')[0];
+			var img = image.getElementsByTagName('img');
+			if (img.length > 0 && (window.innerHeight <= img[0].naturalHeight || window.innerWidth <= img[0].naturalWidth)) {
+				var aZoom = document.createElement('a');
+				aZoom.href = '#';
+				aZoom.className = 'zoombox-tr';
+				aZoom.onclick = function(img){
+					return function(){
+						zoom_div = document.createElement('div');
+						zoom_div.id = 'zoombox';
+						zoom_div.onclick = function(){
+							window.removeEventListener('mousemove', zoomPos);
+							document.body.removeChild(zoom_div);
+						};
+						zoom_img = document.createElement('img');
+						zoom_img.src = img.src;
+						zoom_div.appendChild(zoom_img);
+						zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
+						document.body.appendChild(zoom_div);
+						window.addEventListener('mousemove', zoomPos);
+						return false;
+					};
+				}(img[0]);
+				image.appendChild(aZoom);
+			}
+		}
 	}
 }
 function zoomPos(event) {
-	if (window.innerWidth <= zoom_img.width) {
-		var x = Math.min(1, (event.clientX - 100) / (window.innerWidth - 200)) * (zoom_img.width - window.innerWidth);
+	if (window.innerWidth <= zoom_img.naturalWidth) {
+		var x = Math.min(1, (event.clientX - 100) / (window.innerWidth - 200)) * (zoom_img.naturalWidth - window.innerWidth);
 		zoom_img.style.marginLeft = '-'+x+'px';
 	}
-	if (window.innerHeight <= zoom_img.height) {
-		var y = Math.min(1, (event.clientY - 100) / (window.innerHeight - 200)) * (zoom_img.height - window.innerHeight);
+	if (window.innerHeight <= zoom_img.naturalHeight) {
+		var y = Math.min(1, (event.clientY - 100) / (window.innerHeight - 200)) * (zoom_img.naturalHeight - window.innerHeight);
 		zoom_img.style.marginTop = '-'+y+'px';
 	} else {
-		zoom_img.style.marginTop = '-'+zoom_img.height/2+'px';
+		zoom_img.style.marginTop = '-'+zoom_img.naturalHeight/2+'px';
 		zoom_img.style.top = '50%';
 	}
 }
 window.addEventListener('load', initZoom);
-// window.addEventListener('resize', adjustMaxImageHeight);
+<?php
+		exit;
+	}
+	
+	/* main.css */
+	public function displayCSS() {
+		$lastmodified = filemtime(__FILE__);
+		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
+			header("HTTP/1.1 304 Not Modified", true, 304);
+			exit;
+		}
+		
+		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
+		header('Content-Type: text/css');
+		?>
+div#zoombox {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+	text-align: center;
+	background-color: #111;
+	cursor: none;
+}
+div#zoombox img {
+	position: relative;
+	width: auto;
+	height: auto;
+}
+a.zoombox-tr {
+	width: 20%;
+	left: 40%;
+}
+a.zoombox-tr:after {
+    content: "+";
+    display: block;
+    font-size: 80px;
+    margin-top: -40px;
+    position: absolute;
+    top: 50%;
+    width: 100%;
+}
 <?php
 		exit;
 	}
