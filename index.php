@@ -2285,7 +2285,10 @@ function adjustMaxImageHeight() {
 	for (var i = 0; i < divs.length; ++i) {
 		var div = divs[i];
 		if (div.className && div.className == 'image') {
-			div.getElementsByTagName('img')[0].style.maxHeight = maxHeight;
+			var img = div.getElementsByTagName('img');
+			if (img.length) {
+				img[0].style.maxHeight = maxHeight;
+			}
 		}
 	}
 }

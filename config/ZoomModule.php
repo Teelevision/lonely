@@ -84,30 +84,33 @@ function initZoom() {
 	for (var i = 0; i < divs.length; ++i) {
 		var div = divs[i];
 		if (div.className && div.className == 'image') {
-			var image = div.getElementsByTagName('div')[0];
-			var img = image.getElementsByTagName('img');
-			if (img.length > 0 && (window.innerHeight <= img[0].naturalHeight || window.innerWidth <= img[0].naturalWidth)) {
-				var aZoom = document.createElement('a');
-				aZoom.href = '#';
-				aZoom.className = 'zoombox-tr';
-				aZoom.onclick = function(img){
-					return function(){
-						zoom_div = document.createElement('div');
-						zoom_div.id = 'zoombox';
-						zoom_div.onclick = function(){
-							window.removeEventListener('mousemove', zoomPos);
-							document.body.removeChild(zoom_div);
+			var div2 = div.getElementsByTagName('div');
+			if (div2.length) {
+				var image = div2[0];
+				var img = image.getElementsByTagName('img');
+				if (img.length > 0 && (window.innerHeight <= img[0].naturalHeight || window.innerWidth <= img[0].naturalWidth)) {
+					var aZoom = document.createElement('a');
+					aZoom.href = '#';
+					aZoom.className = 'zoombox-tr';
+					aZoom.onclick = function(img){
+						return function(){
+							zoom_div = document.createElement('div');
+							zoom_div.id = 'zoombox';
+							zoom_div.onclick = function(){
+								window.removeEventListener('mousemove', zoomPos);
+								document.body.removeChild(zoom_div);
+							};
+							zoom_img = document.createElement('img');
+							zoom_img.src = img.src;
+							zoom_div.appendChild(zoom_img);
+							zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
+							document.body.appendChild(zoom_div);
+							window.addEventListener('mousemove', zoomPos);
+							return false;
 						};
-						zoom_img = document.createElement('img');
-						zoom_img.src = img.src;
-						zoom_div.appendChild(zoom_img);
-						zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
-						document.body.appendChild(zoom_div);
-						window.addEventListener('mousemove', zoomPos);
-						return false;
-					};
-				}(img[0]);
-				image.appendChild(aZoom);
+					}(img[0]);
+					image.appendChild(aZoom);
+				}
 			}
 		}
 	}
