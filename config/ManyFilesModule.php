@@ -56,15 +56,15 @@ use \LonelyGallery\Lonely as Lonely;
 use \LonelyGallery\GenericFile as GenericFile;
 class Module extends \LonelyGallery\Module {
 	
-	/* returns array of file classes */
+	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array(
-			'GenericArchiveFile',
-			'GenericAudioFile',
-			'GenericDocumentFile',
-			'GenericImageFile',
-			'GenericTextFile',
-			'GenericVideoFile',
+			'GenericArchiveFile' => 0,
+			'GenericAudioFile' => 0,
+			'GenericDocumentFile' => 0,
+			'GenericImageFile' => 0,
+			'GenericTextFile' => 0,
+			'GenericVideoFile' => 0,
 		);
 	}
 }

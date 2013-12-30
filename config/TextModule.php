@@ -56,10 +56,10 @@ class Module extends \LonelyGallery\Module {
 		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'text/main.css';
 	}
 	
-	/* returns array of file classes */
+	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array(
-			'SnippletTextFile',
+			'SnippletTextFile' => 9,
 		);
 	}
 	

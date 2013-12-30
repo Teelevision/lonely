@@ -714,6 +714,7 @@ class Lonely extends Component {
 		}
 		
 		/* init objects */
+		$fileClasses = array();
 		foreach ($this->_modules as $name => &$module) {
 			
 			/* initialize module */
@@ -724,8 +725,8 @@ class Lonely extends Component {
 			$this->set($module->settings());
 			
 			/* file classes */
-			foreach ($module->fileClasses() as $fileclass) {
-				$this->registerFileClass('\\LonelyGallery\\'.$name.'\\'.$fileclass);
+			foreach ($module->fileClasses() as $fileclass => $prio) {
+				$fileClasses['\\LonelyGallery\\'.$name.'\\'.$fileclass] = $prio;
 			}
 			
 			/* switch designs */
@@ -733,6 +734,12 @@ class Lonely extends Component {
 				$this->_design = $module;
 			}
 			
+		}
+		
+		/* init file objects */
+		arsort($fileClasses, SORT_NUMERIC);
+		foreach ($fileClasses as $fileclass => $prio) {
+			$this->registerFileClass($fileclass);
 		}
 		
 		$this->_modulesInitialized = true;
@@ -2005,7 +2012,7 @@ abstract class Module {
 		return array();
 	}
 	
-	/* returns array of file classes */
+	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array();
 	}
