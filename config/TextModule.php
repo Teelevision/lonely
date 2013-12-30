@@ -106,6 +106,13 @@ class SnippletTextFile extends \LonelyGallery\File {
 		return '/\.snip\.txt$/i';
 	}
 	
+	/* loads the name of this element */
+	protected function loadName() {
+		$name = $this->getFilename();
+		$name = substr($name, 0, strrpos($name, '.snip.txt'));
+		return strtr($name, '_', ' ');
+	}
+	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
 		$text = Lonely::model()->escape(file_get_contents($this->location));
