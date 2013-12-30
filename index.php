@@ -816,10 +816,9 @@ class Lonely extends Component {
 				$html .= "<ul id=\"albums\">\n";
 				foreach ($albums as $element) {
 					$path = self::escape($this->rootScript.$element->getPath());
-					$thumbpath = self::escape($element->getThumbPath($mode));
 					$name = self::escape($element->getName());
 					$html .= "\t<li id=\"".$element->getId()."\">\n".
-						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
+						"\t\t".$element->getThumbHTML($mode)."\n".
 						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
 						"\t</li>\n";
 				}
@@ -833,10 +832,9 @@ class Lonely extends Component {
 				$html .= "<ul id=\"images\">\n";
 				foreach ($files as $element) {
 					$path = self::escape($this->rootScript.$element->getPath().'/'.$action);
-					$thumbpath = self::escape($element->getThumbPath($mode));
 					$name = self::escape($element->getName());
 					$html .= "\t<li id=\"".$element->getId()."\">\n".
-						"\t\t<img src=\"".$thumbpath."\" alt=\"".$name."\">\n".
+						"\t\t".$element->getThumbHTML($mode)."\n".
 						"\t\t<a href=\"".$path."#image\"><span>".$name."</span></a>\n".
 						"\t</li>\n";
 				}
@@ -844,7 +842,7 @@ class Lonely extends Component {
 			}
 			
 			/* empty album */
-			if (!count($albums) && !count($files)) {
+			else if (!count($albums)) {
 				if (empty($request->album)) {
 					$html .= "<p>This gallery is empty. Try adding some image files to the directory you placed this script in. You can also have albums by creating directories.</p>";
 				} else {
@@ -1321,6 +1319,13 @@ abstract class Element extends Component {
 	/* returns the mime type */
 	public function getMime() {
 		return 'application/octet-stream';
+	}
+	
+	/* returns the HTML code for the thumbnail */
+	public function getThumbHTML($mode) {
+		$thumbpath = Lonely::escape($this->getThumbPath($mode));
+		$name = Lonely::escape($this->getName());
+		return "<img src=\"".$thumbpath."\" alt=\"".$name."\">";
 	}
 }
 
