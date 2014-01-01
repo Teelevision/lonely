@@ -115,20 +115,15 @@ class Module extends \LonelyGallery\Module {
 						"\t</div>\n\n";
 					
 					/* info */
-					$html .= "\t<div class=\"image-info\">\n".
-						"\t\t<p class=\"title\"><a href=\"".Lonely::escape($lonely->rootScript.$file->getPath().'/'.$action)."\">".$name."</a></p>\n".
-						"\t</div>\n";
+					if ($file instanceof \LonelyGallery\ContentFile) {
+						$html .= "\t<div class=\"image-info\">\n".
+							"\t\t<p class=\"title\"><a href=\"".Lonely::escape($lonely->rootScript.$file->getPath().'/'.$action)."\">".$name."</a></p>\n".
+							"\t</div>\n";
+					}
 					
 					$html .= "</div>\n";
 				}
 			}
-					
-			/* resize js */
-			$html .= "<script type=\"text/javascript\">\n".
-				"<!--\n".
-				"adjustMaxImageHeight();\n".
-				"-->\n".
-				"</script>";
 			
 			/* empty album */
 			if (!count($albums) && !count($files)) {

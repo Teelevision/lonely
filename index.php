@@ -946,13 +946,6 @@ class Lonely extends Component {
 			}
 			$html .= "\t</div>\n\n";
 			
-			/* resize js */
-			$html .= "<script type=\"text/javascript\">\n".
-				"<!--\n".
-				"adjustMaxImageHeight();\n".
-				"-->\n".
-				"</script>";
-			
 			/* info */
 			if ($file instanceof ContentFile) {
 				$html .= "\t<div class=\"image-info\">\n".
@@ -1795,7 +1788,12 @@ class Image extends ContentFile {
 	public function getPreviewHTML() {
 		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath('700px') : Lonely::model()->rootPath.$this->path;
 		$name = Lonely::escape($this->getName());
-		return "<img src=\"".Lonely::escape($path)."\" alt=\"".$name."\">";
+		return "<img src=\"".Lonely::escape($path)."\" alt=\"".$name."\">\n".
+			"<script type=\"text/javascript\">\n".
+			"<!--\n".
+			"adjustMaxImageHeight();\n".
+			"-->\n".
+			"</script>";
 	}
 	
 	/* returns whether this file is suitable as a thumb without resizing */
@@ -2303,14 +2301,12 @@ h1 a {
 		header('Content-Type: text/javascript');
 		?>
 function adjustMaxImageHeight() {
-	var maxHeight = window.innerHeight + 'px';
-	var divs = document.getElementById('content').getElementsByTagName('div');
-	for (var i = 0; i < divs.length; ++i) {
-		var div = divs[i];
-		if (div.className && div.className == 'image') {
-			var img = div.getElementsByTagName('img');
+	var div = document.getElementById('content').getElementsByTagName('div');
+	for (var i = 0; i < div.length; ++i) {
+		if (div[i].className == 'image') {
+			var img = div[i].getElementsByTagName('img');
 			if (img.length) {
-				img[0].style.maxHeight = maxHeight;
+				img[0].style.maxHeight = window.innerHeight + 'px';
 			}
 		}
 	}
