@@ -48,7 +48,8 @@ Place the PHP file into the 'config' directory.
 */
 
 namespace LonelyGallery\ZoomModule;
-use \LonelyGallery\Lonely as Lonely;
+use \LonelyGallery\Lonely,
+	\LonelyGallery\Request;
 class Module extends \LonelyGallery\Module {
 	
 	/* returns settings for default design */
@@ -58,7 +59,7 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* config files */
-	public function configAction(\LonelyGallery\Request $request) {
+	public function configAction(Request $request) {
 		if (count($request->action) > 1 && $request->action[0] == 'zoom') {
 			switch ($request->action[1]) {
 				case 'main.js': $this->displayJS();

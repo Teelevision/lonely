@@ -49,7 +49,9 @@ Place the PHP file into the 'config' directory.
 */
 
 namespace LonelyGallery\AlbumNamesModule;
-use \LonelyGallery\Lonely as Lonely;
+use \LonelyGallery\Lonely,
+	\LonelyGallery\Element,
+	\LonelyGallery\Album;
 class Module extends \LonelyGallery\Module {
 	
 	private $_nameFile = '_name.txt';
@@ -62,8 +64,8 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* returns the replacing title of the file or null on none replacement */
-	public function elementNamesEvent(\LonelyGallery\Element $element) {
-		if ($element instanceof \LonelyGallery\Album) {
+	public function elementNamesEvent(Element $element) {
+		if ($element instanceof Album) {
 			$location = $element->getLocation();
 			if ($location !== '') {
 				/* cached value */

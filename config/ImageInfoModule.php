@@ -62,7 +62,10 @@ any extension.
 */
 
 namespace LonelyGallery\ImageInfoModule;
-use \LonelyGallery\Lonely as Lonely;
+use \LonelyGallery\Lonely,
+	\LonelyGallery\Element,
+	\LonelyGallery\File,
+	\LonelyGallery\Image;
 class Module extends \LonelyGallery\Module {
 	
 	private $_tmp_names = array();
@@ -77,8 +80,8 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* returns the replacing title of the file or null on none replacement */
-	public function elementNamesEvent(\LonelyGallery\Element $element) {
-		if (empty(Lonely::model()->imageInfo_notitle) && $element instanceof \LonelyGallery\ImageFile && $element->getMime() == 'image/jpeg') {
+	public function elementNamesEvent(Element $element) {
+		if (empty(Lonely::model()->imageInfo_notitle) && $element instanceof Image && $element->getMime() == 'image/jpeg') {
 			$location = $element->getLocation();
 			if ($location !== '') {
 				/* cached value */
@@ -116,8 +119,8 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* returns an array of information about the image */
-	public function fileInfoEvent(\LonelyGallery\File $file) {
-		if ($file instanceof \LonelyGallery\Image) {
+	public function fileInfoEvent(File $file) {
+		if ($file instanceof Image) {
 			switch ($file->getMime()) {
 				case 'image/jpeg':
 					return $this->getMetadata($file);
@@ -131,7 +134,7 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* returns the EXIF data */
-	protected function getFiledata(\LonelyGallery\Image $file) {
+	protected function getFiledata(Image $file) {
 		
 		$metadata = array();
 		
@@ -154,7 +157,7 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* returns the EXIF data */
-	protected function getMetadata(\LonelyGallery\Image $file) {
+	protected function getMetadata(Image $file) {
 		
 		$metadata = array();
 		$location = $file->getLocation();

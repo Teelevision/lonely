@@ -52,8 +52,8 @@ None.
 */
 
 namespace LonelyGallery\ManyFilesModule;
-use \LonelyGallery\Lonely as Lonely;
-use \LonelyGallery\GenericFile as GenericFile;
+use \LonelyGallery\Lonely,
+	\LonelyGallery\GenericFile;
 class Module extends \LonelyGallery\Module {
 	
 	/* returns array of file classes to priority */

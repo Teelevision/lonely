@@ -52,7 +52,8 @@ None.
 */
 
 namespace LonelyGallery\BrightDesign;
-use \LonelyGallery\Lonely as Lonely;
+use \LonelyGallery\Lonely,
+	\LonelyGallery\Request;
 class Module extends \LonelyGallery\Design {
 	
 	/* returns an array with css files to be loaded as design */
@@ -64,7 +65,7 @@ class Module extends \LonelyGallery\Design {
 	}
 	
 	/* config files */
-	public function configAction(\LonelyGallery\Request $request) {
+	public function configAction(Request $request) {
 		if ($request->action == array('design', 'bright.css')) {
 			$this->displayCSS();
 		}

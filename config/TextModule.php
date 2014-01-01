@@ -48,7 +48,9 @@ Place the PHP file into the 'config' directory.
 */
 
 namespace LonelyGallery\TextModule;
-use \LonelyGallery\Lonely as Lonely;
+use \LonelyGallery\Lonely,
+	\LonelyGallery\Request,
+	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
 	
 	/* returns settings for default design */
@@ -64,7 +66,7 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* config files */
-	public function configAction(\LonelyGallery\Request $request) {
+	public function configAction(Request $request) {
 		if (count($request->action) > 1 && $request->action[0] == 'text') {
 			switch ($request->action[1]) {
 				case 'main.css': $this->displayCSS();
@@ -95,14 +97,27 @@ class Module extends \LonelyGallery\Module {
 	text-align: justify;
 	max-width: 700px;
 }
+#images li .textmodule-thumb + a span {
+	opacity: 0;
+	background-color: transparent;
+	box-shadow: none;
+	line-height: 0;
+}
+#images li:hover .textmodule-thumb + a span {
+	opacity: 1;
+	line-height: 40px;
+}
 #images li .textmodule-thumb + a {
 	opacity: 1;
 	bottom: 0;
 	height: auto;
-	line-height: 40px;
+	line-height: 0;
 	position: absolute;
 	top: auto;
 	background: linear-gradient(rgba(17,17,17,0) 0, rgba(17,17,17,1) 50%);
+}
+#images li:hover .textmodule-thumb + a {
+	line-height: 40px;
 }
 .textmodule-prev ~ a {
 	display: none;
@@ -111,7 +126,7 @@ class Module extends \LonelyGallery\Module {
 		exit;
 	}
 }
-class SnippletTextFile extends \LonelyGallery\MetaFile {
+class SnippletTextFile extends MetaFile {
 
 	/* file pattern */
 	public static function pattern() {

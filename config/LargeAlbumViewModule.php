@@ -49,20 +49,24 @@ Place the PHP file into the 'config' directory.
 */
 
 namespace LonelyGallery\LargeAlbumViewModule;
-use \LonelyGallery\Lonely as Lonely;
+use \LonelyGallery\Lonely,
+	\LonelyGallery\Request,
+	\LonelyGallery\Factory,
+	\LonelyGallery\Album,
+	\LonelyGallery\ContentFile;
 class Module extends \LonelyGallery\Module {
 	
 	/* returns html to display at the bottom of album index pages */
-	public function albumBottomHtmlEvent(\LonelyGallery\Album $album) {
+	public function albumBottomHtmlEvent(Album $album) {
 		return count($album->getFiles()) ? "<p><a href=\"".Lonely::escape(Lonely::model()->rootScript.$album->getPath())."large\">Large album view</a></p>\n\n" : "";
 	}
 	
 	/* show all images of an album */
-	public function lonelyLargeAction(\LonelyGallery\Request $request) {
+	public function lonelyLargeAction(Request $request) {
 		$lonely = Lonely::model();
 		
-		$album = \LonelyGallery\Factory::createAlbum($request->album);
-		$file = \LonelyGallery\Factory::createFile($request->file, $album);
+		$album = Factory::createAlbum($request->album);
+		$file = Factory::createFile($request->file, $album);
 		
 		/* file requested */
 		if ($file && $file->isAvailable()) {
@@ -115,7 +119,7 @@ class Module extends \LonelyGallery\Module {
 						"\t</div>\n\n";
 					
 					/* info */
-					if ($file instanceof \LonelyGallery\ContentFile) {
+					if ($file instanceof ContentFile) {
 						$html .= "\t<div class=\"image-info\">\n".
 							"\t\t<p class=\"title\"><a href=\"".Lonely::escape($lonely->rootScript.$file->getPath().'/'.$action)."\">".$name."</a></p>\n".
 							"\t</div>\n";
