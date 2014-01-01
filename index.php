@@ -2118,7 +2118,7 @@ h1 a {
 }
 #albums, #images {
 	overflow: auto;
-	padding: 0 20px;
+	padding: 0;
 	margin: 10px auto 20px;
 }
 #albums {
@@ -2137,7 +2137,7 @@ h1 a {
 	background-color: #111;
 	text-align: center;
 	line-height: 120px;
-	margin: 0 20px 20px 0;
+	margin: 0 10px 10px 0;
 }
 #images li {
 	width: 300px;
