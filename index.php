@@ -1342,6 +1342,9 @@ class Album extends Element {
 	private $_albums;
 	private $_files;
 	
+	/* all files in the albums directory */
+	private $_allFiles;
+	
 	/* file to use as thumbnail */
 	private $_thumbImage;
 	
@@ -1393,6 +1396,9 @@ class Album extends Element {
 		/* go through each element */
 		$dir = opendir($this->location);
 		while (($filename = readdir($dir)) !== false) {
+			
+			/* save the names of all files so that hidden files can be found without accessing the file system again */
+			$this->_allFiles[] = $filename;
 			
 			/* skip files starting with a dot or a minus */
 			if (Lonely::model()->isHiddenName($filename)) {
