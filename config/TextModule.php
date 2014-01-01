@@ -95,6 +95,18 @@ class Module extends \LonelyGallery\Module {
 	text-align: justify;
 	width: 700px;
 }
+#images li .textmodule-thumb + a {
+	opacity: 1;
+	bottom: 0;
+	height: auto;
+	line-height: 40px;
+	position: absolute;
+	top: auto;
+	background: linear-gradient(rgba(17,17,17,0) 0, rgba(17,17,17,1) 50%);
+}
+.textmodule-prev ~ a {
+	display: none;
+}
 <?php
 		exit;
 	}
@@ -108,9 +120,7 @@ class SnippletTextFile extends \LonelyGallery\File {
 	
 	/* loads the name of this element */
 	protected function loadName() {
-		$name = $this->getFilename();
-		$name = substr($name, 0, strrpos($name, '.snip.txt'));
-		return strtr($name, '_', ' ');
+		return '...';
 	}
 	
 	/* returns the HTML code for the preview */
