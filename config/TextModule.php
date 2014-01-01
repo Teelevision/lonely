@@ -111,7 +111,7 @@ class Module extends \LonelyGallery\Module {
 		exit;
 	}
 }
-class SnippletTextFile extends \LonelyGallery\File {
+class SnippletTextFile extends \LonelyGallery\MetaFile {
 
 	/* file pattern */
 	public static function pattern() {

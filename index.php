@@ -954,32 +954,34 @@ class Lonely extends Component {
 				"</script>";
 			
 			/* info */
-			$html .= "\t<div class=\"image-info\">\n".
-				"\t\t<p class=\"title\">".$name."</p>\n".
-				"\t\t<p class=\"download\"><a href=\"".self::escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
-			$dlOpen = false;
-			foreach ($this->callEvent('fileInfo', $file) as $data) {
-				foreach ($data as $key => $value) {
-					if (is_int($key)) {
-						if ($dlOpen) {
-							$html .= "\t\t</dl>\n";
-							$dlOpen = false;
+			if ($file instanceof ContentFile) {
+				$html .= "\t<div class=\"image-info\">\n".
+					"\t\t<p class=\"title\">".$name."</p>\n".
+					"\t\t<p class=\"download\"><a href=\"".self::escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
+				$dlOpen = false;
+				foreach ($this->callEvent('fileInfo', $file) as $data) {
+					foreach ($data as $key => $value) {
+						if (is_int($key)) {
+							if ($dlOpen) {
+								$html .= "\t\t</dl>\n";
+								$dlOpen = false;
+							}
+							$html .= "\t\t<p>".self::escape($value)."</p>\n";
+						} else {
+							if (!$dlOpen) {
+								$html .= "\t\t<dl>\n";
+								$dlOpen = true;
+							}
+							$html .= "\t\t\t<dt>".self::escape($key)."</dt>\n".
+								"\t\t\t<dd>".self::escape($value)."</dd>\n";
 						}
-						$html .= "\t\t<p>".self::escape($value)."</p>\n";
-					} else {
-						if (!$dlOpen) {
-							$html .= "\t\t<dl>\n";
-							$dlOpen = true;
-						}
-						$html .= "\t\t\t<dt>".self::escape($key)."</dt>\n".
-							"\t\t\t<dd>".self::escape($value)."</dd>\n";
 					}
 				}
+				if ($dlOpen) {
+					$html .= "\t\t</dl>\n";
+				}
+				$html .= "\t</div>\n";
 			}
-			if ($dlOpen) {
-				$html .= "\t\t</dl>\n";
-			}
-			$html .= "\t</div>\n";
 			
 			$html .= "</div>\n\n";
 			
@@ -1745,7 +1747,15 @@ abstract class File extends Element {
 	}
 }
 
-class Image extends File {
+abstract class MetaFile extends File {
+	
+}
+
+abstract class ContentFile extends File {
+	
+}
+
+class Image extends ContentFile {
 	
 	private $_imageInfo;
 	private $_useOriginalAsThumb = array();
@@ -1935,7 +1945,7 @@ class Image extends File {
 	}
 }
 
-class GenericFile extends File {
+class GenericFile extends ContentFile {
 	
 	protected $thumbLocationPattern;
 	protected $genericFileName = 'default.png';
