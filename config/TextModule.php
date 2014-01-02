@@ -93,6 +93,12 @@ class Module extends \LonelyGallery\Module {
 	height: 280px;
 	width: 280px;
 }
+.textmodule-thumb > *:first-child {
+	margin-top: 0;
+}
+.textmodule-thumb > *:last-child {
+	margin-bottom: 0;
+}
 .textmodule-prev {
 	text-align: justify;
 	max-width: 700px;
@@ -130,7 +136,7 @@ class SnippletTextFile extends MetaFile {
 
 	/* file pattern */
 	public static function pattern() {
-		return '/\.snip\.txt$/i';
+		return '/\.snip\.(txt|html?)$/i';
 	}
 	
 	/* loads the name of this element */
@@ -140,14 +146,20 @@ class SnippletTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$text = Lonely::model()->escape(file_get_contents($this->location));
-		return "<p class=\"textmodule-prev\">".nl2br($text, false)."</p>";
+		$text = file_get_contents($this->location);
+		if (substr($this->getFilename(), -3) == 'txt') {
+			$text = nl2br(Lonely::model()->escape($text), false);
+		}
+		return "<div class=\"textmodule-prev\">".$text."</div>";
 	}
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
-		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
-		return "<p class=\"textmodule-thumb\">".Lonely::model()->escape($text[0])."</p>";
+		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)[0];
+		if (substr($this->getFilename(), -3) == 'txt') {
+			$text = Lonely::model()->escape($text);
+		}
+		return "<div class=\"textmodule-thumb\">".$text."</div>";
 	}
 }
 ?>

@@ -2132,10 +2132,7 @@ h1 a {
 #albums {
 	margin-bottom: 12px;
 }
-#albums a, #images a {
-	color: #fff;
-}
-#albums li, #images li {
+#albums > li, #images > li {
 	position: relative;
 	display: block;
 	float: left;
@@ -2147,20 +2144,21 @@ h1 a {
 	line-height: 120px;
 	margin: 0 10px 10px 0;
 }
-#images li {
+#images > li {
 	width: 300px;
 	height: 300px;
 	line-height: 280px;
 }
-#images li img {
+#images > li > img {
 	height: 300px;
 	width: 300px;
 }
-#albums li img {
+#albums > li > img {
 	height: 140px;
 	width: 140px;
 }
-#albums li a, #images li a {
+#albums > li > a, #images > li > a {
+	color: #fff;
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -2173,7 +2171,7 @@ h1 a {
 	-webkit-transition: background-color 0.3s;
 	-o-transition: background-color 0.3s;
 }
-#images li a {
+#images > li > a {
 	width: 280px;
 	height: 280px;
 	background-color: rgba(0,0,0,.4);
@@ -2183,13 +2181,13 @@ h1 a {
 	-webkit-transition: opacity 0.3s;
 	-o-transition: opacity 0.3s;
 }
-#albums li a:hover, #albums li a:focus {
+#albums > li > a:hover, #albums > li > a:focus {
 	background-color: rgba(0,0,0,.4);
 }
-#images li a:hover, #images li a:focus {
+#images > li > a:hover, #images > li > a:focus {
 	opacity: 1;
 }
-#albums li a span, #images li a span {
+#albums > li > a span, #images > li > a span {
 	background-color: #111;
 	display: inline-block;
 	line-height: 150%;
