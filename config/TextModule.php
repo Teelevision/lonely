@@ -103,6 +103,8 @@ class Module extends \LonelyGallery\Module {
 .textmodule-prev {
 	text-align: justify;
 	max-width: 700px;
+	padding: 9px;
+	border: 1px solid #333;
 }
 #images li .textmodule-thumb + a span {
 	opacity: 0;
