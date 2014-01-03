@@ -85,14 +85,22 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
+.textmodule-thumb, .textmodule-prev {
+	text-align: justify;
+	padding: 9px;
+	border: 1px solid #333;
+}
+.textmodule-prev {
+	max-width: 700px;
+}
+.textmodule-prev ~ a {
+	display: none;
+}
 .textmodule-thumb {
 	line-height: 20px;
 	overflow: hidden;
-	text-align: justify;
-	padding: 9px;
 	height: 280px;
 	width: 280px;
-	border: 1px solid #333;
 }
 .textmodule-thumb > *:first-child {
 	margin-top: 0;
@@ -100,38 +108,24 @@ class Module extends \LonelyGallery\Module {
 .textmodule-thumb > *:last-child {
 	margin-bottom: 0;
 }
-.textmodule-prev {
-	text-align: justify;
-	max-width: 700px;
-	padding: 9px;
-	border: 1px solid #333;
-}
-#images li .textmodule-thumb + a span {
-	opacity: 0;
-	background-color: transparent;
-	box-shadow: none;
-	line-height: 0;
-}
-#images li:hover .textmodule-thumb + a span {
-	opacity: 1;
-	line-height: 40px;
-}
 #images li .textmodule-thumb + a {
 	opacity: 1;
 	width: 278px;
 	left: 1px;
 	bottom: 1px;
-	height: auto;
+	height: 10px;
 	line-height: 0;
-	position: absolute;
 	top: auto;
-	background: linear-gradient(rgba(17,17,17,0) 0, rgba(17,17,17,1) 50%);
+	background-color: #111;
+	background: linear-gradient(rgba(17,17,17,0), rgba(17,17,17,1) 50%);
 }
 #images li:hover .textmodule-thumb + a {
-	line-height: 40px;
+	height: 40px;
 }
-.textmodule-prev ~ a {
-	display: none;
+#images li .textmodule-thumb + a span {
+	background-color: transparent;
+	box-shadow: none;
+	padding: 16px;
 }
 <?php
 		exit;

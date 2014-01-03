@@ -2167,9 +2167,6 @@ h1 a {
 	padding: 10px;
 	background-color: rgba(0,0,0,0);
 	transition: background-color 0.3s;
-	-moz-transition: background-color 0.3s;
-	-webkit-transition: background-color 0.3s;
-	-o-transition: background-color 0.3s;
 }
 #images > li > a {
 	width: 280px;
@@ -2177,9 +2174,6 @@ h1 a {
 	background-color: rgba(0,0,0,.4);
 	opacity: 0;
 	transition: opacity 0.3s;
-	-moz-transition: opacity 0.3s;
-	-webkit-transition: opacity 0.3s;
-	-o-transition: opacity 0.3s;
 }
 #albums > li > a:hover, #albums > li > a:focus {
 	background-color: rgba(0,0,0,.4);
@@ -2239,9 +2233,6 @@ h1 a {
 	color: #fff;
 	opacity: 0;
 	transition: opacity 0.3s;
-	-moz-transition: opacity 0.3s;
-	-webkit-transition: opacity 0.3s;
-	-o-transition: opacity 0.3s;
 	text-shadow: #000 0px 0px 10px;
 }
 .image-box a:hover, .image-box a:focus {
