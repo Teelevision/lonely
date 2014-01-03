@@ -89,9 +89,10 @@ class Module extends \LonelyGallery\Module {
 	line-height: 20px;
 	overflow: hidden;
 	text-align: justify;
-	margin: 10px;
+	padding: 9px;
 	height: 280px;
 	width: 280px;
+	border: 1px solid #333;
 }
 .textmodule-thumb > *:first-child {
 	margin-top: 0;
@@ -115,7 +116,9 @@ class Module extends \LonelyGallery\Module {
 }
 #images li .textmodule-thumb + a {
 	opacity: 1;
-	bottom: 0;
+	width: 278px;
+	left: 1px;
+	bottom: 1px;
 	height: auto;
 	line-height: 0;
 	position: absolute;
