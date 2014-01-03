@@ -158,10 +158,8 @@ class SnippletTextFile extends MetaFile {
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
-		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)[0];
-		if (substr($this->getFilename(), -3) == 'txt') {
-			$text = Lonely::model()->escape($text);
-		}
+		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
+		$text = substr($this->getFilename(), -3) == 'txt' ? Lonely::model()->escape($text[0]) : $text[0];
 		return "<div class=\"textmodule-thumb\">".$text."</div>";
 	}
 }
