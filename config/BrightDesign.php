@@ -57,7 +57,7 @@ use \LonelyGallery\Lonely,
 class Module extends \LonelyGallery\Design {
 	
 	/* returns an array with css files to be loaded as design */
-	public function getCSSFiles() {
+	public function cssFiles() {
 		return array(
 			Lonely::model()->configScript.'lonely.css',
 			Lonely::model()->configScript.'design/bright.css',

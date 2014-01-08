@@ -138,7 +138,7 @@ class Module extends \LonelyGallery\Module {
 		
 		$metadata = array();
 		
-		$info = $file->getImageInfo();
+		$info = @getimagesize($file->getLocation());
 		
 		/* resolution */
 		if (!empty($info[0]) && !empty($info[1])) {

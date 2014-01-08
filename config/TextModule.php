@@ -93,8 +93,19 @@ class Module extends \LonelyGallery\Module {
 .textmodule-prev {
 	max-width: 700px;
 }
-.textmodule-prev ~ a {
-	display: none;
+.textmodule-prev ~ a.prev {
+	width: 250px;
+	margin-left: -250px;
+}
+.textmodule-prev ~ a.next {
+	width: 250px;
+	margin-right: -250px;
+}
+.textmodule-prev ~ a.prev:before {
+	text-align: right;
+}
+.textmodule-prev ~ a.next:after {
+	text-align: left;
 }
 .textmodule-thumb {
 	line-height: 20px;

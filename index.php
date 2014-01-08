@@ -82,37 +82,33 @@ your config directory. Adjust the content of this file with a plain text
 editor like notepad.exe on Windows, TextEdit on Mac (use Format > Make 
 Plain Text) or gedit on Linux.
 
-Settings can be overwritten in albums by creating a 'config' directory 
-in the album directory and place the setting file in it. Not every 
-setting should be overwritten.
-
 Settings:
-name             | file name            | default        | overwritable
+name             | file name            | default
     description
 -----------------------------------------------------------------------------
-title            | title.txt            | Lonely Gallery | better not
+title            | title.txt            | Lonely Gallery
     the title of your gallery
-description      | description.txt      |                | better not
+description      | description.txt      | 
     very short description of the website; invisible metadata used by
     search engines
-keywords         | keywords.txt         |                | better not
+keywords         | keywords.txt         | 
     keywords about the website; invisible metadata used by search engines
-author           | author.txt           |                | better not
+author           | author.txt           | 
     name of the website's author; invisible metadata used by search engines
-robots           | robots.txt           |                | better not
+robots           | robots.txt           | 
     directive for search engines; 'noindex,nofollow' will tell a search
 	engine not to index the website; leave blank to be indexed
-footer           | footer.txt           |                | yes
+footer           | footer.txt           | 
     text that is shown at the bottom of the gallery; you may put a legal
 	notice here; you can use html
-useOriginals     | useOriginals         | off            | yes
+useOriginals     | useOriginals         | off
     always use full size images instead of 700px rendered versions; use
 	only if you resize your images before adding them to the gallery,
 	otherwise they generate a lot of traffic
-albumThumbSquare | albumThumbSquare.txt | 2              | yes
+albumThumbSquare | albumThumbSquare.txt | 2
     the number of images used in an album thumbnail is the square of this;
 	setting this to 2 results in 4 images, 3 in 9 and 4 in 16
-shortUrls        | shortUrls            | off            | no
+shortUrls        | shortUrls            | off
     use fance short urls like /foo/bar instead of /index.php?/foo/bar;
 	only works if your webserver rewrites these urls to the old ones;
 	for nginx this might work:
@@ -254,9 +250,6 @@ class Request extends Component {
 			action: /comments/new
 	*/
 	
-	const MATCH_STRING = 0;
-	const MATCH_REGEX = 1;
-	
 	/* scope, defaults to 'lonely' */
 	private $scope = array('lonely');
 	/* album, defaults to none */
@@ -375,7 +368,7 @@ class Lonely extends Component {
 	public $albumText = '_text.txt';
 	
 	/* album class to use */
-	public $albumClass = 'Album';
+	public $albumClass = '\\LonelyGallery\\Album';
 	
 	/* class namespace of the default design which is used if there is no design module */
 	public $defaultDesign = 'DefaultDesign';
@@ -508,22 +501,17 @@ class Lonely extends Component {
 		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).'|'.preg_quote($this->albumText).')$/i';
 		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).')$/i';
 		
-		/* init request */
-		$scopePattern = '#^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'/[0-9]+(px|sq))(/|$)#';
-		$this->request = new Request($scopePattern);
-		$album = $this->request->album;
-		
-		/* read data from album config dir */
-		$num = count($album);
-		for ($n = 1; $n <= $num; ++$n) {
-			$dir = $this->rootDir.implode(DIRECTORY_SEPARATOR, array_slice($album, 0, $n)).DIRECTORY_SEPARATOR.$this->configDirectory.DIRECTORY_SEPARATOR;
-			if (is_readable($dir) && is_executable($dir)) {
-				$this->readConfig($dir);
-			}
-		}
-		
 		/* initialize modules */
 		$this->initModules();
+		
+		/* init render profiles */
+		$renderProfiles = $this->_design->renderProfiles();
+		RenderHelper::addProfiles($renderProfiles);
+		
+		/* init request */
+		$scopePattern = '#^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'/('.implode('|', array_map('preg_quote', array_keys($renderProfiles), array('#'))).'))(/|$)#';
+		$this->request = new Request($scopePattern);
+		$album = $this->request->album;
 		
 		/* init default files */
 		$this->registerFileClass('\\LonelyGallery\\Image');
@@ -628,6 +616,9 @@ class Lonely extends Component {
 			
 			/* thumb */
 			case $this->thumbDirectory:
+				$method = 'displayThumb';
+				break;
+				
 			/* config */
 			case $this->configDirectory:
 				$method = $scope[0];
@@ -701,6 +692,11 @@ class Lonely extends Component {
 	/* returns the list of modules */
 	public function getModules() {
 		return $this->_modules;
+	}
+	
+	/* returns the design */
+	public function getDesign() {
+		return $this->_design;
 	}
 	
 	/* initializes the modules */
@@ -818,14 +814,13 @@ class Lonely extends Component {
 			$html .= $albumText ? '<div id="album-text">'.$albumText."</div>\n" : '';
 			
 			/* albums */
-			$mode = '140sq';
 			if (count($albums = $album->getAlbums())) {
 				$html .= "<ul id=\"albums\">\n";
 				foreach ($albums as $element) {
 					$path = self::escape($this->rootScript.$element->getPath());
 					$name = self::escape($element->getName());
 					$html .= "\t<li id=\"".$element->getId()."\">\n".
-						"\t\t".$element->getThumbHTML($mode)."\n".
+						"\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
 						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
 						"\t</li>\n";
 				}
@@ -833,7 +828,6 @@ class Lonely extends Component {
 			}
 			
 			/* files */
-			$mode = '300sq';
 			$action = $this->defaultFileAction;
 			if (count($files = $album->getFiles())) {
 				$html .= "<ul id=\"images\">\n";
@@ -841,7 +835,7 @@ class Lonely extends Component {
 					$path = self::escape($this->rootScript.$element->getPath().'/'.$action);
 					$name = self::escape($element->getName());
 					$html .= "\t<li id=\"".$element->getId()."\">\n".
-						"\t\t".$element->getThumbHTML($mode)."\n".
+						"\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
 						"\t\t<a href=\"".$path."#image\"><span>".$name."</span></a>\n".
 						"\t</li>\n";
 				}
@@ -988,7 +982,8 @@ class Lonely extends Component {
 	}
 	
 	/* shows the thumbnail */
-	protected function displayThumb(Request $request, $mode) {
+	protected function displayThumb(Request $request) {
+		$profile = implode('/', array_slice($request->scope, 1));
 		
 		$element = $album = Factory::createAlbum($request->album);
 		/* file thumbnail */
@@ -1008,28 +1003,13 @@ class Lonely extends Component {
 			$this->error();
 		}
 		
-		if ($element->initThumb($mode)) {
+		if ($element->initThumb($profile)) {
 			/* redirect to thumbnail */
-			header("Location: ".$element->getThumbPath($mode));
+			header("Location: ".$element->getThumbPath($profile));
 			exit;
 		}
 		
 		$this->error(500, 'Could not calculate Thumbnail.');
-	}
-	
-	/* shows 140px square thumbnail */
-	protected function thumb140sqAction(Request $request) {
-		$this->displayThumb($request, '140sq');
-	}
-	
-	/* shows 300px square thumbnail */
-	protected function thumb300sqAction(Request $request) {
-		$this->displayThumb($request, '300sq');
-	}
-	
-	/* shows 700px thumbnail */
-	protected function thumb700pxAction(Request $request) {
-		$this->displayThumb($request, '700px');
 	}
 	
 	/* show an error page */
@@ -1105,7 +1085,7 @@ class Lonely extends Component {
 		}
 		
 		/* CSS */
-		$cssfiles = array_merge($this->_design->getCSSFiles(), $this->cssfiles);
+		$cssfiles = array_merge($this->_design->cssFiles(), $this->cssfiles);
 		foreach ($cssfiles as $file) {
 			echo "\t<link type=\"text/css\" rel=\"stylesheet\" media=\"screen\" href=\"", self::escape($file), "\">\n";
 		}
@@ -1158,6 +1138,245 @@ function preg_match_any(Array $patterns, $value, &$match = null) {
 }
 
 
+class Renderer {
+	
+	/* settings:
+		height/width: fixed height/width, missing value is scaled accordingly
+		max-height/width: like height/width, but don't enlarge
+		quality: JPEG quality, default: 80
+		square: whether aspect ratio is 1:1, when active use (max-)width only */
+	protected $s;
+	
+	
+	/* init with profile name */
+	public function __construct(Array $settings) {
+		$this->s = $settings + array(
+			'width' => 0,
+			'height' => 0,
+			'max-width' => 0,
+			'max-height' => 0,
+			'quality' => 80,
+			'square' => false,
+		);
+	}
+	
+	/* returns whether the given file matches the requirements */
+	public function isSuitable($path) {
+		
+		/* get info */
+		$info = @getimagesize($path);
+		
+		/* check */
+		return ($this->s['width'] && $info[0] == $this->s['width'])
+			&& ($this->s['height'] && $info[1] == $this->s['height'])
+			&& ($this->s['max-width'] && $info[0] <= $this->s['max-width'])
+			&& ($this->s['max-height'] && $info[1] <= $this->s['max-height'])
+			&& ($this->s['square'] && $info[0] == $info[1]);
+	}
+	
+	/* render thumbnail from image */
+	public function renderThumbnail($path, $saveTo) {
+		
+		/* get info */
+		$info = static::getInfo($path);
+		
+		/* calculate dimensions */
+		$thumbWidth = $this->s['width'];
+		$thumbHeight = $this->s['square'] ? $this->s['width'] : $this->s['height'];
+		if ($thumbWidth && !$thumbHeight) {
+			$thumbHeight = $thumbWidth / $info[0] * $info[1];
+		} else if (!$thumbWidth && $thumbHeight) {
+			$thumbWidth = $thumbHeight / $info[0] * $info[1];
+		} else if (!$thumbWidth && !$thumbHeight) {
+			/* 1:1 aspect ratio */
+			if ($this->s['square']) {
+				$thumbWidth = $thumbHeight = min($info[0], $info[1], $this->s['max-width']);
+			}
+			/* normal mode */
+			else {
+				$thumbWidth = $info[0];
+				$thumbHeight = $info[1];
+				if ($thumbWidth > $this->s['max-width']) {
+					$thumbWidth = $this->s['max-width'];
+					$thumbHeight = $this->s['max-width'] / $info[0] * $info[1];
+				}
+				if ($thumbHeight > $this->s['max-height']) {
+					$thumbHeight = $this->s['max-height'];
+					$thumbWidth = $this->s['max-height'] / $info[1] * $info[0];
+				}
+			}
+		}
+		/* calculate crop infos */
+		$imageX = $imageY = 0;
+		$imageWidth = $info[0];
+		$imageHeight = $info[1];
+		if ($this->s['square']) {
+			$imageWidth = $imageHeight = min($info[0], $info[1]);
+			$imageX = floor(($info[0] - $imageWidth) / 2);
+			$imageY = floor(($info[1] - $imageWidth) / 2);
+		}
+		
+		/* create new image */
+		$thumb = static::createImage($thumbWidth, $thumbHeight, $info[2]);
+		
+		/* load image from file */
+		$image = static::loadImage($path, $info[2]);
+		
+		/* resizing */
+		static::copyImage($thumb, $image, 0, 0, $imageX, $imageY, $thumbWidth, $thumbHeight, $imageWidth, $imageHeight);
+		
+		/* write to file */
+		return static::saveImage($thumb, $saveTo, $info[2]);
+	}
+	
+	/* render checkboard pattern from images */
+	public function renderChessboard(Array $files, $saveTo) {
+	
+		/* prepare */
+		$num = (int)sqrt(count($files));
+		$thumbSize = $this->s['width']/$num;
+		
+		/* create new image */
+		$thumb = self::createImage($this->s['width'], $this->s['width'], IMAGETYPE_JPEG);
+		
+		/* go through files and add them to the thumbnail */
+		$nr = 0;
+		foreach ($files as $file) {
+			
+			/* get info */
+			$info = static::getInfo($file);
+			
+			/* calculate dimensions */
+			$imageSize = $imageX = $imageY = 0;
+			
+			/* wider than high */
+			if ($info[0] > $info[1]) {
+				$imageX = (int)(($info[0] - $info[1]) / 2);
+				$imageSize = $info[1];
+			}
+			/* higher than wide */
+			else {
+				$imageY = (int)(($info[1] - $info[0]) / 2);
+				$imageSize = $info[0];
+			}
+			
+			/* load image from file */
+			$image = static::loadImage($file, $info[2]);
+			
+			/* resize */
+			$toX = ($nr % $num) * $thumbSize;
+			$toY = (int)($nr / $num) * $thumbSize;
+			self::copyImage($thumb, $image, $toX, $toY, $imageX, $imageY, $thumbSize, $thumbSize, $imageSize, $imageSize);
+			
+			static::unsetImage($image);
+			
+			++$nr;
+		}
+		
+		/* write to file */
+		return self::saveImage($thumb, $saveTo, IMAGETYPE_JPEG);
+	}
+	
+	/* returns the info of an image */
+	protected static function getInfo($path) {
+		return @getimagesize($path);
+	}
+	
+	/* copys (a part of) an image into another image */
+	protected static function copyImage(&$dest, $src, $destX, $destY, $srcX, $srcY, $destWidth, $destHeight, $srcWidth, $srcHeight) {
+		return imagecopyresampled($dest, $src, $destX, $destY, $srcX, $srcY, $destWidth, $destHeight, $srcWidth, $srcHeight);
+	}
+	
+	/* creates a new image */
+	protected static function createImage($width, $height, $type) {
+		$image = imagecreatetruecolor($width, $height);
+		/* transparency for gif and png */
+		if (in_array($type, array(IMAGETYPE_GIF, IMAGETYPE_PNG))) {
+			$transparent = imagecolorallocatealpha($image, 0, 0, 0, 127);
+			imagecolortransparent($image, $transparent);
+			imagefill($image, 0, 0, $transparent);
+			imagealphablending($image, false);
+			imagesavealpha($image, true);
+		}
+		return $image;
+	}
+	
+	/* loads an image */
+	protected static function loadImage($path, $type) {
+		switch ($type) {
+			case IMAGETYPE_GIF: return imagecreatefromgif($path);
+			case IMAGETYPE_JPEG: return imagecreatefromjpeg($path);
+			case IMAGETYPE_PNG: return imagecreatefrompng($path);
+		}
+		return null;
+	}
+	
+	/* saves an image */
+	protected static function saveImage($image, $path, $type) {
+		
+		/* create dir */
+		$dir = dirname($path);
+		if (!is_dir($dir)) {
+			mkdir($dir, -1, true);
+		}
+		
+		switch ($type) {
+			case IMAGETYPE_GIF: return imagegif($image, $path);
+			case IMAGETYPE_JPEG: return imagejpeg($image, $path, 80);
+			case IMAGETYPE_PNG: return imagepng($image, $path, 9);
+		}
+		return false;
+	}
+	
+	/* removes an image from the memory */
+	protected static function unsetImage($image) {
+		return imagedestroy($image);
+	}
+}
+
+class RenderHelper extends Renderer {
+	
+	/* available profiles */
+	private static $_profiles = array();
+	
+	/* current profile */
+	protected $profile;
+	
+	/* instances */
+	private static $_instances = array();
+	
+	
+	/* init with profile name */
+	public function __construct($profile) {
+		$this->profile = $profile;
+		parent::__construct(self::$_profiles[$profile]);
+	}
+	
+	/* return instance of this class with the given profile */
+	public static function profile($profile) {
+		if (!isset(self::$_instances[$profile])) {
+			self::$_instances[$profile] = new static($profile);
+		}
+		return self::$_instances[$profile];
+	}
+	
+	/* add profiles in the form array(name => settings, ...) */
+	public static function addProfiles($profiles) {
+		self::$_profiles += $profiles;
+	}
+	
+	/* render thumbnail from image */
+	public function renderThumbnail(Element $file, $sourcePath = null) {
+		return parent::renderThumbnail($sourcePath ?: $file->location, $file->getThumbLocation($this->profile));
+	}
+	
+	/* returns whether the given file matches the requirements */
+	public function renderChessboard(Album $album, Array $files) {
+		return parent::renderChessboard($files, $album->getThumbLocation($this->profile));
+	}
+}
+
+
 abstract class Element extends Component {
 	
 	/* unique path within the gallery */
@@ -1169,7 +1388,7 @@ abstract class Element extends Component {
 	/* absolute location on the filesystem */
 	protected $location;
 	
-	/* absolute thumb location on the filesystem, containing "<mode>" which is replaced by the actual mode */
+	/* absolute thumb location on the filesystem, containing "<profile>" which is replaced by the actual mode */
 	protected $thumbLocationPattern;
 	
 	/* relative web path */
@@ -1247,7 +1466,7 @@ abstract class Element extends Component {
 		return $this->location;
 	}
 	
-	/* returns the absolute thumb file location pattern containing "<mode>" */
+	/* returns the absolute thumb file location pattern containing "<profile>" */
 	public function getThumbPathPattern() {
 		return $this->thumbLocationPattern;
 	}
@@ -1290,31 +1509,30 @@ abstract class Element extends Component {
 	}
 	
 	/* returns the absolute path of the thumbnail */
-	public function getThumbLocation($mode) {
-		$pos = strpos($this->thumbLocationPattern, '<mode>');
-		return substr($this->thumbLocationPattern, 0, $pos).$mode.substr($this->thumbLocationPattern, $pos + 6);
+	public function getThumbLocation($profile) {
+		return strtr($this->thumbLocationPattern, array('<profile>'=>$profile));
 	}
 	
 	/* returns the web thumb path */
-	public function getThumbPath($mode) {
-		return ($this->thumbAvailable($mode) ? Lonely::model()->thumbPath : Lonely::model()->thumbScript).
-			$mode.'/'.$this->path;
+	public function getThumbPath($profile) {
+		return ($this->thumbAvailable($profile) ? Lonely::model()->thumbPath : Lonely::model()->thumbScript).
+			$profile.'/'.$this->path;
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
-	public function thumbAvailable($mode) {
-		$thumbPath = $this->getThumbLocation($mode);
+	public function thumbAvailable($profile) {
+		$thumbPath = $this->getThumbLocation($profile);
 		return ($thumbPath && ($tTime = @filemtime($thumbPath)) && ($oTime = @filemtime($this->location)) && $tTime >= $oTime);
 	}
 	
 	/* initializes the thumbnail */
-	public function initThumb($mode) {
+	public function initThumb($profile) {
 		/* check if thumbnail is available and up to date */
-		return ($this->thumbAvailable($mode) || $this->createThumb($mode, $this->getThumbLocation($mode)));
+		return ($this->thumbAvailable($profile) || $this->createThumb($profile, $this->getThumbLocation($profile)));
 	}
 	
 	/* creates a thumbnail */
-	protected function createThumb($mode, $saveTo) {
+	protected function createThumb($profile, $saveTo) {
 		return false;
 	}
 	
@@ -1324,8 +1542,8 @@ abstract class Element extends Component {
 	}
 	
 	/* returns the HTML code for the thumbnail */
-	public function getThumbHTML($mode) {
-		$thumbpath = Lonely::escape($this->getThumbPath($mode));
+	public function getThumbHTML($profile) {
+		$thumbpath = Lonely::escape($this->getThumbPath($profile));
 		$name = Lonely::escape($this->getName());
 		return "<img src=\"".$thumbpath."\" alt=\"".$name."\">";
 	}
@@ -1353,7 +1571,7 @@ class Album extends Element {
 		$gPath = $this->getGalleryPath();
 		$this->initId('album_'.end($gPath));
 		$this->location = Lonely::model()->rootDir.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
-		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<mode>'.DIRECTORY_SEPARATOR.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
+		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<profile>'.DIRECTORY_SEPARATOR.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
 		$this->path = count($gPath) ? implode('/', array_map('rawurlencode', $gPath)).'/' : '';
 	}
 	
@@ -1490,27 +1708,27 @@ class Album extends Element {
 	}
 	
 	/* returns the absolute path of the thumbnail */
-	public function getThumbLocation($mode) {
+	public function getThumbLocation($profile) {
 		if ($thumbImage = $this->getThumbImage()) {
-			return $thumbImage->getThumbLocation($mode);
+			return $thumbImage->getThumbLocation($profile);
 		}
-		return parent::getThumbLocation($mode).rawurlencode(Lonely::model()->albumThumb);
+		return parent::getThumbLocation($profile).rawurlencode(Lonely::model()->albumThumb);
 	}
 	
 	/* returns the web thumb path */
-	public function getThumbPath($mode) {
+	public function getThumbPath($profile) {
 		if ($thumbImage = $this->getThumbImage()) {
-			return $thumbImage->getThumbPath($mode);
+			return $thumbImage->getThumbPath($profile);
 		}
-		return parent::getThumbPath($mode).rawurlencode(Lonely::model()->albumThumb);
+		return parent::getThumbPath($profile).rawurlencode(Lonely::model()->albumThumb);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
-	public function thumbAvailable($mode) {
+	public function thumbAvailable($profile) {
 		if ($thumbImage = $this->getThumbImage()) {
-			return $thumbImage->initThumb($mode);
+			return $thumbImage->initThumb($profile);
 		}
-		$thumbPath = $this->getThumbLocation($mode);
+		$thumbPath = $this->getThumbLocation($profile);
 		return ($thumbPath && ($tTime = @filemtime($thumbPath)) &&
 			($oTime = @filemtime($this->location)) && $tTime >= $oTime
 			&& (!($oTime = @filemtime($this->location.Lonely::model()->albumThumbFile)) || $tTime >= $oTime)
@@ -1518,10 +1736,7 @@ class Album extends Element {
 	}
 	
 	/* creates a thumbnail */
-	protected function createThumb($mode, $saveTo) {
-		
-		/* only 140sq */
-		if ($mode != '140sq') return false;
+	protected function createThumb($profile, $saveTo) {
 		
 		/* number of images */
 		$num = max(1, Lonely::model()->albumThumbSquare);
@@ -1529,14 +1744,14 @@ class Album extends Element {
 		
 		/* get images */
 		$files = array();
-		$fileMode = '300sq';
+		$design = Lonely::model()->getDesign();
 		/* get files defined by the thumb file */
 		if ($pathes = @file($this->location.Lonely::model()->albumThumbFile, FILE_SKIP_EMPTY_LINES)) {
 			$numPathes = 0;
 			foreach ($pathes as $path) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
-				if ($file && $file->initThumb($fileMode)) {
-					$files[] = $file->getThumbLocation($fileMode);
+				if ($file) {
+					$files[] = $file->getLocation();
 					++$numPathes;
 				}
 			}
@@ -1546,8 +1761,8 @@ class Album extends Element {
 		/* not enough? get files that are in the album */
 		if ($n) {
 			foreach($this->getFiles() as $file) {
-				if ($file->initThumb($fileMode) && ($thumb = $file->getThumbLocation($fileMode)) && !in_array($thumb, $files)) {
-					$files[] = $thumb;
+				if (($file = $file->getLocation()) && !in_array($file, $files)) {
+					$files[] = $file;
 					if (!--$n) {
 						break;
 					}
@@ -1557,8 +1772,8 @@ class Album extends Element {
 		/* not enough? add albums */
 		if ($n) {
 			foreach($this->getAlbums() as $album) {
-				if ($album->initThumb($mode)) {
-					array_unshift($files, $album->getThumbLocation($mode));
+				if ($album->initThumb($profile)) {
+					array_unshift($files, $album->getThumbLocation($profile));
 					if (!--$n) {
 						break;
 					}
@@ -1572,59 +1787,8 @@ class Album extends Element {
 			}
 		}
 		
-		/* create new image */
-		$thumb = imagecreatetruecolor(140, 140);
-		$thumbSize = 140/$num;
-		
-		/* go through files and add them to the thumbnail */
-		$nr = 0;
-		foreach ($files as $file) {
-			
-			/* get info */
-			$info = getimagesize($file);
-			
-			/* calculate dimensions */
-			$imageSize = $imageX = $imageY = 0;
-			
-			/* wider than high */
-			if ($info[0] > $info[1]) {
-				$imageX = (int)(($info[0] - $info[1]) / 2);
-				$imageSize = $info[1];
-			}
-			/* higher than wide */
-			else {
-				$imageY = (int)(($info[1] - $info[0]) / 2);
-				$imageSize = $info[0];
-			}
-			
-			/* load image from file */
-			switch ($info[2]) {
-				case IMAGETYPE_GIF: $image = imagecreatefromgif($file); break;
-				case IMAGETYPE_JPEG: $image = imagecreatefromjpeg($file); break;
-				case IMAGETYPE_PNG: $image = imagecreatefrompng($file); break;
-				default: return false;
-			}
-			
-			/* resize */
-			$toX = ($nr % $num) * $thumbSize;
-			$toY = (int)($nr / $num) * $thumbSize;
-			imagecopyresampled($thumb, $image, $toX, $toY, $imageX, $imageY, $thumbSize, $thumbSize, $imageSize, $imageSize);
-			
-			imagedestroy($image);
-			
-			++$nr;
-		}
-		
-		/* save */
-		
-		/* create dir */
-		$dir = dirname($saveTo);
-		if (!is_dir($dir)) {
-			mkdir($dir, 0777, true);
-		}
-		
-		/* write to file */
-		return imagejpeg($thumb, $saveTo, 80);
+		/* render */
+		return RenderHelper::profile($profile)->renderChessboard($this, $files);
 	}
 }
 
@@ -1647,7 +1811,7 @@ class Factory {
 		/* create object */
 		$parentStr = implode('/', array_slice($gPath, 0, -1));
 		$parent = isset(self::$_albums[$parentStr]) ? self::$_albums[$parentStr] : null;
-		$classname = '\\LonelyGallery\\'.Lonely::model()->albumClass;
+		$classname = Lonely::model()->albumClass;
 		return self::$_albums[$gPathStr] = new $classname($gPath, $parent);
 	}
 	
@@ -1750,7 +1914,6 @@ abstract class ContentFile extends File {
 
 class Image extends ContentFile {
 	
-	private $_imageInfo;
 	private $_useOriginalAsThumb = array();
 	
 	
@@ -1770,17 +1933,9 @@ class Image extends ContentFile {
 		return $name;
 	}
 	
-	/* returns the image info */
-	public function getImageInfo() {
-		if (!$this->_imageInfo) {
-			$this->_imageInfo = @getimagesize($this->location);
-		}
-		return $this->_imageInfo;
-	}
-	
 	/* returns the mime type */
 	public function getMime() {
-		$info = $this->getImageInfo();
+		$info = @getimagesize($this->location);
 		return $info['mime'];
 	}
 	
@@ -1797,149 +1952,31 @@ class Image extends ContentFile {
 	}
 	
 	/* returns whether this file is suitable as a thumb without resizing */
-	public function canUseOriginalAsThumb($mode) {
-		if (!isset($this->_useOriginalAsThumb[$mode])) {
-			/* evaluate whether this file has to be resized */
-			
-			/* get info */
-			$info = $this->getImageInfo();
-			
-			$v = false;
-			if ($info) {
-				switch ($mode) {
-					case '140sq': $v = ($info[0] == $info[1] && $info[0] <= 140); break;
-					case '300sq': $v = ($info[0] == $info[1] && $info[0] <= 300); break;
-					case '700px': $v = ($info[0] <= 700 && $info[1] <= 700); break;
-				}
-			}
-			$this->_useOriginalAsThumb[$mode] = $v;
+	public function canUseOriginalAsThumb($profile) {
+		if (!isset($this->_useOriginalAsThumb[$profile])) {
+			$this->_useOriginalAsThumb[$profile] = RenderHelper::profile($profile)->isSuitable($this->location);
 		}
-		return $this->_useOriginalAsThumb[$mode];
+		return $this->_useOriginalAsThumb[$profile];
 	}
 	
 	/* returns the absolute path of the thumbnail */
-	public function getThumbLocation($mode) {
-		return $this->canUseOriginalAsThumb($mode) ? $this->getLocation() : parent::getThumbLocation($mode);
+	public function getThumbLocation($profile) {
+		return $this->canUseOriginalAsThumb($profile) ? $this->getLocation() : parent::getThumbLocation($profile);
 	}
 	
 	/* returns the web thumb path */
-	public function getThumbPath($mode) {
-		return $this->canUseOriginalAsThumb($mode) ? Lonely::model()->rootPath.$this->path : parent::getThumbPath($mode);
+	public function getThumbPath($profile) {
+		return $this->canUseOriginalAsThumb($profile) ? Lonely::model()->rootPath.$this->path : parent::getThumbPath($profile);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
-	public function thumbAvailable($mode) {
-		return ($this->canUseOriginalAsThumb($mode) || parent::thumbAvailable($mode));
+	public function thumbAvailable($profile) {
+		return ($this->canUseOriginalAsThumb($profile) || parent::thumbAvailable($profile));
 	}
 	
 	/* creates a thumbnail */
-	protected function createThumb($mode, $saveTo) {
-		
-		/* check if creating a thumbnail is needless */
-		if ($this->canUseOriginalAsThumb($mode)) {
-			return true;
-		}
-		
-		/* get info */
-		$info = $this->getImageInfo();
-		
-		/* modes */
-		switch ($mode) {
-			case '140sq': $square = true; $maxWidth = $maxHeight = 140; break;
-			case '300sq': $square = true; $maxWidth = $maxHeight = 300; break;
-			case '700px': $square = false; $maxWidth = $maxHeight = 700; break;
-			default: return false;
-		}
-		
-		/* calculate dimensions */
-		$imageWidth = $info[0];
-		$imageHeight = $info[1];
-		$imageX = $imageY = 0;
-		
-		/* square mode */
-		if ($square) {
-			
-			/* thumb dimensions */
-			if ($imageWidth < $maxWidth || $imageHeight < $maxHeight) {
-				$thumbWidth = $thumbHeight = min($imageWidth, $imageHeight);
-			} else {
-				$thumbWidth = $maxWidth;
-				$thumbHeight = $maxHeight;
-			}
-			
-			/* wider than high */
-			if ($imageWidth > $imageHeight) {
-				$imageX = floor(($imageWidth - $imageHeight) / 2);
-				$imageWidth = $imageHeight;
-			}
-			/* higher than wide */
-			else {
-				$imageY = floor(($imageHeight - $imageWidth) / 2);
-				$imageHeight = $imageWidth;
-			}
-			
-		}
-		
-		/* normal mode */
-		else {
-			
-			/* image is smaller than the max dimension: keep original width and height */
-			if ($imageWidth < $maxWidth && $imageHeight < $maxHeight) {
-				$thumbWidth = $imageWidth;
-				$thumbHeight = $imageHeight;
-			}
-			/* wider than high */
-			else if ($imageWidth > $imageHeight) {
-				$thumbWidth = $maxWidth;
-				$thumbHeight = $maxWidth / $imageWidth * $imageHeight;
-			}
-			/* higher than wide */
-			else {
-				$thumbWidth = $maxHeight / $imageHeight * $imageWidth;
-				$thumbHeight = $maxHeight;
-			}
-			
-		}
-		
-		/* load image from file */
-		switch ($info[2]) {
-			case IMAGETYPE_GIF: $image = imagecreatefromgif($this->location); break;
-			case IMAGETYPE_JPEG: $image = imagecreatefromjpeg($this->location); break;
-			case IMAGETYPE_PNG: $image = imagecreatefrompng($this->location); break;
-			default: return false;
-		}
-		
-		/* create dir */
-		$dir = dirname($saveTo);
-		if (!is_dir($dir)) {
-			mkdir($dir, 0777, true);
-		}
-		
-		/* resizing */
-		
-		/* create new image */
-		$thumb = imagecreatetruecolor($thumbWidth, $thumbHeight);
-		
-		/* transparency for gif and png */
-		if (in_array($info[2], array(IMAGETYPE_GIF, IMAGETYPE_PNG))) {
-			$transparent = imagecolorallocatealpha($thumb, 0, 0, 0, 127);
-			imagecolortransparent($thumb, $transparent);
-			imagefill($thumb, 0, 0, $transparent);
-			imagealphablending($thumb, false);
-			imagesavealpha($thumb, true);
-		}
-		
-		/* copy to thumb */
-		imagecopyresampled($thumb, $image, 0, 0, $imageX, $imageY, $thumbWidth, $thumbHeight, $imageWidth, $imageHeight);
-		
-		/* save */
-		
-		/* write to file */
-		switch ($info[2]) {
-			case IMAGETYPE_GIF: return imagegif($thumb, $saveTo);
-			case IMAGETYPE_JPEG: return imagejpeg($thumb, $saveTo, 80);
-			case IMAGETYPE_PNG: return imagepng($thumb, $saveTo, 9);
-		}
+	protected function createThumb($profile, $saveTo) {
+		return $this->canUseOriginalAsThumb($profile) || RenderHelper::profile($profile)->renderThumbnail($this);
 	}
 }
 
@@ -1952,7 +1989,7 @@ class GenericFile extends ContentFile {
 		parent::__construct($gPath, $filename, $parent);
 		
 		if ($this->getFilename() !== "") {
-			$this->thumbLocationPattern = Lonely::model()->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<mode>'.DIRECTORY_SEPARATOR.$this->genericFileName;
+			$this->thumbLocationPattern = Lonely::model()->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<profile>'.DIRECTORY_SEPARATOR.$this->genericFileName;
 		}
 	}
 	
@@ -1969,39 +2006,20 @@ class GenericFile extends ContentFile {
 	}
 	
 	/* returns the web thumb path */
-	public function getThumbPath($mode) {
-		return $this->thumbAvailable($mode) ? Lonely::model()->thumbPath.'generic/'.$mode.'/'.$this->genericFileName : Lonely::model()->thumbScript.$mode.'/'.$this->path;
+	public function getThumbPath($profile) {
+		return $this->thumbAvailable($profile) ? Lonely::model()->thumbPath.'generic/'.$profile.'/'.$this->genericFileName : Lonely::model()->thumbScript.$profile.'/'.$this->path;
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */
-	public function thumbAvailable($mode) {
-		$thumbPath = $this->getThumbLocation($mode);
+	public function thumbAvailable($profile) {
+		$thumbPath = $this->getThumbLocation($profile);
 		return ($thumbPath && is_file($thumbPath));
 	}
 	
 	/* creates a thumbnail */
-	protected function createThumb($mode, $saveTo) {
-		/* create dir */
-		$dir = dirname($saveTo);
-		if (!is_dir($dir)) {
-			mkdir($dir, 0777, true);
-		}
-		
-		/* save file */
-		switch ($mode) {
-			
-			case '140sq':
-				$thumb = imagecreatetruecolor(140, 140);
-				$image = imagecreatefromstring(base64_decode($this->base64EncodedThumbFile));
-				imagecopyresampled($thumb, $image, 0, 0, 0, 0, 140, 140, 300, 300);
-				imagedestroy($image);
-				return imagepng($thumb, $saveTo, 9);
-			
-			case '300sq':
-			default:
-				return file_put_contents($saveTo, base64_decode($this->base64EncodedThumbFile));
-			
-		}
+	protected function createThumb($profile, $saveTo) {
+		$tmpfile = tempnam(sys_get_temp_dir(), 'lonely');
+		return file_put_contents($tmpfile, base64_decode($this->base64EncodedThumbFile)) && RenderHelper::profile($profile)->renderThumbnail($this, $tmpfile);
 	}
 	
 	protected $base64EncodedThumbFile = 'iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAADzUlEQVR42u3YwQ2CQBRFUTS0oQspgxUNaQW4oANdUY0xUctgo/ShNZgYne8/pwIYkps3LPrr5lkBBLB0BIBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFUJK69Acc2slXgi/Z3xoLC0CwAMECKFEd7YFLv2NDJNH+EVtYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUIliMABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLCCm2hHw74Z2cggWFoBgAQgWEJt/WKSzvzXpz6BbbatuvbOwgJixOt0PggXEiNX5cRQsoOxYXeYxRKyqyj8ssKyCxMrCAssq1LtYWGBZWViAWAkWkDJWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWiFXaWAkWiJVgAWIlWCBWaWMlWCBWggWIlWCBWAkWIFaCBYiVYIFYCRYgVoIFiJVggVgJFiBWggViJVaCBWIlWIBYCRaIlVgJFoiVYAFiJVggVggWiJVgAWIlWCBWCBaIlWABYiVYIFYIFoiVYIFYiZVggVghWCBWggVihWCBWCFYIFaCBWKFYIFYCRYgVoIFYoVggVgJFoiVWAkWiBWCBWIlWCBWYiVYIFYIFoiVYIFYIVjwq2CJVVh1tAce2slX46Mu8yhWggXls6xcCcGywsICyyq3RX/dPB0D4EoIIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAG86QXYMa4//4/U4QAAAABJRU5ErkJggg==';
@@ -2043,8 +2061,35 @@ abstract class Module {
 abstract class Design extends Module {
 	
 	/* returns an array with css files to be loaded as design */
-	public function getCSSFiles() {
+	public function cssFiles() {
 		return array();
+	}
+	
+	/* returns an array of thumbnail profiles */
+	public function renderProfiles() {
+		return array(
+			'default/145px' => array(
+				'width' => 145,
+				'square' => true,
+			),
+			'default/300px' => array(
+				'max-width' => 300,
+				'square' => true,
+			),
+			'default/700px' => array(
+				'max-width' =>700,
+			),
+		);
+	}
+	
+	/* returns which profile to use for thumbnail of the given file/album */
+	public function thumbProfile(Element $element) {
+		return $element instanceof Album ? 'default/145px' : 'default/300px';
+	}
+	
+	/* returns which profile to use for a preview of the given file */
+	public function previewProfile(Element $element) {
+		return 'default/700px';
 	}
 }
 
@@ -2059,7 +2104,7 @@ class Module extends \LonelyGallery\Design {
 	}
 	
 	/* returns an array with css files to be loaded as design */
-	public function getCSSFiles() {
+	public function cssFiles() {
 		return array(Lonely::model()->configScript.'lonely.css');
 	}
 	
@@ -2127,7 +2172,8 @@ h1 a {
 #albums, #images {
 	overflow: auto;
 	padding: 0;
-	margin: 10px auto 20px;
+	margin: 10px 10px 20px 20px;
+	margin-right: 10px !important;
 }
 #albums {
 	margin-bottom: 12px;
@@ -2136,12 +2182,12 @@ h1 a {
 	position: relative;
 	display: block;
 	float: left;
-	width: 140px;
-	height: 140px;
+	width: 145px;
+	height: 145px;
 	overflow: hidden;
-	background-color: #111;
+	background-color: #000;
 	text-align: center;
-	line-height: 120px;
+	line-height: 125px;
 	margin: 0 10px 10px 0;
 }
 #images > li {
@@ -2154,16 +2200,16 @@ h1 a {
 	width: 300px;
 }
 #albums > li > img {
-	height: 140px;
-	width: 140px;
+	height: 145px;
+	width: 145px;
 }
 #albums > li > a, #images > li > a {
 	color: #fff;
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 120px;
-	height: 120px;
+	width: 125px;
+	height: 125px;
 	padding: 10px;
 	background-color: rgba(0,0,0,0);
 	transition: background-color 0.3s;
@@ -2207,6 +2253,7 @@ h1 a {
 #imagenav p *:nth-child(5):after { content: " >>"; }
 .image {
 	margin: 0 auto;
+	overflow: hidden;
 }
 .image img {
 	display: block;
