@@ -525,10 +525,10 @@ class Lonely extends Component {
 			if ($file && $this->isHiddenFileName($file)) {
 				$this->request->moveFileToAction();
 			}
-		}
-		foreach ($album as $a) {
-			if ($a && $this->isHiddenAlbumName($a)) {
-				$this->error();
+			foreach ($album as $a) {
+				if ($a && $this->isHiddenAlbumName($a)) {
+					$this->error();
+				}
 			}
 		}
 		
