@@ -2234,6 +2234,11 @@ h1 a {
 	padding: 4px 8px;
 	box-shadow: 0 0 2px #111;
 	vertical-align: middle;
+	word-wrap: break-word;
+	max-width: 109px;
+}
+#images > li > a span {
+	max-width: 264px;
 }
 #imagenav, .image {
 	text-align: center;
