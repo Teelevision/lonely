@@ -1196,11 +1196,11 @@ class Renderer {
 			else {
 				$thumbWidth = $info[0];
 				$thumbHeight = $info[1];
-				if ($thumbWidth > $this->s['max-width']) {
+				if ($this->s['max-width'] && $thumbWidth > $this->s['max-width']) {
 					$thumbWidth = $this->s['max-width'];
 					$thumbHeight = $this->s['max-width'] / $info[0] * $info[1];
 				}
-				if ($thumbHeight > $this->s['max-height']) {
+				if ($this->s['max-height'] && $thumbHeight > $this->s['max-height']) {
 					$thumbHeight = $this->s['max-height'];
 					$thumbWidth = $this->s['max-height'] / $info[1] * $info[0];
 				}
@@ -1941,7 +1941,7 @@ class Image extends ContentFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath('700px') : Lonely::model()->rootPath.$this->path;
+		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)) : Lonely::model()->rootPath.$this->path;
 		$name = Lonely::escape($this->getName());
 		return "<img src=\"".Lonely::escape($path)."\" alt=\"".$name."\">\n".
 			"<script type=\"text/javascript\">\n".
@@ -2000,7 +2000,7 @@ class GenericFile extends ContentFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$path = Lonely::escape($this->getThumbPath('700px'));
+		$path = Lonely::escape($this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)));
 		$name = Lonely::escape($this->getName());
 		return "<img src=\"".$path."\" alt=\"".$name."\">";
 	}

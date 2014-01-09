@@ -132,6 +132,9 @@ class Module extends \LonelyGallery\Module {
 	box-shadow: none;
 	line-height: 38px;
 	padding: 0px 5px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 <?php
 		exit;

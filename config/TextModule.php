@@ -121,22 +121,36 @@ class Module extends \LonelyGallery\Module {
 }
 #images li .textmodule-thumb + a {
 	opacity: 1;
-	width: 278px;
+	width: 298px;
 	left: 1px;
 	bottom: 1px;
 	height: 10px;
-	line-height: 0;
+	line-height: 40px;
 	top: auto;
+	padding: 20px 0 0;
 	background-color: #111;
 	background: linear-gradient(rgba(17,17,17,0), rgba(17,17,17,1) 50%);
+	transition: height .15s ease .15s;
 }
 #images li:hover .textmodule-thumb + a {
 	height: 40px;
+	transition: height .15s ease;
 }
 #images li .textmodule-thumb + a span {
+	opacity: 0;
 	background-color: transparent;
 	box-shadow: none;
 	padding: 16px;
+	line-height: 40px;
+	padding: 0px 5px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	transition: opacity .15s ease;
+}
+#images li:hover .textmodule-thumb + a span {
+	opacity: 1;
+	transition: opacity .15s ease .15s;
 }
 <?php
 		exit;
