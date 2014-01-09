@@ -39,7 +39,15 @@ THE SOFTWARE.
 
 ### Description ###
 
-Provides text snipples between album thumbnails.
+Provides text snippets that work basicly like images but display text instead.
+
+Snippets
+Just create files like this: name.snip.txt
+Name is irrelevant besides from the order of the files and is not displayed.
+The first paragraph of the file's content will be rendered in the album view.
+The full content is displayed on its own preview page.
+To use HTML, name the file name.snip.html, but stick to basic HTML since it
+can break the website's design.
 
 ### Installation ###
 
