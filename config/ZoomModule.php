@@ -165,6 +165,17 @@ div#zoombox img {
 a.zoombox-tr {
 	width: 20%;
 	left: 40%;
+	position: absolute;
+	top: 0;
+	height: 100%;
+	min-width: 50px;
+	color: #fff;
+	opacity: 0;
+	transition: opacity 0.3s;
+	text-shadow: #000 0px 0px 10px;
+}
+a.zoombox-tr:hover, a.zoombox-tr:focus {
+	opacity: 1;
 }
 a.zoombox-tr:after {
     content: "+";
