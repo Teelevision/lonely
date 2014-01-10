@@ -2114,8 +2114,8 @@ abstract class Design extends Module {
 	/* returns an array of thumbnail profiles */
 	public function renderProfiles() {
 		return array(
-			'default/145px' => array(
-				'width' => 145,
+			'default/146px' => array(
+				'width' => 146,
 				'square' => true,
 			),
 			'default/300px' => array(
@@ -2130,7 +2130,7 @@ abstract class Design extends Module {
 	
 	/* returns which profile to use for thumbnail of the given file/album */
 	public function thumbProfile(Element $element) {
-		return $element instanceof Album ? 'default/145px' : 'default/300px';
+		return $element instanceof Album ? 'default/146px' : 'default/300px';
 	}
 	
 	/* returns which profile to use for a preview of the given file */
@@ -2228,13 +2228,13 @@ h1 a {
 	position: relative;
 	display: block;
 	float: left;
-	width: 145px;
-	height: 145px;
+	width: 146px;
+	height: 146px;
 	overflow: hidden;
 	background-color: #000;
 	text-align: center;
 	line-height: 125px;
-	margin: 0 10px 10px 0;
+	margin: 0 8px 8px 0;
 }
 #images > li {
 	width: 300px;
@@ -2246,16 +2246,16 @@ h1 a {
 	width: 300px;
 }
 #albums > li img.thumb {
-	height: 145px;
-	width: 145px;
+	height: 146px;
+	width: 146px;
 }
 #albums > li > a, #images > li > a {
 	color: #fff;
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 125px;
-	height: 125px;
+	width: 126px;
+	height: 126px;
 	padding: 10px;
 	background-color: rgba(0,0,0,0);
 	transition: background-color 0.3s;
@@ -2281,7 +2281,7 @@ h1 a {
 	box-shadow: 0 0 2px #111;
 	vertical-align: middle;
 	word-wrap: break-word;
-	max-width: 109px;
+	max-width: 110px;
 }
 #images > li > a span {
 	max-width: 264px;
