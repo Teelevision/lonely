@@ -933,10 +933,10 @@ class Lonely extends Component {
 			$html .= "\t<div id=\"image\" class=\"image-box\">\n".
 				"\t\t".$file->getPreviewHTML()."\n";
 			if ($prev) {
-				$html .= "\t\t<a class=\"prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."#image\"></a>\n";
+				$html .= "\t\t<a class=\"overlaynav prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."#image\"></a>\n";
 			}
 			if ($next) {
-				$html .= "\t\t<a class=\"next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."#image\"></a>\n";
+				$html .= "\t\t<a class=\"overlaynav next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."#image\"></a>\n";
 			}
 			$html .= "\t</div>\n\n";
 			
@@ -1545,7 +1545,7 @@ abstract class Element extends Component {
 	public function getThumbHTML($profile) {
 		$thumbpath = Lonely::escape($this->getThumbPath($profile));
 		$name = Lonely::escape($this->getName());
-		return "<img src=\"".$thumbpath."\" alt=\"".$name."\">";
+		return "<img class=\"thumb\" src=\"".$thumbpath."\" alt=\"".$name."\">";
 	}
 }
 
@@ -1943,7 +1943,7 @@ class Image extends ContentFile {
 	public function getPreviewHTML() {
 		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)) : Lonely::model()->rootPath.$this->path;
 		$name = Lonely::escape($this->getName());
-		return "<img src=\"".Lonely::escape($path)."\" alt=\"".$name."\">\n".
+		return "<img class=\"preview\" src=\"".Lonely::escape($path)."\" alt=\"".$name."\">\n".
 			"<script type=\"text/javascript\">\n".
 			"<!--\n".
 			"adjustMaxImageHeight();\n".
@@ -2002,7 +2002,7 @@ class GenericFile extends ContentFile {
 	public function getPreviewHTML() {
 		$path = Lonely::escape($this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)));
 		$name = Lonely::escape($this->getName());
-		return "<img src=\"".$path."\" alt=\"".$name."\">";
+		return "<img class=\"preview\" src=\"".$path."\" alt=\"".$name."\">";
 	}
 	
 	/* returns the web thumb path */
@@ -2195,11 +2195,11 @@ h1 a {
 	height: 300px;
 	line-height: 280px;
 }
-#images > li > img {
+#images > li img.thumb {
 	height: 300px;
 	width: 300px;
 }
-#albums > li > img {
+#albums > li img.thumb {
 	height: 145px;
 	width: 145px;
 }
@@ -2260,7 +2260,7 @@ h1 a {
 	margin: 0 auto;
 	overflow: hidden;
 }
-.image img {
+.image img.preview {
 	display: block;
 	max-width: 100%;
 	margin: 0 auto;
@@ -2275,7 +2275,7 @@ h1 a {
 	max-width: 100%;
 	min-width: 100px;
 }
-.image-box a {
+.image-box a.overlaynav {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -2287,14 +2287,14 @@ h1 a {
 	transition: opacity 0.3s;
 	text-shadow: #000 0px 0px 10px;
 }
-.image-box a:hover, .image-box a:focus {
+.image-box a.overlaynav:hover, .image-box a.overlaynav:focus {
 	opacity: 1;
 }
-.image-box a.next {
+.image-box a.overlaynav.next {
 	right: 0;
 	left: auto;
 }
-.image-box a.prev:before, .image-box a.next:after {
+.image-box a.overlaynav.prev:before, .image-box a.overlaynav.next:after {
 	content: "<";
 	display: block;
 	font-size: 80px;
@@ -2303,7 +2303,7 @@ h1 a {
 	width: 100%;
 	top: 50%;
 }
-.image-box a.next:after {
+.image-box a.overlaynav.next:after {
 	content: ">";
 }
 .image-info p, .image-info dl {

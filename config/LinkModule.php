@@ -94,28 +94,38 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-a.linkmodule-prev {
-	width: 100%;
+.linkmodule-prev {
+	font-size: 24px;
+	margin: 10px 10px 0;
+	max-width: 700px;
+	line-height: 40px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
-.linkmodule-prev ~ a.prev {
-	width: 250px;
-	margin-left: -250px;
-}
-.linkmodule-prev ~ a.next {
-	width: 250px;
-	margin-right: -250px;
-}
-.linkmodule-prev ~ a.prev:before {
-	text-align: right;
-}
-.linkmodule-prev ~ a.next:after {
-	text-align: left;
+.linkmodule-prev ~ a.overlaynav {
+	height: calc(100% - 50px);
 }
 .linkmodule-thumb + a + a {
 	display: none;
 }
-.linkmodule-thumb + a span:before {
+.linkmodule-thumb + a span:before, .linkmodule-prev > a:before {
 	content: "⇒ ";
+}
+#images > li > .linkmodule-thumb img {
+	margin-left: 0px;
+	transition: margin-left 0.3s ease;
+}
+#images > li:hover .linkmodule-thumb img {
+	margin-left: -600px;
+}
+#images > li > a.linkmodule-thumb-link {
+	margin-left: 300px;
+	transition: margin-left 0.3s ease;
+	opacity: 1;
+}
+#images > li:hover > a.linkmodule-thumb-link, #images > li > a.linkmodule-thumb-link:focus {
+	margin-left: 0px;
 }
 <?php
 		exit;
@@ -157,14 +167,14 @@ class LinkTextFile extends MetaFile {
 	public function getPreviewHTML() {
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
-		return $thumb->getPreviewHTML()."<a class=\"linkmodule-prev\" href=\"".Lonely::escape($l['url'])."\"><span>".Lonely::escape($l['label'])."</span></a>";
+		return $thumb->getPreviewHTML()."<p class=\"linkmodule-prev\"><a href=\"".Lonely::escape($l['url'])."\">".Lonely::escape($l['label'])."</a></p>";
 	}
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
-		return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a href=\"".Lonely::escape($l['url'])."\"><span>".Lonely::escape($l['label'])."</span></a>";
+		return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a class=\"linkmodule-thumb-link\" href=\"".Lonely::escape($l['url'])."\"><span>".Lonely::escape($l['label'])."</span></a>";
 	}
 }
 ?>
