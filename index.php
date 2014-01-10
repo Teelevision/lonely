@@ -1750,7 +1750,7 @@ class Album extends Element {
 			$numPathes = 0;
 			foreach ($pathes as $path) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
-				if ($file) {
+				if ($file && $file instanceof ContentFile) {
 					$files[] = $file->getLocation();
 					++$numPathes;
 				}
@@ -1761,7 +1761,7 @@ class Album extends Element {
 		/* not enough? get files that are in the album */
 		if ($n) {
 			foreach($this->getFiles() as $file) {
-				if (($file = $file->getLocation()) && !in_array($file, $files)) {
+				if ($file instanceof ContentFile && ($file = $file->getLocation()) && !in_array($file, $files)) {
 					$files[] = $file;
 					if (!--$n) {
 						break;
