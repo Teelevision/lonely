@@ -1366,12 +1366,12 @@ class RenderHelper extends Renderer {
 	}
 	
 	/* render thumbnail from image */
-	public function renderThumbnail(Element $file, $sourcePath = null) {
+	public function renderThumbnailOfElement(Element $file, $sourcePath = null) {
 		return parent::renderThumbnail($sourcePath ?: $file->location, $file->getThumbLocation($this->profile));
 	}
 	
 	/* returns whether the given file matches the requirements */
-	public function renderChessboard(Album $album, Array $files) {
+	public function renderChessboardOfAlbum(Album $album, Array $files) {
 		return parent::renderChessboard($files, $album->getThumbLocation($this->profile));
 	}
 }
@@ -1788,7 +1788,7 @@ class Album extends Element {
 		}
 		
 		/* render */
-		return RenderHelper::profile($profile)->renderChessboard($this, $files);
+		return RenderHelper::profile($profile)->renderChessboardOfAlbum($this, $files);
 	}
 }
 
@@ -1976,7 +1976,7 @@ class Image extends ContentFile {
 	
 	/* creates a thumbnail */
 	protected function createThumb($profile, $saveTo) {
-		return $this->canUseOriginalAsThumb($profile) || RenderHelper::profile($profile)->renderThumbnail($this);
+		return $this->canUseOriginalAsThumb($profile) || RenderHelper::profile($profile)->renderThumbnailOfElement($this);
 	}
 }
 
@@ -2019,7 +2019,7 @@ class GenericFile extends ContentFile {
 	/* creates a thumbnail */
 	protected function createThumb($profile, $saveTo) {
 		$tmpfile = tempnam(sys_get_temp_dir(), 'lonely');
-		return file_put_contents($tmpfile, base64_decode($this->base64EncodedThumbFile)) && RenderHelper::profile($profile)->renderThumbnail($this, $tmpfile);
+		return file_put_contents($tmpfile, base64_decode($this->base64EncodedThumbFile)) && RenderHelper::profile($profile)->renderThumbnailOfElement($this, $tmpfile);
 	}
 	
 	protected $base64EncodedThumbFile = 'iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAADzUlEQVR42u3YwQ2CQBRFUTS0oQspgxUNaQW4oANdUY0xUctgo/ShNZgYne8/pwIYkps3LPrr5lkBBLB0BIBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFUJK69Acc2slXgi/Z3xoLC0CwAMECKFEd7YFLv2NDJNH+EVtYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUIliMABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLCCm2hHw74Z2cggWFoBgAQgWEJt/WKSzvzXpz6BbbatuvbOwgJixOt0PggXEiNX5cRQsoOxYXeYxRKyqyj8ssKyCxMrCAssq1LtYWGBZWViAWAkWkDJWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWiFXaWAkWiJVgAWIlWCBWaWMlWCBWggWIlWCBWAkWIFaCBYiVYIFYCRYgVoIFiJVggVgJFiBWggViJVaCBWIlWIBYCRaIlVgJFoiVYAFiJVggVggWiJVgAWIlWCBWCBaIlWABYiVYIFYIFoiVYIFYiZVggVghWCBWggVihWCBWCFYIFaCBWKFYIFYCRYgVoIFYoVggVgJFoiVWAkWiBWCBWIlWCBWYiVYIFYIFoiVYIFYIVjwq2CJVVh1tAce2slX46Mu8yhWggXls6xcCcGywsICyyq3RX/dPB0D4EoIIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAG86QXYMa4//4/U4QAAAABJRU5ErkJggg==';
