@@ -2319,7 +2319,7 @@ h1 a {
 	position: relative;
 	margin: 0 0 10px;
 	max-width: 100%;
-	min-width: 100px;
+	min-width: 400px;
 }
 .image-box a.overlaynav {
 	position: absolute;
@@ -2407,7 +2407,7 @@ function navigate(event) {
 			if (i) {
 				var a = i.getElementsByTagName('a');
 				for (var i = 0; i < a.length; ++i) {
-					if ((k == 37 && a[i].className == 'prev') || (k == 39 && a[i].className == 'next')) {
+					if ((k == 37 && a[i].className == 'overlaynav prev') || (k == 39 && a[i].className == 'overlaynav next')) {
 						window.location = a[i].href;
 						return false;
 					}

@@ -97,7 +97,6 @@ class Module extends \LonelyGallery\Module {
 .linkmodule-prev {
 	font-size: 16px;
 	margin: 10px 10px 0;
-	max-width: 700px;
 	line-height: 40px;
 	overflow: hidden;
 	text-overflow: ellipsis;
