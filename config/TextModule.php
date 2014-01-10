@@ -137,7 +137,7 @@ class Module extends \LonelyGallery\Module {
 	top: auto;
 	padding: 20px 0 0;
 	background-color: #000;
-	background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,1) 50%);
+	background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,1) 70%);
 	transition: height .15s ease .15s;
 }
 #images li:hover .textmodule-thumb + a {
