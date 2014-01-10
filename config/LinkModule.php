@@ -95,7 +95,7 @@ class Module extends \LonelyGallery\Module {
 		header('Content-Type: text/css');
 		?>
 .linkmodule-prev {
-	font-size: 24px;
+	font-size: 16px;
 	margin: 10px 10px 0;
 	max-width: 700px;
 	line-height: 40px;
@@ -103,8 +103,8 @@ class Module extends \LonelyGallery\Module {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.linkmodule-prev ~ a.overlaynav {
-	height: calc(100% - 50px);
+.linkmodule-prev ~ a {
+	max-height: calc(100% - 50px);
 }
 .linkmodule-thumb + a + a {
 	display: none;
@@ -169,9 +169,8 @@ class LinkTextFile extends MetaFile {
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
 			return $thumb->getPreviewHTML()."<p class=\"linkmodule-prev\"><a href=\"".Lonely::escape($l['url'])."\">".Lonely::escape($l['label'])."</a></p>";
-		} else {
-			return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
 		}
+		return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
 	}
 	
 	/* returns the HTML code for the thumbnail */
@@ -180,9 +179,8 @@ class LinkTextFile extends MetaFile {
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
 			return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a class=\"linkmodule-thumb-link\" href=\"".Lonely::escape($l['url'])."\"><span>".Lonely::escape($l['label'])."</span></a>";
-		} else {
-			return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
 		}
+		return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
 	}
 }
 ?>

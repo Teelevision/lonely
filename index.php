@@ -1750,8 +1750,8 @@ class Album extends Element {
 			$numPathes = 0;
 			foreach ($pathes as $path) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
-				if ($file && $file instanceof ContentFile) {
-					$files[] = $file->getLocation();
+				if ($file && ($file instanceof ContentFile || ($thumb = $file->getThumbSourceLocation()))) {
+					$files[] = $file instanceof ContentFile ? $file->getLocation() : $thumb;
 					++$numPathes;
 				}
 			}
@@ -1761,7 +1761,7 @@ class Album extends Element {
 		/* not enough? get files that are in the album */
 		if ($n) {
 			foreach($this->getFiles() as $file) {
-				if ($file instanceof ContentFile && ($file = $file->getLocation()) && !in_array($file, $files)) {
+				if (($file instanceof ContentFile || ($thumb = $file->getThumbSourceLocation())) && ($file = $file instanceof ContentFile ? $file->getLocation() : $thumb) && !in_array($file, $files)) {
 					$files[] = $file;
 					if (!--$n) {
 						break;
@@ -1906,10 +1906,32 @@ abstract class File extends Element {
 
 abstract class MetaFile extends File {
 	
+	/* image from which to render the thumbnail */
+	private $_thumbSourceLocation;
+	
+	
+	function __destruct() {
+		if ($this->_thumbSourceLocation) {
+			unlink($this->_thumbSourceLocation);
+		}
+	}
+	
+	/* returns the source location of the image from which the thumbnail can be rendered */
+	public function getThumbSourceLocation() {
+		if ($this->_thumbSourceLocation === null) {
+			$this->_thumbSourceLocation = $this->loadThumbSourceLocation();
+		}
+		return $this->_thumbSourceLocation;
+	}
+	
+	/* loads the source location for the thumbnail */
+	public function loadThumbSourceLocation() {
+		return '';
+	}
 }
 
 abstract class ContentFile extends File {
-	
+
 }
 
 class Image extends ContentFile {
@@ -2019,7 +2041,7 @@ class GenericFile extends ContentFile {
 	/* creates a thumbnail */
 	protected function createThumb($profile, $saveTo) {
 		$tmpfile = tempnam(sys_get_temp_dir(), 'lonely');
-		return file_put_contents($tmpfile, base64_decode($this->base64EncodedThumbFile)) && RenderHelper::profile($profile)->renderThumbnailOfElement($this, $tmpfile);
+		return file_put_contents($tmpfile, base64_decode($this->base64EncodedThumbFile)) && RenderHelper::profile($profile)->renderThumbnailOfElement($this, $tmpfile) && unlink($tmpfile);
 	}
 	
 	protected $base64EncodedThumbFile = 'iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAADzUlEQVR42u3YwQ2CQBRFUTS0oQspgxUNaQW4oANdUY0xUctgo/ShNZgYne8/pwIYkps3LPrr5lkBBLB0BIBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFUJK69Acc2slXgi/Z3xoLC0CwAMECKFEd7YFLv2NDJNH+EVtYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUIliMABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLCCm2hHw74Z2cggWFoBgAQgWEJt/WKSzvzXpz6BbbatuvbOwgJixOt0PggXEiNX5cRQsoOxYXeYxRKyqyj8ssKyCxMrCAssq1LtYWGBZWViAWAkWkDJWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWiFXaWAkWiJVgAWIlWCBWaWMlWCBWggWIlWCBWAkWIFaCBYiVYIFYCRYgVoIFiJVggVgJFiBWggViJVaCBWIlWIBYCRaIlVgJFoiVYAFiJVggVggWiJVgAWIlWCBWCBaIlWABYiVYIFYIFoiVYIFYiZVggVghWCBWggVihWCBWCFYIFaCBWKFYIFYCRYgVoIFYoVggVgJFoiVWAkWiBWCBWIlWCBWYiVYIFYIFoiVYIFYIVjwq2CJVVh1tAce2slX46Mu8yhWggXls6xcCcGywsICyyq3RX/dPB0D4EoIIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAG86QXYMa4//4/U4QAAAABJRU5ErkJggg==';

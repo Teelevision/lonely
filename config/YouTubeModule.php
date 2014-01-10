@@ -162,6 +162,17 @@ class YouTubeTextFile extends MetaFile {
 		return $this->_vData;
 	}
 	
+	/* loads the source location for the thumbnail */
+	public function loadThumbSourceLocation() {
+		$v = $this->getVData();
+		$tmpfile = tempnam(sys_get_temp_dir(), 'lonely_youtube');
+		$url = 'http://img.youtube.com/vi/'.$v['vid'].'/default.jpg';
+		if (($h = @fopen($url, 'r')) && file_put_contents($tmpfile, $h)) {
+			return $tmpfile;
+		}
+		return '';
+	}
+	
 	/* returns the data about this video */
 	private function getVideoCode($width, $height, $urlData = '') {
 		$v = $this->getVData();
