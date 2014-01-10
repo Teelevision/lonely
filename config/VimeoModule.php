@@ -1,7 +1,7 @@
 <?php
 /*
 ##########################
-###   YouTube Module   ###
+###    Vimeo Module    ###
 ###        for         ###
 ### Lonely PHP Gallery ###
 ##########################
@@ -9,7 +9,7 @@
 ### Version ###
 
 1.1.0 beta 1
-date: 2014-01-09
+date: 2014-01-10
 
 ### Requirements ###
 
@@ -39,23 +39,12 @@ THE SOFTWARE.
 
 ### Description ###
 
-Helps embedding YouTube videos.
-Simply creates files of this pattern: name.videoID.youtube.txt
+Helps embedding Vimeo videos.
+Simply creates files of this pattern: name.videoID.vimeo.txt
 
 Example:
-Url: https://www.youtube.com/watch?v=H7jtC8vjXw8
-File: YouTube_Rewind_2013.H7jtC8vjXw8.youtube.txt
-
-You can also add the start position by giving the offset in seconds like this:
-Url: https://www.youtube.com/watch?v=G5AdrupH788#t=106
-File: Guide_to_our_Galaxy.G5AdrupH788.106s.youtube.txt
-
-Setting an end is possible, too:
-Seconds 106 to 130:
-Guide_to_our_Galaxy.G5AdrupH788.106-130s.youtube.txt
-From beginning to 130:
-Guide_to_our_Galaxy.G5AdrupH788.0-130s.youtube.txt
-
+Url: http://vimeo.com/14912890
+File: Everything_is_a_Remix_Part_1.14912890.vimeo.txt
 
 ### Installation ###
 
@@ -63,7 +52,7 @@ Place the PHP file into the 'config' directory.
 
 */
 
-namespace LonelyGallery\YouTubeModule;
+namespace LonelyGallery\VimeoModule;
 use \LonelyGallery\Lonely,
 	\LonelyGallery\Request,
 	\LonelyGallery\MetaFile;
@@ -71,19 +60,19 @@ class Module extends \LonelyGallery\Module {
 	
 	/* returns settings for default design */
 	public function afterConstruct() {
-		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'youtube/main.css';
+		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'vimeo/main.css';
 	}
 	
 	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array(
-			'YouTubeTextFile' => 9,
+			'VimeoTextFile' => 9,
 		);
 	}
 	
 	/* config files */
 	public function configAction(Request $request) {
-		if (count($request->action) > 1 && $request->action[0] == 'youtube') {
+		if (count($request->action) > 1 && $request->action[0] == 'vimeo') {
 			switch ($request->action[1]) {
 				case 'main.css': $this->displayCSS();
 			}
@@ -101,39 +90,42 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-.youtubemodule-prev ~ a.prev {
+.vimeomodule-thumb > iframe, .vimeomodule-prev > iframe {
+	border: 0;
+}
+.vimeomodule-prev ~ a.prev {
 	width: 250px;
 	margin-left: -250px;
 }
-.youtubemodule-prev ~ a.next {
+.vimeomodule-prev ~ a.next {
 	width: 250px;
 	margin-right: -250px;
 }
-.youtubemodule-prev ~ a.prev:before {
+.vimeomodule-prev ~ a.prev:before {
 	text-align: right;
 }
-.youtubemodule-prev ~ a.next:after {
+.vimeomodule-prev ~ a.next:after {
 	text-align: left;
 }
-.youtubemodule-thumb > *:first-child {
+.vimeomodule-thumb > *:first-child {
 	margin-top: 0;
 }
-.youtubemodule-thumb > *:last-child {
+.vimeomodule-thumb > *:last-child {
 	margin-bottom: 0;
 }
-#images li .youtubemodule-thumb + a {
+#images li .vimeomodule-thumb + a {
 	opacity: 1;
 	width: 300px;
 	left: 0;
 	bottom: 0;
-	border-top: 2px solid #767676;
+	border-top: 2px solid #37B04D;
 	top: auto;
 	height: 38px;
 	padding: 0;
-	background-color: #1b1b1b;
+	background-color: #111A19;
 	line-height: 38px;
 }
-#images li .youtubemodule-thumb + a span {
+#images li .vimeomodule-thumb + a span {
 	background-color: transparent;
 	box-shadow: none;
 	line-height: 38px;
@@ -146,7 +138,7 @@ class Module extends \LonelyGallery\Module {
 		exit;
 	}
 }
-class YouTubeTextFile extends MetaFile {
+class VimeoTextFile extends MetaFile {
 	private $_vData;
 	
 	/* whether to show the title */
@@ -155,18 +147,16 @@ class YouTubeTextFile extends MetaFile {
 	
 	/* file pattern */
 	public static function pattern() {
-		return '#\.[-_[:alnum:]]{11}(\.\d+s?(-\d+s?)?)?\.youtube\.txt$#i';
+		return '#\.\d+\.vimeo\.txt$#i';
 	}
 	
 	/* returns the data about this video */
 	private function getVData() {
 		if ($this->_vData === null) {
-			preg_match('#^(?P<name>.+)\.(?P<vid>[-_[:alnum:]]{11})(\.(?P<start>\d+)s?(-(?P<end>\d+)s?)?)?\.youtube\.txt$#i', $this->getFilename(), $match);
+			preg_match('#^(?P<name>.+)\.(?P<vid>\d+)\.vimeo\.txt$#i', $this->getFilename(), $match);
 			$this->_vData = array(
 				'name' => $match['name'],
 				'vid' => $match['vid'],
-				'start' => (int)$match['start'],
-				'end' => (int)$match['end'],
 			);
 		}
 		return $this->_vData;
@@ -175,10 +165,15 @@ class YouTubeTextFile extends MetaFile {
 	/* loads the source location for the thumbnail */
 	public function loadThumbSourceLocation() {
 		$v = $this->getVData();
-		$tmpfile = tempnam(sys_get_temp_dir(), 'lonely_youtube');
-		$url = 'http://img.youtube.com/vi/'.$v['vid'].'/default.jpg';
-		if (($h = @fopen($url, 'r')) && file_put_contents($tmpfile, $h)) {
-			return $tmpfile;
+		$infoUrl = 'http://vimeo.com/api/v2/video/'.$v['vid'].'.json';
+		if ($json = @file_get_contents($infoUrl)) {
+			$info = json_decode($json, true);
+			if (isset($info[0]['thumbnail_small'])) {
+				$tmpfile = tempnam(sys_get_temp_dir(), 'lonely_vimeo');
+				if (($h = @fopen($info[0]['thumbnail_small'], 'r')) && file_put_contents($tmpfile, $h)) {
+					return $tmpfile;
+				}
+			}
 		}
 		return '';
 	}
@@ -186,8 +181,7 @@ class YouTubeTextFile extends MetaFile {
 	/* returns the data about this video */
 	private function getVideoCode($width, $height, $urlData = '') {
 		$v = $this->getVData();
-		$url = $v['vid'] == '' ? '' : '//www.youtube-nocookie.com/v/'.$v['vid'].'?version=3&amp;rel=0'.($v['start'] ? '&amp;start='.$v['start'] : '').($v['end'] ? '&amp;end='.$v['end'] : '').$urlData;
-		return "<div class=\"youtubemodule-prev\"><object width=\"".$width."\" height=\"".$height."\"><param name=\"movie\" value=\"".$url."\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"".$url."\" type=\"application/x-shockwave-flash\" width=\"".$width."\" height=\"".$height."\" allowscriptaccess=\"always\" allowfullscreen=\"true\"></embed></object></div>";
+		return "<iframe src=\"//player.vimeo.com/video/".$v['vid']."?".$urlData."\" width=\"".$width."\" height=\"".$height."\" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>";
 	}
 	
 	/* loads the name of this element */
@@ -199,12 +193,12 @@ class YouTubeTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		return "<div class=\"youtubemodule-prev\">".$this->getVideoCode(700, 394)."</div>";
+		return "<div class=\"vimeomodule-prev\">".$this->getVideoCode(700, 394)."</div>";
 	}
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
-		return "<div class=\"youtubemodule-thumb\">".$this->getVideoCode(300, 260, '&amp;showinfo=0&amp;controls=1')."</div>";
+		return "<div class=\"vimeomodule-thumb\">".$this->getVideoCode(300, 260, 'badge=0&amp;byline=0&amp;portrait=0&amp;title=0')."</div>";
 	}
 }
 ?>

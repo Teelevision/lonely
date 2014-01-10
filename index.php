@@ -968,6 +968,10 @@ class Lonely extends Component {
 					$html .= "\t\t</dl>\n";
 				}
 				$html .= "\t</div>\n";
+			} else if ($file->showTitle) {
+				$html .= "\t<div class=\"image-info\">\n".
+					"\t\t<p class=\"title\">".$name."</p>\n".
+					"\t</div>\n";
 			}
 			
 			$html .= "</div>\n\n";
@@ -1750,9 +1754,17 @@ class Album extends Element {
 			$numPathes = 0;
 			foreach ($pathes as $path) {
 				$file = Factory::createFileByRelPath(trim($path), $this);
-				if ($file && ($file instanceof ContentFile || ($thumb = $file->getThumbSourceLocation()))) {
-					$files[] = $file instanceof ContentFile ? $file->getLocation() : $thumb;
-					++$numPathes;
+				if ($file) {
+					if ($file instanceof ContentFile) {
+						$fileProfile = $design->thumbProfile($file);
+						if ($file->initThumb($fileProfile)) {
+							$files[] = $file->getThumbLocation($fileProfile);
+							++$numPathes;
+						}
+					} else if ($thumb = $file->getThumbSourceLocation()) {
+						$files[] = $thumb;
+						++$numPathes;
+					}
 				}
 			}
 			$num = ceil(sqrt($numPathes));
@@ -1761,8 +1773,17 @@ class Album extends Element {
 		/* not enough? get files that are in the album */
 		if ($n) {
 			foreach($this->getFiles() as $file) {
-				if (($file instanceof ContentFile || ($thumb = $file->getThumbSourceLocation())) && ($file = $file instanceof ContentFile ? $file->getLocation() : $thumb) && !in_array($file, $files)) {
-					$files[] = $file;
+				$path = null;
+				if ($file instanceof ContentFile) {
+					$fileProfile = $design->thumbProfile($file);
+					if ($file->initThumb($fileProfile)) {
+						$path = $file->getThumbLocation($fileProfile);
+					}
+				} else if ($thumb = $file->getThumbSourceLocation()) {
+					$path = $thumb;
+				}
+				if (!in_array($path, $files)) {
+					$files[] = $path;
 					if (!--$n) {
 						break;
 					}
@@ -1908,6 +1929,9 @@ abstract class MetaFile extends File {
 	
 	/* image from which to render the thumbnail */
 	private $_thumbSourceLocation;
+	
+	/* whether to show the title */
+	public $showTitle = false;
 	
 	
 	function __destruct() {
