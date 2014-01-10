@@ -69,7 +69,7 @@ class Module extends \LonelyGallery\Module {
 	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array(
-			'SnippletTextFile' => 9,
+			'SnippetTextFile' => 9,
 		);
 	}
 	
@@ -164,7 +164,7 @@ class Module extends \LonelyGallery\Module {
 		exit;
 	}
 }
-class SnippletTextFile extends MetaFile {
+class SnippetTextFile extends MetaFile {
 
 	/* file pattern */
 	public static function pattern() {
