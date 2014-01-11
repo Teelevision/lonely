@@ -187,7 +187,7 @@ class YouTubeTextFile extends MetaFile {
 	private function getVideoCode($width, $height, $urlData = '') {
 		$v = $this->getVData();
 		$url = $v['vid'] == '' ? '' : '//www.youtube-nocookie.com/v/'.$v['vid'].'?version=3&amp;rel=0'.($v['start'] ? '&amp;start='.$v['start'] : '').($v['end'] ? '&amp;end='.$v['end'] : '').$urlData;
-		return "<div class=\"youtubemodule-prev\"><object width=\"".$width."\" height=\"".$height."\"><param name=\"movie\" value=\"".$url."\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"".$url."\" type=\"application/x-shockwave-flash\" width=\"".$width."\" height=\"".$height."\" allowscriptaccess=\"always\" allowfullscreen=\"true\"></embed></object></div>";
+		return "<div class=\"youtubemodule-prev\"><object width=\"".$width."\" height=\"".$height."\"><param name=\"movie\" value=\"".$url."\"><param name=\"allowFullScreen\" value=\"true\"><param name=\"allowscriptaccess\" value=\"always\"><embed src=\"".$url."\" type=\"application/x-shockwave-flash\" width=\"".$width."\" height=\"".$height."\" allowscriptaccess=\"always\" allowfullscreen=\"true\"></object></div>";
 	}
 	
 	/* loads the name of this element */
