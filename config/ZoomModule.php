@@ -54,8 +54,10 @@ class Module extends \LonelyGallery\Module {
 	
 	/* returns settings for default design */
 	public function afterConstruct() {
-		Lonely::model()->jsfiles[] = Lonely::model()->configScript.'zoom/main.js';
-		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'zoom/main.css';
+		$l = Lonely::model();
+		$l->useOriginals = true;
+		$l->jsfiles[] = Lonely::model()->configScript.'zoom/main.js';
+		$l->cssfiles[] = Lonely::model()->configScript.'zoom/main.css';
 	}
 	
 	/* config files */
@@ -81,48 +83,40 @@ class Module extends \LonelyGallery\Module {
 		?>
 var zoom_img, zoom_div;
 function initZoom() {
-	var divs = document.getElementById('content').getElementsByTagName('div');
-	for (var i = 0; i < divs.length; ++i) {
-		var div = divs[i];
-		if (div.className && div.className == 'image') {
-			var div2 = div.getElementsByTagName('div');
-			if (div2.length) {
-				var image = div2[0];
-				var img = image.getElementsByTagName('img');
-				if (img.length > 0 && (window.innerHeight <= img[0].naturalHeight || window.innerWidth <= img[0].naturalWidth)) {
-					var aZoom = document.createElement('a');
-					aZoom.href = '#';
-					aZoom.className = 'zoombox-tr';
-					aZoom.onclick = function(img){
-						return function(){
-							zoom_div = document.createElement('div');
-							zoom_div.id = 'zoombox';
-							zoom_div.onclick = function(){
-								window.removeEventListener('mousemove', zoomPos);
-								document.body.removeChild(zoom_div);
-							};
-							zoom_img = document.createElement('img');
-							zoom_img.src = img.src;
-							zoom_div.appendChild(zoom_img);
-							zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
-							document.body.appendChild(zoom_div);
-							window.addEventListener('mousemove', zoomPos);
-							return false;
-						};
-					}(img[0]);
-					image.appendChild(aZoom);
-				}
-			}
+	var img = document.querySelectorAll(".file .preview");
+	for (var i = 0; i < img.length; ++i) {
+		if (window.innerHeight <= img[i].naturalHeight || window.innerWidth <= img[i].naturalWidth) {
+			var aZoom = document.createElement('a');
+			aZoom.href = '#';
+			aZoom.className = 'zoombox-tr';
+			aZoom.onclick = function(img){
+				return function(){
+					zoom_div = document.createElement('div');
+					zoom_div.id = 'zoombox';
+					zoom_div.onclick = function(){
+						window.removeEventListener('mousemove', zoomPos);
+						document.body.removeChild(zoom_div);
+					};
+					zoom_img = document.createElement('img');
+					zoom_img.src = img.src;
+					zoom_div.appendChild(zoom_img);
+					zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
+					document.body.appendChild(zoom_div);
+					window.addEventListener('mousemove', zoomPos);
+					return false;
+				};
+			}(img[i]);
+			img[i].parentNode.appendChild(aZoom);
 		}
 	}
 }
 function zoomPos(event) {
 	if (window.innerWidth <= zoom_img.naturalWidth) {
-		var x = Math.min(1, (event.clientX - 100) / (window.innerWidth - 200)) * (zoom_img.naturalWidth - window.innerWidth);
+		var x = Math.min(1, (event.clientX - 200) / (window.innerWidth - 400)) * (zoom_img.naturalWidth - window.innerWidth);
 		zoom_img.style.marginLeft = '-'+x+'px';
 	}
 	if (window.innerHeight <= zoom_img.naturalHeight) {
-		var y = Math.min(1, (event.clientY - 100) / (window.innerHeight - 200)) * (zoom_img.naturalHeight - window.innerHeight);
+		var y = Math.min(1, (event.clientY - 200) / (window.innerHeight - 400)) * (zoom_img.naturalHeight - window.innerHeight);
 		zoom_img.style.marginTop = '-'+y+'px';
 	} else {
 		zoom_img.style.marginTop = '-'+zoom_img.naturalHeight/2+'px';
@@ -145,7 +139,7 @@ window.addEventListener('load', initZoom);
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-div#zoombox {
+body > #zoombox {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -157,18 +151,17 @@ div#zoombox {
 	background-color: #111;
 	cursor: none;
 }
-div#zoombox img {
+body > #zoombox img {
 	position: relative;
 	width: auto;
 	height: auto;
 }
 a.zoombox-tr {
-	width: 20%;
-	left: 40%;
 	position: absolute;
 	top: 0;
+	left: 40%;
 	height: 100%;
-	min-width: 50px;
+	width: 20%;
 	color: #fff;
 	opacity: 0;
 	transition: opacity 0.3s;
@@ -179,12 +172,12 @@ a.zoombox-tr:hover, a.zoombox-tr:focus {
 }
 a.zoombox-tr:after {
     content: "+";
-    display: block;
+	display: block;
+	line-height: 80px;
     font-size: 80px;
     margin-top: -40px;
-    position: absolute;
+    position: relative;
     top: 50%;
-    width: 100%;
 }
 <?php
 		exit;

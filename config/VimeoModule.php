@@ -90,30 +90,29 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-.vimeomodule-thumb > iframe, .vimeomodule-prev > iframe {
+.vimeomodule-thumb > iframe, .vimeomodule-preview > iframe {
 	border: 0;
 }
-.vimeomodule-prev ~ a.prev {
-	width: 250px;
-	margin-left: -250px;
+.vimeomodule-preview {
+	line-height: 100%;
 }
-.vimeomodule-prev ~ a.next {
-	width: 250px;
-	margin-right: -250px;
+.file .preview-box .vimeomodule-preview ~ a.prev {
+	left: 50%;
+	margin-left: -710px;
+	width: 350px;
 }
-.vimeomodule-prev ~ a.prev:before {
+.file .preview-box .vimeomodule-preview ~ a.next {
+	left: 50%;
+	margin-left: 360px;
+	width: 350px;
+}
+.file .preview-box .vimeomodule-preview ~ a.prev:before {
 	text-align: right;
 }
-.vimeomodule-prev ~ a.next:after {
+.file .preview-box .vimeomodule-preview ~ a.next:after {
 	text-align: left;
 }
-.vimeomodule-thumb > *:first-child {
-	margin-top: 0;
-}
-.vimeomodule-thumb > *:last-child {
-	margin-bottom: 0;
-}
-#images li .vimeomodule-thumb + a {
+.album .files li .vimeomodule-thumb + a.thumb-link {
 	opacity: 1;
 	width: 300px;
 	left: 0;
@@ -125,7 +124,7 @@ class Module extends \LonelyGallery\Module {
 	background-color: #111A19;
 	line-height: 38px;
 }
-#images li .vimeomodule-thumb + a span {
+.album .files li .vimeomodule-thumb + a.thumb-link span {
 	background-color: transparent;
 	box-shadow: none;
 	line-height: 38px;
@@ -193,7 +192,7 @@ class VimeoTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		return "<div class=\"vimeomodule-prev\">".$this->getVideoCode(700, 394)."</div>";
+		return "<div class=\"vimeomodule-preview\">".$this->getVideoCode(700, 394)."</div>";
 	}
 	
 	/* returns the HTML code for the thumbnail */

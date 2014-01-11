@@ -93,26 +93,30 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-.textmodule-thumb, .textmodule-prev {
+.textmodule-thumb, .textmodule-preview {
 	text-align: justify;
 	padding: 9px;
 	border: 1px solid #333;
 }
-.textmodule-prev {
-	max-width: 700px;
+.textmodule-preview {
+	max-width: 680px;
+	line-height: 100%;
+	display: inline-block;
 }
-.textmodule-prev ~ a.prev {
-	width: 250px;
-	margin-left: -250px;
+.file .preview-box .textmodule-preview ~ a.prev {
+	left: 50%;
+	margin-left: -710px;
+	width: 350px;
 }
-.textmodule-prev ~ a.next {
-	width: 250px;
-	margin-right: -250px;
+.file .preview-box .textmodule-preview ~ a.next {
+	left: 50%;
+	margin-left: 360px;
+	width: 350px;
 }
-.textmodule-prev ~ a.prev:before {
+.file .preview-box .textmodule-preview ~ a.prev:before {
 	text-align: right;
 }
-.textmodule-prev ~ a.next:after {
+.file .preview-box .textmodule-preview ~ a.next:after {
 	text-align: left;
 }
 .textmodule-thumb {
@@ -127,7 +131,7 @@ class Module extends \LonelyGallery\Module {
 .textmodule-thumb > *:last-child {
 	margin-bottom: 0;
 }
-#images li .textmodule-thumb + a {
+.album .files li .textmodule-thumb + a {
 	opacity: 1;
 	width: 298px;
 	left: 1px;
@@ -140,11 +144,11 @@ class Module extends \LonelyGallery\Module {
 	background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,1) 70%);
 	transition: height .15s ease .15s;
 }
-#images li:hover .textmodule-thumb + a {
+.album .files li:hover .textmodule-thumb + a {
 	height: 40px;
 	transition: height .15s ease;
 }
-#images li .textmodule-thumb + a span {
+.album .files li .textmodule-thumb + a span {
 	opacity: 0;
 	background-color: transparent;
 	box-shadow: none;
@@ -156,7 +160,7 @@ class Module extends \LonelyGallery\Module {
 	white-space: nowrap;
 	transition: opacity .15s ease;
 }
-#images li:hover .textmodule-thumb + a span {
+.album .files li:hover .textmodule-thumb + a span {
 	opacity: 1;
 	transition: opacity .15s ease .15s;
 }
@@ -182,7 +186,7 @@ class SnippetTextFile extends MetaFile {
 		if (substr($this->getFilename(), -3) == 'txt') {
 			$text = nl2br(Lonely::model()->escape($text), false);
 		}
-		return "<div class=\"textmodule-prev\">".$text."</div>";
+		return "<div class=\"textmodule-preview\">".$text."</div>";
 	}
 	
 	/* returns the HTML code for the thumbnail */

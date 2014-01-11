@@ -101,27 +101,26 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-.youtubemodule-prev ~ a.prev {
-	width: 250px;
-	margin-left: -250px;
+.youtubemodule-preview {
+	line-height: 100%;
 }
-.youtubemodule-prev ~ a.next {
-	width: 250px;
-	margin-right: -250px;
+.file .preview-box .youtubemodule-preview ~ a.prev {
+	left: 50%;
+	margin-left: -710px;
+	width: 350px;
 }
-.youtubemodule-prev ~ a.prev:before {
+.file .preview-box .youtubemodule-preview ~ a.next {
+	left: 50%;
+	margin-left: 360px;
+	width: 350px;
+}
+.file .preview-box .youtubemodule-preview ~ a.prev:before {
 	text-align: right;
 }
-.youtubemodule-prev ~ a.next:after {
+.file .preview-box .youtubemodule-preview ~ a.next:after {
 	text-align: left;
 }
-.youtubemodule-thumb > *:first-child {
-	margin-top: 0;
-}
-.youtubemodule-thumb > *:last-child {
-	margin-bottom: 0;
-}
-#images li .youtubemodule-thumb + a {
+.album .files li .youtubemodule-thumb + a.thumb-link {
 	opacity: 1;
 	width: 300px;
 	left: 0;
@@ -133,7 +132,7 @@ class Module extends \LonelyGallery\Module {
 	background-color: #1b1b1b;
 	line-height: 38px;
 }
-#images li .youtubemodule-thumb + a span {
+.album .files li .youtubemodule-thumb + a.thumb-link span {
 	background-color: transparent;
 	box-shadow: none;
 	line-height: 38px;
@@ -187,7 +186,7 @@ class YouTubeTextFile extends MetaFile {
 	private function getVideoCode($width, $height, $urlData = '') {
 		$v = $this->getVData();
 		$url = $v['vid'] == '' ? '' : '//www.youtube-nocookie.com/v/'.$v['vid'].'?version=3&amp;rel=0'.($v['start'] ? '&amp;start='.$v['start'] : '').($v['end'] ? '&amp;end='.$v['end'] : '').$urlData;
-		return "<div class=\"youtubemodule-prev\"><object width=\"".$width."\" height=\"".$height."\"><param name=\"movie\" value=\"".$url."\"><param name=\"allowFullScreen\" value=\"true\"><param name=\"allowscriptaccess\" value=\"always\"><embed src=\"".$url."\" type=\"application/x-shockwave-flash\" width=\"".$width."\" height=\"".$height."\" allowscriptaccess=\"always\" allowfullscreen=\"true\"></object></div>";
+		return "<object width=\"".$width."\" height=\"".$height."\"><param name=\"movie\" value=\"".$url."\"><param name=\"allowFullScreen\" value=\"true\"><param name=\"allowscriptaccess\" value=\"always\"><embed src=\"".$url."\" type=\"application/x-shockwave-flash\" width=\"".$width."\" height=\"".$height."\" allowscriptaccess=\"always\" allowfullscreen=\"true\"></object>";
 	}
 	
 	/* loads the name of this element */
@@ -199,7 +198,7 @@ class YouTubeTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		return "<div class=\"youtubemodule-prev\">".$this->getVideoCode(700, 394)."</div>";
+		return "<div class=\"youtubemodule-preview\">".$this->getVideoCode(700, 394)."</div>";
 	}
 	
 	/* returns the HTML code for the thumbnail */

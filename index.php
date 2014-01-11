@@ -784,7 +784,8 @@ class Lonely extends Component {
 		
 		/* album requested */
 		else if ($album->isAvailable()) {
-			$html = '';
+			
+			$html = "<section class=\"album\">\n\n";
 			
 			/* parent albums */
 			$parents = $album->getParents();
@@ -798,63 +799,71 @@ class Lonely extends Component {
 			
 			/* breadcrumbs */
 			if (count($parents)) {
-				$html .= "<nav class=\"breadcrumbs\">\n".
-					"\t<ul>\n";
+				$html .= "\t<header>\n".
+					"\t\t<ul class=\"breadcrumbs\">\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
-					$html .= "\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
+					$html .= "\t\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
 				}
-				$html .= "\t\t<li>".self::escape($album->getName())."</li>\n".
-					"\t</ul>\n".
-					"</nav>\n\n";
+				$html .= "\t\t\t<li>".self::escape($album->getName())."</li>\n".
+					"\t\t</ul>\n".
+					"\t</header>\n\n";
 			}
 			
 			/* album text */
 			$albumText = $album->getText();
-			$html .= $albumText ? '<div id="album-text">'.$albumText."</div>\n" : '';
+			$html .= $albumText ? "\t<div class=\"album-text\">".$albumText."</div>\n\n" : "";
 			
 			/* albums */
 			if (count($albums = $album->getAlbums())) {
-				$html .= "<ul id=\"albums\">\n";
+				$html .= "\t<ul class=\"albums\">\n";
 				foreach ($albums as $element) {
 					$path = self::escape($this->rootScript.$element->getPath());
 					$name = self::escape($element->getName());
-					$html .= "\t<li id=\"".$element->getId()."\">\n".
-						"\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
-						"\t\t<a href=\"".$path."\"><span>".$name."</span></a>\n".
-						"\t</li>\n";
+					$html .= "\t\t<li id=\"".$element->getId()."\">\n".
+						"\t\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
+						"\t\t\t<a class=\"thumb-link\" href=\"".$path."\">\n".
+						"\t\t\t\t<span>".$name."</span>\n".
+						"\t\t\t</a>\n".
+						"\t\t</li>\n";
 				}
-				$html .= "</ul>\n\n";
+				$html .= "\t</ul>\n\n";
 			}
 			
 			/* files */
 			$action = $this->defaultFileAction;
 			if (count($files = $album->getFiles())) {
-				$html .= "<ul id=\"images\">\n";
+				$html .= "\t<ul class=\"files\">\n";
 				foreach ($files as $element) {
 					$path = self::escape($this->rootScript.$element->getPath().'/'.$action);
 					$name = self::escape($element->getName());
-					$html .= "\t<li id=\"".$element->getId()."\">\n".
-						"\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
-						"\t\t<a href=\"".$path."#image\"><span>".$name."</span></a>\n".
-						"\t</li>\n";
+					$html .= "\t\t<li id=\"".$element->getId()."\">\n".
+						"\t\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
+						"\t\t\t<a class=\"thumb-link\" href=\"".$path."#image\">\n".
+						"\t\t\t\t<span>".$name."</span>\n".
+						"\t\t\t</a>\n".
+						"\t\t</li>\n";
 				}
-				$html .= "</ul>\n\n";
+				$html .= "\t</ul>\n\n";
 			}
 			
 			/* empty album */
 			else if (!count($albums)) {
 				if (empty($request->album)) {
-					$html .= "<p>This gallery is empty. Try adding some image files to the directory you placed this script in. You can also have albums by creating directories.</p>";
+					$html .= "\t<p>This gallery is empty. Try adding some image files to the directory you placed this script in. You can also have albums by creating directories.</p>\n\n";
 				} else {
-					$html .= "<p>This album is empty.</p>";
+					$html .= "\t<p>This album is empty.</p>\n\n";
 				}
 			}
 			
 			/* additional html */
 			foreach ($this->callEvent('albumBottomHtml', $album) as $data) {
-				$html .= $data;
+				if ($data) {
+					$html .= "\t".$data."\n\n";
+				}
 			}
+			
+			$html .= "</section>\n";
 			
 			$this->HTMLContent = $html;
 			$this->display();
@@ -875,7 +884,8 @@ class Lonely extends Component {
 		/* file requested */
 		if ($file && $file->isAvailable()) {
 			
-			$html = "";
+			$html = "<section class=\"file\">\n\n".
+				"\t<header>\n\n";
 			$name = self::escape($file->getName());
 			$action = $this->defaultFileAction;
 			
@@ -891,15 +901,13 @@ class Lonely extends Component {
 			
 			/* breadcrumbs */
 			if (count($parents)) {
-				$html .= "<nav class=\"breadcrumbs\">\n".
-					"\t<ul>\n";
+				$html .= "\t\t<ul class=\"breadcrumbs\">\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
-					$html .= "\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
+					$html .= "\t\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
 				}
-				$html .= "\t\t<li>".$name."</li>\n".
-					"\t</ul>\n".
-					"</nav>\n\n";
+				$html .= "\t\t\t<li>".$name."</li>\n".
+					"\t\t</ul>\n\n";
 			}
 			
 			/* navigation */
@@ -916,65 +924,61 @@ class Lonely extends Component {
 			$next = ($pos+1) < $count ? $files[$pos+1] : null;
 			$last = ($pos+1) < $count ? $files[$count-1] : null;
 			if ($pos !== false) {
-				$html .= "<nav id=\"imagenav\">\n".
-					"\t<p>\n".
-					"\t\t".($first ? "<a href=\"".self::escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span>first</span>")."\n".
-					"\t\t".($prev ? "<a rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span>previous</span>")."\n".
-					"\t\t<a id=\"imagenav-album\" href=\"".self::escape($this->rootScript.$element->getPath())."#".$file->getId()."\">album</a>\n".
-					"\t\t".($next ? "<a rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span>next</span>")."\n".
-					"\t\t".($last ? "<a href=\"".self::escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span>last</span>")."\n".
-					"\t</p>\n".
-					"</nav>\n\n";
+				$html .= "\t\t<p class=\"nav\">\n".
+					"\t\t\t".($first ? "<a class=\"nav-first\" href=\"".self::escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span class=\"nav-first\">first</span>")."\n".
+					"\t\t\t".($prev ? "<a class=\"nav-prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span class=\"nav-prev\">previous</span>")."\n".
+					"\t\t\t<a class=\"nav-album\" href=\"".self::escape($this->rootScript.$element->getPath())."#".$file->getId()."\">album</a>\n".
+					"\t\t\t".($next ? "<a class=\"nav-next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span class=\"nav-next\">next</span>")."\n".
+					"\t\t\t".($last ? "<a class=\"nav-last\" href=\"".self::escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span class=\"nav-last\">last</span>")."\n".
+					"\t\t</p>\n\n";
 			}
 			
-			/* image */
-			$html .= "<div class=\"image\">\n";
+			$html .= "\t</header>\n\n";
 			
-			$html .= "\t<div id=\"image\" class=\"image-box\">\n".
+			/* preview */
+			$html .= "\t<div id=\"p\" class=\"preview-box\">\n".
 				"\t\t".$file->getPreviewHTML()."\n";
 			if ($prev) {
-				$html .= "\t\t<a class=\"overlaynav prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."#image\"></a>\n";
+				$html .= "\t\t<a class=\"nav prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."#p\"></a>\n";
 			}
 			if ($next) {
-				$html .= "\t\t<a class=\"overlaynav next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."#image\"></a>\n";
+				$html .= "\t\t<a class=\"nav next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."#p\"></a>\n";
 			}
 			$html .= "\t</div>\n\n";
 			
 			/* info */
-			if ($file instanceof ContentFile) {
-				$html .= "\t<div class=\"image-info\">\n".
-					"\t\t<p class=\"title\">".$name."</p>\n".
-					"\t\t<p class=\"download\"><a href=\"".self::escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
-				$dlOpen = false;
-				foreach ($this->callEvent('fileInfo', $file) as $data) {
-					foreach ($data as $key => $value) {
-						if (is_int($key)) {
-							if ($dlOpen) {
-								$html .= "\t\t</dl>\n";
-								$dlOpen = false;
+			if ($file instanceof ContentFile || $file->showTitle) {
+				$html .= "\t<div class=\"info\">\n".
+					"\t\t<p class=\"title\">".$name."</p>\n";
+				if ($file instanceof ContentFile) {
+					$html .= "\t\t<p class=\"download\"><a href=\"".self::escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
+					$dlOpen = false;
+					foreach ($this->callEvent('fileInfo', $file) as $data) {
+						foreach ($data as $key => $value) {
+							if (is_int($key)) {
+								if ($dlOpen) {
+									$html .= "\t\t</dl>\n";
+									$dlOpen = false;
+								}
+								$html .= "\t\t<p>".self::escape($value)."</p>\n";
+							} else {
+								if (!$dlOpen) {
+									$html .= "\t\t<dl>\n";
+									$dlOpen = true;
+								}
+								$html .= "\t\t\t<dt>".self::escape($key)."</dt>\n".
+									"\t\t\t<dd>".self::escape($value)."</dd>\n";
 							}
-							$html .= "\t\t<p>".self::escape($value)."</p>\n";
-						} else {
-							if (!$dlOpen) {
-								$html .= "\t\t<dl>\n";
-								$dlOpen = true;
-							}
-							$html .= "\t\t\t<dt>".self::escape($key)."</dt>\n".
-								"\t\t\t<dd>".self::escape($value)."</dd>\n";
 						}
 					}
+					if ($dlOpen) {
+						$html .= "\t\t</dl>\n";
+					}
+					$html .= "\t</div>\n";
 				}
-				if ($dlOpen) {
-					$html .= "\t\t</dl>\n";
-				}
-				$html .= "\t</div>\n";
-			} else if ($file->showTitle) {
-				$html .= "\t<div class=\"image-info\">\n".
-					"\t\t<p class=\"title\">".$name."</p>\n".
-					"\t</div>\n";
 			}
 			
-			$html .= "</div>\n\n";
+			$html .= "</section>\n";
 			
 			$this->HTMLContent = $html;
 			$this->display();
@@ -1051,9 +1055,9 @@ class Lonely extends Component {
 		return $string;
 	}
 	
-	/* reduces the string so it only contains alphanumeric chars, dots, dashes and underscores */
+	/* reduces the string so it only contains alphanumeric chars, dashes and underscores */
 	public static function simplifyString($string) {
-		return preg_replace('#[^-_\.[:alnum:]]#', '_', $string);
+		return preg_replace('#[^-_[:alnum:]]#', '_', $string);
 	}
 	
 	/* HTML escape */
@@ -1096,7 +1100,7 @@ class Lonely extends Component {
 		
 		/* JavaScript */
 		foreach ($this->jsfiles as $file) {
-			echo "\t<script type=\"text/javascript\" src=\"", self::escape($file), "\"></script>\n\n";
+			echo "\t<script type=\"text/javascript\" src=\"", self::escape($file), "\"></script>\n";
 		}
 		
 		/* page title */
@@ -1109,7 +1113,9 @@ class Lonely extends Component {
 	?></head>
 <body>
 	
-	<h1><a href="<?php echo self::escape($this->rootScriptClean); ?>"><?php echo self::escape($this->title); ?></a></h1>
+	<h1>
+		<a href="<?php echo self::escape($this->rootScriptClean); ?>"><?php echo self::escape($this->title); ?></a>
+	</h1>
 
 	<div id="content">
 
@@ -1119,10 +1125,9 @@ class Lonely extends Component {
 	
 	</div>
 	
-	<?php echo $this->footer; ?>
+	<?php echo $this->footer."\n"; ?>
 	
 <!-- execution: <?php echo round((microtime(true) - $this->startTime) * 1000, 3); ?> ms -->
-
 </body>
 </html><?php
 		
@@ -1416,13 +1421,10 @@ abstract class Element extends Component {
 	
 	/* create id */
 	protected static function createId($name) {
-		$buildString = function($name, $postfix = null) {
-			return Lonely::simplifyString($name).($postfix ? '_'.$postfix : '');
-		};
-		$id = $buildString($name);
-		for ($i = 2; in_array($id, self::$_usedIds); ++$i) {
-			$id = $buildString($name, $i);
-		}
+		$i = 1;
+		do {
+			$id = Lonely::simplifyString($name).($i++ > 1 ? '_'.$i : '');
+		} while (in_array($id, self::$_usedIds));
 		return $id;
 	}
 	
@@ -2176,16 +2178,21 @@ class Module extends \LonelyGallery\Design {
 		header('Content-Type: text/css');
 		?>
 body {
-    margin: 20px 0;
+    margin: 0;
 	background-color: #111;
 	color: #fff;
 	font-family: Arial,Helvetica,sans-serif;
 	font-size: 14px;
-	width: 100%;
 }
-body > *:not(#content), #content > *:not(.image), .image > *:not(.image-box) {
-	margin-left: 20px;
-	margin-right: 20px;
+body > *:not(#content), #content > *:not(.file), .file > *:not(.preview-box) {
+	margin-left: 8px;
+	margin-right: 8px;
+}
+#content > .album {
+	margin-right: 0;
+}
+#content > .album > *:not(.albums):not(.files) {
+	margin-right: 8px;
 }
 a {
 	color: #f20;
@@ -2200,31 +2207,21 @@ h1 {
 h1 a {
 	color: #fff;
 }
-.breadcrumbs ul {
-	margin-bottom: 0;
-}
-.breadcrumbs ul li {
+ul.breadcrumbs > li {
 	display: inline;
 }
-.breadcrumbs ul li:before {
+ul.breadcrumbs > li:not(:first-child):before {
 	content: " >> ";
 }
-.breadcrumbs ul li:first-child:before {
-	content: "";
+.album > .album-text {
+	margin: 16px 0;
 }
-#content {
-	margin-bottom: 40px;
-}
-#albums, #images {
+.album > .albums, .album > .files {
 	overflow: auto;
 	padding: 0;
-	margin: 10px 10px 20px 20px;
-	margin-right: 10px !important;
+	margin: 8px 0;
 }
-#albums {
-	margin-bottom: 12px;
-}
-#albums > li, #images > li {
+.album > .albums > li, .album > .files > li {
 	position: relative;
 	display: block;
 	float: left;
@@ -2236,20 +2233,20 @@ h1 a {
 	line-height: 125px;
 	margin: 0 8px 8px 0;
 }
-#images > li {
+.album > .files > li {
 	width: 300px;
 	height: 300px;
 	line-height: 280px;
 }
-#images > li img.thumb {
+.album > .files > li img.thumb {
 	height: 300px;
 	width: 300px;
 }
-#albums > li img.thumb {
+.album > .albums > li img.thumb {
 	height: 146px;
 	width: 146px;
 }
-#albums > li > a, #images > li > a {
+.album > .albums > li > a.thumb-link, .album > .files > li > a.thumb-link {
 	color: #fff;
 	position: absolute;
 	top: 0;
@@ -2260,20 +2257,20 @@ h1 a {
 	background-color: rgba(0,0,0,0);
 	transition: background-color 0.3s;
 }
-#images > li > a {
+.album > .files > li > a.thumb-link {
 	width: 280px;
 	height: 280px;
 	background-color: rgba(0,0,0,.4);
 	opacity: 0;
 	transition: opacity 0.3s;
 }
-#albums > li > a:hover, #albums > li > a:focus {
+.album > .albums > li > a.thumb-link:hover, .album > .albums > li > a.thumb-link:focus {
 	background-color: rgba(0,0,0,.4);
 }
-#images > li > a:hover, #images > li > a:focus {
+.album > .files > li > a.thumb-link:hover, .album > .files > li > a.thumb-link:focus {
 	opacity: 1;
 }
-#albums > li > a span, #images > li > a span {
+.album > .albums > li > a.thumb-link span, .album > .files > li > a.thumb-link span {
 	background-color: #111;
 	display: inline-block;
 	line-height: 150%;
@@ -2283,93 +2280,84 @@ h1 a {
 	word-wrap: break-word;
 	max-width: 110px;
 }
-#images > li > a span {
+.album > .files > li > a.thumb-link span {
 	max-width: 264px;
 }
-#imagenav, .image {
+.file > header .nav, .file .title, .file .download {
 	text-align: center;
 }
-#imagenav p {
+.file > header .breadcrumbs {
+	margin-bottom: 0;
+}
+.file > header .nav {
 	margin: 0;
 }
-#imagenav p * {
+.file > header .nav * {
 	display: inline-block;
 	line-height: 400%;
 }
-#imagenav p *:nth-child(1):before { content: "<< "; }
-#imagenav p *:nth-child(2):before { content: "< "; }
-#imagenav p *:nth-child(3):before { content: "["; }
-#imagenav p *:nth-child(3):after { content: "]"; }
-#imagenav p *:nth-child(4):after { content: " >"; }
-#imagenav p *:nth-child(5):after { content: " >>"; }
-.image {
+.file > header .nav-first:before { content: "<< "; }
+.file > header .nav-prev:before { content: "< "; }
+.file > header .nav-album:before { content: "["; }
+.file > header .nav-album:after { content: "]"; }
+.file > header .nav-next:after { content: " >"; }
+.file > header .nav-last:after { content: " >>"; }
+.file .preview {
+	max-width: 100%;
+	display: inline-block;
 	margin: 0 auto;
+	vertical-align: middle;
+}
+.file .preview-box {
+	position: relative;
+	text-align: center;
+	min-height: 200px;
+	line-height: 200px;
 	overflow: hidden;
 }
-.image img.preview {
-	display: block;
-	max-width: 100%;
-	margin: 0 auto;
-}
-.breadcrumbs + .image, #album-text + .image, .image + .image, .image:first-child {
-	margin-top: 56px;
-}
-.image-box {
-	display: inline-block;
-	position: relative;
-	margin: 0 0 10px;
-	max-width: 100%;
-	min-width: 400px;
-}
-.image-box a.overlaynav {
+.file .preview-box .nav {
 	position: absolute;
 	top: 0;
 	left: 0;
 	height: 100%;
 	width: 40%;
-	min-width: 50px;
 	color: #fff;
 	opacity: 0;
 	transition: opacity 0.3s;
 	text-shadow: #000 0px 0px 10px;
 }
-.image-box a.overlaynav:hover, .image-box a.overlaynav:focus {
+.file .preview-box .nav:hover, .file .preview-box .nav:focus {
 	opacity: 1;
 }
-.image-box a.overlaynav.next {
+.file .preview-box .nav.next {
 	right: 0;
 	left: auto;
 }
-.image-box a.overlaynav.prev:before, .image-box a.overlaynav.next:after {
+.file .preview-box .nav.prev:before, .file .preview-box .nav.next:after {
 	content: "<";
 	display: block;
+	line-height: 80px;
 	font-size: 80px;
 	margin-top: -40px;
-	position: absolute;
-	width: 100%;
+	position: relative;
 	top: 50%;
 }
-.image-box a.overlaynav.next:after {
+.file .preview-box .nav.next:after {
 	content: ">";
 }
-.image-info p, .image-info dl {
-    margin: 4px;
-	text-align: left;
+.file .info p, .file .info dl {
+    margin: 4px 0;
 }
-.image-info p.title, .image-info p.download {
-    text-align: center;
-}
-.image-info p.title {
+.file .title {
     font-size: 16px;
 	color: #fff;
 }
-.image-info p.title:before, .image-info p.title:after {
+.file .title:before, .file .title:after {
     content: "» ";
 	color: #666;
 	font-size: 24px;
-	vertical-align: baseline;
 }
-.image-info p.title:after {
+.file .title:after {
     content: " «";
 }
 <?php
@@ -2388,14 +2376,9 @@ h1 a {
 		header('Content-Type: text/javascript');
 		?>
 function adjustMaxImageHeight() {
-	var div = document.getElementById('content').getElementsByTagName('div');
-	for (var i = 0; i < div.length; ++i) {
-		if (div[i].className == 'image') {
-			var img = div[i].getElementsByTagName('img');
-			if (img.length) {
-				img[0].style.maxHeight = window.innerHeight + 'px';
-			}
-		}
+	var img = document.querySelectorAll(".file .preview");
+	for (var i = 0; i < img.length; ++i) {
+		img[i].style.maxHeight = window.innerHeight + 'px';
 	}
 }
 function navigate(event) {
@@ -2403,15 +2386,10 @@ function navigate(event) {
 	switch (k) {
 		case 37: // left arrow
 		case 39: // right arrow
-			var i = document.getElementById('image');
-			if (i) {
-				var a = i.getElementsByTagName('a');
-				for (var i = 0; i < a.length; ++i) {
-					if ((k == 37 && a[i].className == 'overlaynav prev') || (k == 39 && a[i].className == 'overlaynav next')) {
-						window.location = a[i].href;
-						return false;
-					}
-				}
+			var a = document.querySelector(".file .nav a[rel='next']");
+			if (a) {
+				window.location = a.href;
+				return false;
 			}
 			break;
 	}

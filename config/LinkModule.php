@@ -105,25 +105,25 @@ class Module extends \LonelyGallery\Module {
 .linkmodule-prev ~ a {
 	max-height: calc(100% - 50px);
 }
-.linkmodule-thumb + a + a {
+.linkmodule-thumb-link + .thumb-link {
 	display: none;
 }
-.linkmodule-thumb + a span:before, .linkmodule-prev > a:before {
+.linkmodule-thumb-link span:before, .linkmodule-prev > a:before {
 	content: "⇒ ";
 }
-#images > li > .linkmodule-thumb img {
+.album > .files > li .linkmodule-thumb img {
 	margin-left: 0px;
 	transition: margin-left 0.3s ease;
 }
-#images > li:hover .linkmodule-thumb img {
+.album > .files > li:hover .linkmodule-thumb img {
 	margin-left: -600px;
 }
-#images > li > a.linkmodule-thumb-link {
+.album > .files > li > a.thumb-link.linkmodule-thumb-link {
 	margin-left: 300px;
 	transition: margin-left 0.3s ease;
 	opacity: 1;
 }
-#images > li:hover > a.linkmodule-thumb-link, #images > li > a.linkmodule-thumb-link:focus {
+.album > .files > li:hover > a.thumb-link.linkmodule-thumb-link {
 	margin-left: 0px;
 }
 <?php
@@ -177,7 +177,7 @@ class LinkTextFile extends MetaFile {
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
-			return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a class=\"linkmodule-thumb-link\" href=\"".Lonely::escape($l['url'])."\"><span>".Lonely::escape($l['label'])."</span></a>";
+			return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a class=\"linkmodule-thumb-link thumb-link\" href=\"".Lonely::escape($l['url'])."\"><span>".Lonely::escape($l['label'])."</span></a>";
 		}
 		return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
 	}
