@@ -95,14 +95,11 @@ a:hover {
 h1 a {
 	color: #111;
 }
-.image-info p.title {
-	color: #000000;
+.file .title {
+	color: #000;
 }
-.image-info p.title:before, .image-info p.title:after {
+.file .title:before, .file .title:after {
 	color: #aaa;
-}
-.image-box a {
-	color: #fff;
 }
 <?php
 		exit;
