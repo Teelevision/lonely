@@ -85,18 +85,22 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-#content > .largealbumview {
+#content > .album.largealbumview {
 	margin: 0;
 }
-#content > .largealbumview > *:not(.file) {
+#content > .album.largealbumview > .file {
+	margin-left: 0;
+	margin-right: 0;
+}
+#content > .album.largealbumview > *:not(.file) {
 	margin-left: 8px;
 	margin-right: 8px;
 }
-#content > .largealbumview > .file {
+#content > .album.largealbumview > .file {
 	margin-bottom: 20px;
 	margin-top: 20px;
 }
-#content > .largealbumview > .file > .preview-box {
+#content > .album.largealbumview > .file > .preview-box {
 	line-height: 100%;
 	min-height: 0;
 }
@@ -104,9 +108,9 @@ class Module extends \LonelyGallery\Module {
 		exit;
 	}
 	
-	/* returns html to display at the bottom of album index pages */
-	public function albumBottomHtmlEvent(Album $album) {
-		return count($album->getFiles()) ? "<p><a href=\"".Lonely::escape(Lonely::model()->rootScript.$album->getPath())."large\">Large album view</a></p>\n\n" : "";
+	/* returns links displayed at top of albums */
+	public function albumLinksEvent(Album $album) {
+		return count($album->getFiles()) ? array(array('url' => Lonely::model()->rootScript.$album->getPath().'large', 'label' => 'large')) : array();
 	}
 	
 	/* show all images of an album */
@@ -124,7 +128,7 @@ class Module extends \LonelyGallery\Module {
 		if ($album->isAvailable()) {
 			Lonely::model()->getModule('LargeAlbumViewModule')->initStyle();
 			
-			$html = "<section class=\"largealbumview\">\n\n";
+			$html = "<section class=\"album largealbumview\">\n\n";
 			
 			/* parent albums */
 			$parents = $album->getParents();
@@ -134,7 +138,7 @@ class Module extends \LonelyGallery\Module {
 			foreach ($parents as $element) {
 				$title .= " - ".$element->getName();
 			}
-			$this->HTMLTitle = $title;
+			$lonely->HTMLTitle = $title;
 			
 			/* breadcrumbs */
 			if (count($parents)) {
@@ -142,9 +146,9 @@ class Module extends \LonelyGallery\Module {
 					"\t\t<ul class=\"breadcrumbs\">\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
-					$html .= "\t\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
+					$html .= "\t\t\t<li><a href=\"".Lonely::escape($path == '' ? $lonely->rootScriptClean : $lonely->rootScript.$path)."\">".Lonely::escape($element->getName())."</a></li>\n";
 				}
-				$html .= "\t\t\t<li>".self::escape($album->getName())."</li>\n".
+				$html .= "\t\t\t<li>".Lonely::escape($album->getName())."</li>\n".
 					"\t\t</ul>\n".
 					"\t</header>\n\n";
 			}
@@ -153,8 +157,26 @@ class Module extends \LonelyGallery\Module {
 			$albumText = $album->getText();
 			$html .= $albumText ? "\t<div class=\"album-text\">".$albumText."</div>\n\n" : "";
 			
+			/* links */
+			$html2 = "";
+			foreach ($lonely->callEvent('albumLinks', $album) as $name => $datas) {
+				foreach ($datas as $data) {
+					if ($name == 'LargeAlbumViewModule') {
+						$html2 .= "\t\t<li class=\"active\"><span>".Lonely::escape($data['label'])."</span></li>\n";
+					} else {
+						$html2 .= "\t\t<li><a href=\"".Lonely::escape($data['url'])."\">".Lonely::escape($data['label'])."</a></li>\n";
+					}
+				}
+			}
+			if ($html2 != "") {
+				$html .= "\t<ul class=\"links\">\n".
+					"\t\t<li><a href=\"".Lonely::escape(Lonely::model()->rootScript.$album->getPath())."\">index</a></li>\n".
+					$html2.
+					"\t</ul>\n\n";
+			}
+			
 			/* files */
-			$action = $this->defaultFileAction;
+			$action = $lonely->defaultFileAction;
 			if (count($files = $album->getFiles())) {
 				foreach ($files as $file) {
 					
@@ -187,11 +209,6 @@ class Module extends \LonelyGallery\Module {
 				} else {
 					$html .= "\t<p>This album is empty.</p>\n\n";
 				}
-			}
-			
-			/* additional html */
-			foreach ($lonely->callEvent('fileBottomHtml', $file) as $data) {
-				/* don't actually display. this helps the zoom module to work on this page */
 			}
 			
 			$html .= "</section>\n";

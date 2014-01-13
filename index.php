@@ -819,6 +819,20 @@ class Lonely extends Component {
 			$albumText = $album->getText();
 			$html .= $albumText ? "\t<div class=\"album-text\">".$albumText."</div>\n\n" : "";
 			
+			/* links */
+			$html2 = "";
+			foreach ($this->callEvent('albumLinks', $album) as $datas) {
+				foreach ($datas as $data) {
+					$html2 .= "\t\t<li><a href=\"".self::escape($data['url'])."\">".self::escape($data['label'])."</a></li>\n";
+				}
+			}
+			if ($html2 != "") {
+				$html .= "\t<ul class=\"links\">\n".
+					"\t\t<li class=\"active\"><span>index</span></li>\n".
+					$html2.
+					"\t</ul>\n\n";
+			}
+			
 			/* albums */
 			if (count($albums = $album->getAlbums())) {
 				$html .= "\t<ul class=\"albums\">\n";
@@ -858,13 +872,6 @@ class Lonely extends Component {
 					$html .= "\t<p>This gallery is empty. Try adding some image files to the directory you placed this script in. You can also have albums by creating directories.</p>\n\n";
 				} else {
 					$html .= "\t<p>This album is empty.</p>\n\n";
-				}
-			}
-			
-			/* additional html */
-			foreach ($this->callEvent('albumBottomHtml', $album) as $data) {
-				if ($data) {
-					$html .= "\t".$data."\n\n";
 				}
 			}
 			
@@ -2227,6 +2234,25 @@ ul.breadcrumbs > li:not(:first-child):before {
 }
 .album > .album-text {
 	margin: 16px 0;
+}
+.album > .links {
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	top: 8px;
+	right: 0;
+}
+.album > .links > li {
+	display: inline;
+}
+.album > .links > li:after {
+	content: " | ";
+}
+.album > .links > li:first-child:before {
+	content: "[ ";
+}
+.album > .links > li:last-child:after {
+	content: " ]";
 }
 .album > .albums, .album > .files {
 	overflow: auto;

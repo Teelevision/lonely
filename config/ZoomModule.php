@@ -71,10 +71,20 @@ class Module extends \LonelyGallery\Module {
 	
 	/* returns html to display at the bottom of file segments */
 	public function fileBottomHtmlEvent(File $file) {
+		/* activate zoom on images */
 		if ($file instanceof Image) {
 			$this->initRessources();
 		}
 		return "";
+	}
+	
+	/* activates zoom on LargeAlbumViewModule's large action */
+	public function handleRequest(Request $request) {
+		if ($request->scope == array('lonely') && $request->action == array('large')) {
+			$this->initRessources();
+		}
+		/* don't stop execution */
+		return true;
 	}
 	
 	/* config files */
