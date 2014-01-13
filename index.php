@@ -922,6 +922,20 @@ class Lonely extends Component {
 					"\t\t</ul>\n\n";
 			}
 			
+			/* links */
+			$html2 = "";
+			foreach ($this->callEvent('fileLinks', $file) as $datas) {
+				foreach ($datas as $data) {
+					$html2 .= "\t\t<li><a href=\"".self::escape($data['url'])."\">".self::escape($data['label'])."</a></li>\n";
+				}
+			}
+			if ($html2 != "") {
+				$html .= "\t<ul class=\"links\">\n".
+					"\t\t<li class=\"active\"><span>preview</span></li>\n".
+					$html2.
+					"\t</ul>\n\n";
+			}
+			
 			/* navigation */
 			$files = array_values($album->getFiles());
 			$count = count($files);
@@ -2223,6 +2237,25 @@ h1 {
 h1 a {
 	color: #fff;
 }
+#content > .album > .links, #content > .file > .links {
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	top: 8px;
+	right: 0;
+}
+#content > .album > .links > li, #content > .file > .links > li {
+	display: inline;
+}
+#content > .album > .links > li:after, #content > .file > .links > li:after {
+	content: " | ";
+}
+#content > .album > .links > li:first-child:before, #content > .file > .links > li:first-child:before {
+	content: "[ ";
+}
+#content > .album > .links > li:last-child:after, #content > .file > .links > li:last-child:after {
+	content: " ]";
+}
 ul.breadcrumbs > li {
 	display: inline;
 }
@@ -2231,25 +2264,6 @@ ul.breadcrumbs > li:not(:first-child):before {
 }
 .album > .album-text {
 	margin: 16px 0;
-}
-.album > .links {
-	margin: 0;
-	padding: 0;
-	position: absolute;
-	top: 8px;
-	right: 0;
-}
-.album > .links > li {
-	display: inline;
-}
-.album > .links > li:after {
-	content: " | ";
-}
-.album > .links > li:first-child:before {
-	content: "[ ";
-}
-.album > .links > li:last-child:after {
-	content: " ]";
 }
 .album > .albums, .album > .files {
 	overflow: auto;
