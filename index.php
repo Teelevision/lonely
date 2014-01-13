@@ -1139,6 +1139,14 @@ class Lonely extends Component {
 	
 	<?php echo $this->footer."\n"; ?>
 	
+<?php if ($this->adjustMaxImageHeight) { ?>
+<script type="text/javascript">
+<!--
+adjustMaxImageHeight();
+-->
+</script>
+<?php } ?>
+	
 <!-- execution: <?php echo round((microtime(true) - $this->startTime) * 1000, 3); ?> ms -->
 </body>
 </html><?php
@@ -2003,12 +2011,8 @@ class Image extends ContentFile {
 	public function getPreviewHTML() {
 		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)) : Lonely::model()->rootPath.$this->path;
 		$name = Lonely::escape($this->getName());
-		return "<img class=\"preview\" src=\"".Lonely::escape($path)."\" alt=\"".$name."\">\n".
-			"<script type=\"text/javascript\">\n".
-			"<!--\n".
-			"adjustMaxImageHeight();\n".
-			"-->\n".
-			"</script>";
+		Lonely::model()->adjustMaxImageHeight = true;
+		return "<img class=\"preview\" src=\"".Lonely::escape($path)."\" alt=\"".$name."\">\n";
 	}
 	
 	/* returns whether this file is suitable as a thumb without resizing */
