@@ -101,30 +101,37 @@ class Module extends \LonelyGallery\Module {
 		?>
 var zoom_img, zoom_div;
 function initZoom() {
-	var img = document.querySelectorAll(".file img.preview");
+	var img = document.querySelectorAll('.file img.preview');
 	for (var i = 0; i < img.length; ++i) {
 		if (window.innerHeight <= img[i].naturalHeight || window.innerWidth <= img[i].naturalWidth) {
-			var aZoom = document.createElement('a');
-			aZoom.href = '#';
-			aZoom.className = 'zoombox-tr';
-			aZoom.onclick = function(img){
-				return function(){
-					zoom_div = document.createElement('div');
-					zoom_div.id = 'zoombox';
-					zoom_div.onclick = function(){
-						window.removeEventListener('mousemove', zoomPos);
-						document.body.removeChild(zoom_div);
+			if (img[i].getAttribute('data-zoom-on') != '1') {
+				var aZoom = document.createElement('a');
+				aZoom.href = '#';
+				aZoom.className = 'zoombox-tr';
+				aZoom.onclick = function(img){
+					return function(){
+						zoom_div = document.createElement('div');
+						zoom_div.id = 'zoombox';
+						zoom_div.onclick = function(){
+							window.removeEventListener('mousemove', zoomPos);
+							document.body.removeChild(zoom_div);
+						};
+						zoom_img = document.createElement('img');
+						zoom_img.src = img.src;
+						zoom_div.appendChild(zoom_img);
+						zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
+						document.body.appendChild(zoom_div);
+						window.addEventListener('mousemove', zoomPos);
+						return false;
 					};
-					zoom_img = document.createElement('img');
-					zoom_img.src = img.src;
-					zoom_div.appendChild(zoom_img);
-					zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
-					document.body.appendChild(zoom_div);
-					window.addEventListener('mousemove', zoomPos);
-					return false;
-				};
-			}(img[i]);
-			img[i].parentNode.appendChild(aZoom);
+				}(img[i]);
+				img[i].parentNode.appendChild(aZoom);
+				img[i].setAttribute('data-zoom-on', '1');
+			}
+		} else if (img[i].getAttribute('data-zoom-on') == '1') {
+			var ztr = img[i].parentNode.querySelector('.zoombox-tr');
+			ztr.parentNode.removeChild(ztr);
+			img[i].setAttribute('data-zoom-on', '0');
 		}
 	}
 }
@@ -142,6 +149,7 @@ function zoomPos(event) {
 	}
 }
 window.addEventListener('load', initZoom);
+window.addEventListener('resize', initZoom);
 <?php
 		exit;
 	}
