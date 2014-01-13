@@ -990,13 +990,6 @@ class Lonely extends Component {
 				}
 			}
 			
-			/* additional html */
-			foreach ($this->callEvent('fileBottomHtml', $file) as $data) {
-				if ($data) {
-					$html .= "\t".$data."\n\n";
-				}
-			}
-			
 			$html .= "</section>\n";
 			
 			$this->HTMLContent = $html;
