@@ -49,15 +49,32 @@ Place the PHP file into the 'config' directory.
 
 namespace LonelyGallery\ZoomModule;
 use \LonelyGallery\Lonely,
+	\LonelyGallery\File,
+	\LonelyGallery\Image,
 	\LonelyGallery\Request;
 class Module extends \LonelyGallery\Module {
+	private $_initialized;
 	
 	/* returns settings for default design */
 	public function afterConstruct() {
-		$l = Lonely::model();
-		$l->useOriginals = true;
-		$l->jsfiles[] = Lonely::model()->configScript.'zoom/main.js';
-		$l->cssfiles[] = Lonely::model()->configScript.'zoom/main.css';
+		Lonely::model()->useOriginals = true;
+	}
+	
+	/* includes css and js to the page */
+	public function initRessources() {
+		if (!$this->_initialized) {
+			Lonely::model()->jsfiles[] = Lonely::model()->configScript.'zoom/main.js';
+			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'zoom/main.css';
+			$this->_initialized = true;
+		}
+	}
+	
+	/* returns html to display at the bottom of file segments */
+	public function fileBottomHtmlEvent(File $file) {
+		if ($file instanceof Image) {
+			$this->initRessources();
+		}
+		return "";
 	}
 	
 	/* config files */
@@ -83,7 +100,7 @@ class Module extends \LonelyGallery\Module {
 		?>
 var zoom_img, zoom_div;
 function initZoom() {
-	var img = document.querySelectorAll(".file .preview");
+	var img = document.querySelectorAll(".file img.preview");
 	for (var i = 0; i < img.length; ++i) {
 		if (window.innerHeight <= img[i].naturalHeight || window.innerWidth <= img[i].naturalWidth) {
 			var aZoom = document.createElement('a');

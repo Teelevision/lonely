@@ -57,17 +57,21 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Request,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
-	
-	/* returns settings for default design */
-	public function afterConstruct() {
-		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'vimeo/main.css';
-	}
+	private $_styleInitialized;
 	
 	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array(
 			'VimeoTextFile' => 9,
 		);
+	}
+	
+	/* includes the css to the page */
+	public function initStyle() {
+		if (!$this->_styleInitialized) {
+			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'vimeo/main.css';
+			$this->_styleInitialized = true;
+		}
 	}
 	
 	/* config files */
@@ -90,28 +94,6 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-.vimeomodule-thumb > iframe, .vimeomodule-preview > iframe {
-	border: 0;
-}
-.vimeomodule-preview {
-	line-height: 100%;
-}
-.file .preview-box .vimeomodule-preview ~ a.prev {
-	left: 50%;
-	margin-left: -710px;
-	width: 350px;
-}
-.file .preview-box .vimeomodule-preview ~ a.next {
-	left: 50%;
-	margin-left: 360px;
-	width: 350px;
-}
-.file .preview-box .vimeomodule-preview ~ a.prev:before {
-	text-align: right;
-}
-.file .preview-box .vimeomodule-preview ~ a.next:after {
-	text-align: left;
-}
 .album .files li .vimeomodule-thumb + a.thumb-link {
 	opacity: 1;
 	width: 300px;
@@ -180,7 +162,7 @@ class VimeoTextFile extends MetaFile {
 	/* returns the data about this video */
 	private function getVideoCode($width, $height, $urlData = '') {
 		$v = $this->getVData();
-		return "<iframe src=\"//player.vimeo.com/video/".$v['vid']."?".$urlData."\" width=\"".$width."\" height=\"".$height."\" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>";
+		return "<iframe class=\"preview\" src=\"//player.vimeo.com/video/".$v['vid']."?".$urlData."\" width=\"".$width."\" height=\"".$height."\" style=\"border: 0;\" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>";
 	}
 	
 	/* loads the name of this element */
@@ -192,11 +174,12 @@ class VimeoTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		return "<div class=\"vimeomodule-preview\">".$this->getVideoCode(700, 394)."</div>";
+		return "<div class=\"vimeomodule-preview preview-controls-sideways\">".$this->getVideoCode(700, 394)."</div>";
 	}
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
+		Lonely::model()->getModule('VimeoModule')->initStyle();
 		return "<div class=\"vimeomodule-thumb\">".$this->getVideoCode(300, 260, 'badge=0&amp;byline=0&amp;portrait=0&amp;title=0')."</div>";
 	}
 }

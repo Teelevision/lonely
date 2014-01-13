@@ -68,17 +68,21 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Request,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
-	
-	/* returns settings for default design */
-	public function afterConstruct() {
-		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'youtube/main.css';
-	}
+	private $_styleInitialized;
 	
 	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array(
 			'YouTubeTextFile' => 9,
 		);
+	}
+	
+	/* includes the css to the page */
+	public function initStyle() {
+		if (!$this->_styleInitialized) {
+			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'youtube/main.css';
+			$this->_styleInitialized = true;
+		}
 	}
 	
 	/* config files */
@@ -101,25 +105,6 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-.youtubemodule-preview {
-	line-height: 100%;
-}
-.file .preview-box .youtubemodule-preview ~ a.prev {
-	left: 50%;
-	margin-left: -710px;
-	width: 350px;
-}
-.file .preview-box .youtubemodule-preview ~ a.next {
-	left: 50%;
-	margin-left: 360px;
-	width: 350px;
-}
-.file .preview-box .youtubemodule-preview ~ a.prev:before {
-	text-align: right;
-}
-.file .preview-box .youtubemodule-preview ~ a.next:after {
-	text-align: left;
-}
 .album .files li .youtubemodule-thumb + a.thumb-link {
 	opacity: 1;
 	width: 300px;
@@ -186,7 +171,7 @@ class YouTubeTextFile extends MetaFile {
 	private function getVideoCode($width, $height, $urlData = '') {
 		$v = $this->getVData();
 		$url = $v['vid'] == '' ? '' : '//www.youtube-nocookie.com/v/'.$v['vid'].'?version=3&amp;rel=0'.($v['start'] ? '&amp;start='.$v['start'] : '').($v['end'] ? '&amp;end='.$v['end'] : '').$urlData;
-		return "<object width=\"".$width."\" height=\"".$height."\"><param name=\"movie\" value=\"".$url."\"><param name=\"allowFullScreen\" value=\"true\"><param name=\"allowscriptaccess\" value=\"always\"><embed src=\"".$url."\" type=\"application/x-shockwave-flash\" width=\"".$width."\" height=\"".$height."\" allowscriptaccess=\"always\" allowfullscreen=\"true\"></object>";
+		return "<object class=\"preview\" width=\"".$width."\" height=\"".$height."\"><param name=\"movie\" value=\"".$url."\"><param name=\"allowFullScreen\" value=\"true\"><param name=\"allowscriptaccess\" value=\"always\"><embed src=\"".$url."\" type=\"application/x-shockwave-flash\" width=\"".$width."\" height=\"".$height."\" allowscriptaccess=\"always\" allowfullscreen=\"true\"></object>";
 	}
 	
 	/* loads the name of this element */
@@ -198,11 +183,12 @@ class YouTubeTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		return "<div class=\"youtubemodule-preview\">".$this->getVideoCode(700, 394)."</div>";
+		return "<div class=\"youtubemodule-preview preview-controls-sideways\">".$this->getVideoCode(700, 394)."</div>";
 	}
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
+		Lonely::model()->getModule('YouTubeModule')->initStyle();
 		return "<div class=\"youtubemodule-thumb\">".$this->getVideoCode(300, 260, '&amp;showinfo=0&amp;controls=1')."</div>";
 	}
 }

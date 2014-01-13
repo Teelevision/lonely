@@ -101,6 +101,9 @@ h1 a {
 .file .title:before, .file .title:after {
 	color: #aaa;
 }
+.album .files li {
+	color: #fff;
+}
 <?php
 		exit;
 	}

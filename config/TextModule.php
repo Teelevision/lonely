@@ -60,17 +60,21 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Request,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
-	
-	/* returns settings for default design */
-	public function afterConstruct() {
-		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'text/main.css';
-	}
+	private $_styleInitialized;
 	
 	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array(
 			'SnippetTextFile' => 9,
 		);
+	}
+	
+	/* includes the css to the page */
+	public function initStyle() {
+		if (!$this->_styleInitialized) {
+			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'text/main.css';
+			$this->_styleInitialized = true;
+		}
 	}
 	
 	/* config files */
@@ -93,12 +97,12 @@ class Module extends \LonelyGallery\Module {
 		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
 		header('Content-Type: text/css');
 		?>
-.textmodule-thumb, .textmodule-preview {
+.album .files li .textmodule-thumb, .file .preview-box .textmodule-preview {
 	text-align: justify;
 	padding: 9px;
 	border: 1px solid #333;
 }
-.textmodule-preview {
+.file .preview-box .textmodule-preview {
 	max-width: 680px;
 	line-height: 100%;
 	display: inline-block;
@@ -119,16 +123,16 @@ class Module extends \LonelyGallery\Module {
 .file .preview-box .textmodule-preview ~ a.next:after {
 	text-align: left;
 }
-.textmodule-thumb {
+.album .files li .textmodule-thumb {
 	line-height: 20px;
 	overflow: hidden;
 	height: 280px;
 	width: 280px;
 }
-.textmodule-thumb > *:first-child {
+.album .files li .textmodule-thumb > *:first-child {
 	margin-top: 0;
 }
-.textmodule-thumb > *:last-child {
+.album .files li .textmodule-thumb > *:last-child {
 	margin-bottom: 0;
 }
 .album .files li .textmodule-thumb + a {
@@ -182,15 +186,17 @@ class SnippetTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
+		Lonely::model()->getModule('TextModule')->initStyle();
 		$text = file_get_contents($this->location);
 		if (substr($this->getFilename(), -3) == 'txt') {
 			$text = nl2br(Lonely::model()->escape($text), false);
 		}
-		return "<div class=\"textmodule-preview\">".$text."</div>";
+		return "<div class=\"textmodule-preview preview preview-controls-sideways\">".$text."</div>";
 	}
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
+		Lonely::model()->getModule('TextModule')->initStyle();
 		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
 		$text = substr($this->getFilename(), -3) == 'txt' ? Lonely::model()->escape($text[0]) : $text[0];
 		return "<div class=\"textmodule-thumb\">".$text."</div>";

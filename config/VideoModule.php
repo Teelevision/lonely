@@ -1,0 +1,77 @@
+<?php
+/*
+##########################
+###    Video Module    ###
+###        for         ###
+### Lonely PHP Gallery ###
+##########################
+
+### Version ###
+
+1.1.0 beta 1
+date: 2014-01-12
+
+### Requirements ###
+
+Lonely PHP Gallery 1.1.0 beta 1 or above
+
+### License ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+### Description ###
+
+Embedds videos on the preview page that HTML5 browsers may play (ogv/mp4/webm).
+
+### Installation ###
+
+Place the PHP file into the 'config' directory.
+
+*/
+
+namespace LonelyGallery\VideoModule;
+use \LonelyGallery\Lonely,
+	\LonelyGallery\GenericFile;
+class Module extends \LonelyGallery\Module {
+	
+	/* returns array of file classes to priority */
+	public function fileClasses() {
+		return array(
+			'VideoFile' => 5,
+		);
+	}
+}
+class VideoFile extends GenericFile {
+	protected $genericFileName = 'video.png';
+	protected $base64EncodedThumbFile = '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';
+
+	/* file pattern */
+	public static function pattern() {
+		return '/\.(ogv|mp4|webm)$/i';
+	}
+	
+	/* returns the HTML code for the preview */
+	public function getPreviewHTML() {
+		$path = Lonely::model()->rootPath.$this->path;
+		return "<video class=\"preview preview-controls-sideways\" controls src=\"".Lonely::escape($path)."\"></video>";
+	}
+}
+?>

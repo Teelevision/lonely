@@ -61,17 +61,21 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Factory,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
-	
-	/* returns settings for default design */
-	public function afterConstruct() {
-		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'link/main.css';
-	}
+	private $_styleInitialized;
 	
 	/* returns array of file classes to priority */
 	public function fileClasses() {
 		return array(
 			'LinkTextFile' => 9,
 		);
+	}
+	
+	/* includes the css to the page */
+	public function initStyle() {
+		if (!$this->_styleInitialized) {
+			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'link/main.css';
+			$this->_styleInitialized = true;
+		}
 	}
 	
 	/* config files */
@@ -164,6 +168,7 @@ class LinkTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
+		Lonely::model()->getModule('LinkModule')->initStyle();
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
@@ -174,6 +179,7 @@ class LinkTextFile extends MetaFile {
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
+		Lonely::model()->getModule('LinkModule')->initStyle();
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {

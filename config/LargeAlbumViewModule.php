@@ -55,10 +55,14 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Album,
 	\LonelyGallery\ContentFile;
 class Module extends \LonelyGallery\Module {
+	private $_styleInitialized;
 	
-	/* returns settings for default design */
-	public function afterConstruct() {
-		Lonely::model()->cssfiles[] = Lonely::model()->configScript.'largealbumview/main.css';
+	/* includes css and js to the page */
+	public function initStyle() {
+		if (!$this->_styleInitialized) {
+			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'largealbumview/main.css';
+			$this->_styleInitialized = true;
+		}
 	}
 	
 	/* config files */
@@ -84,7 +88,7 @@ class Module extends \LonelyGallery\Module {
 #content > .largealbumview {
 	margin: 0;
 }
-.largealbumview > *:not(.file) {
+#content > .largealbumview > *:not(.file) {
 	margin-left: 8px;
 	margin-right: 8px;
 }
@@ -118,6 +122,7 @@ class Module extends \LonelyGallery\Module {
 		
 		/* album requested */
 		if ($album->isAvailable()) {
+			Lonely::model()->getModule('LargeAlbumViewModule')->initStyle();
 			
 			$html = "<section class=\"largealbumview\">\n\n";
 			
@@ -182,6 +187,11 @@ class Module extends \LonelyGallery\Module {
 				} else {
 					$html .= "\t<p>This album is empty.</p>\n\n";
 				}
+			}
+			
+			/* additional html */
+			foreach ($lonely->callEvent('fileBottomHtml', $file) as $data) {
+				/* don't actually display. this helps the zoom module to work on this page */
 			}
 			
 			$html .= "</section>\n";

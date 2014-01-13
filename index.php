@@ -682,6 +682,11 @@ class Lonely extends Component {
 		$this->_modules[$module] = null;
 	}
 	
+	/* returns the module */
+	public function getModule($module) {
+		return isset($this->_modules[$module]) ? $this->_modules[$module] : null;
+	}
+	
 	/* remove module */
 	public function removeModule($module) {
 		if (array_key_exists($module, $this->_modules)) {
@@ -839,7 +844,7 @@ class Lonely extends Component {
 					$name = self::escape($element->getName());
 					$html .= "\t\t<li id=\"".$element->getId()."\">\n".
 						"\t\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
-						"\t\t\t<a class=\"thumb-link\" href=\"".$path."#image\">\n".
+						"\t\t\t<a class=\"thumb-link\" href=\"".$path."#p\">\n".
 						"\t\t\t\t<span>".$name."</span>\n".
 						"\t\t\t</a>\n".
 						"\t\t</li>\n";
@@ -975,6 +980,13 @@ class Lonely extends Component {
 						$html .= "\t\t</dl>\n";
 					}
 					$html .= "\t</div>\n";
+				}
+			}
+			
+			/* additional html */
+			foreach ($this->callEvent('fileBottomHtml', $file) as $data) {
+				if ($data) {
+					$html .= "\t".$data."\n\n";
 				}
 			}
 			
@@ -2345,6 +2357,25 @@ ul.breadcrumbs > li:not(:first-child):before {
 .file .preview-box .nav.next:after {
 	content: ">";
 }
+.file .preview-box .preview-controls-sideways {
+	max-width: 700px;
+}
+.file .preview-box .preview-controls-sideways ~ a.prev {
+	left: 50%;
+	margin-left: -710px;
+	width: 350px;
+}
+.file .preview-box .preview-controls-sideways ~ a.next {
+	left: 50%;
+	margin-left: 360px;
+	width: 350px;
+}
+.file .preview-box .preview-controls-sideways ~ a.prev:before {
+	text-align: right;
+}
+.file .preview-box .preview-controls-sideways ~ a.next:after {
+	text-align: left;
+}
 .file .info p, .file .info dl {
     margin: 4px 0;
 }
@@ -2376,7 +2407,7 @@ ul.breadcrumbs > li:not(:first-child):before {
 		header('Content-Type: text/javascript');
 		?>
 function adjustMaxImageHeight() {
-	var img = document.querySelectorAll(".file .preview");
+	var img = document.querySelectorAll(".file img.preview");
 	for (var i = 0; i < img.length; ++i) {
 		img[i].style.maxHeight = window.innerHeight + 'px';
 	}
