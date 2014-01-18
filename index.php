@@ -314,13 +314,6 @@ class Request extends Component {
 		}
 	}
 	
-	public function moveFileToAction() {
-		if ($this->file !== '') {
-			$this->action = $this->action == array('index') ? array($this->file) : array_merge($this->action, array($this->file));
-			$this->file = '';
-		}
-	}
-	
 	public function getScope() {
 		return $this->scope;
 	}
@@ -517,19 +510,6 @@ class Lonely extends Component {
 		$this->registerFileClass('\\LonelyGallery\\Image');
 		if ($this->extensions) {
 			$this->registerFileClass('\\LonelyGallery\\GenericFile');
-		}
-		
-		/* check for hidden files and directories */
-		if ($this->request->scope[0] != $this->thumbDirectory) {
-			$file = $this->request->file;
-			if ($file && $this->isHiddenFileName($file)) {
-				$this->request->moveFileToAction();
-			}
-			foreach ($album as $a) {
-				if ($a && $this->isHiddenAlbumName($a)) {
-					$this->error();
-				}
-			}
 		}
 		
 		/* build the method to call */
