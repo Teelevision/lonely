@@ -775,7 +775,7 @@ class Lonely extends Component {
 			/* data */
 			$parents = $album->getParents();
 			$albums = $album->getAlbums();
-			$files = $album->getFiles()
+			$files = $album->getFiles();
 			
 			/* title */
 			$title = $album->getName();
