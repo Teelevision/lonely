@@ -1691,6 +1691,33 @@ class Album extends Element {
 		return $this->_files;
 	}
 	
+	/* returns the array of visible and hidden files in this album */
+	public function getAllFiles() {
+		if ($this->_allFiles === null) {
+			$this->loadElements();
+		}
+		return $this->_allFiles;
+	}
+	
+	/* returns only those files of the given list that are in this album */
+	public function getFilesNamed($files) {
+		if ($this->_allFiles !== null) {
+			return array_intersect((array)$files, $this->getAllFiles());
+		}
+		$result = array();
+		foreach ((array)$files as $file) {
+			if (is_file($this->location.$files)) {
+				$result[] = $file;
+			}
+		}
+		return $result;
+	}
+	
+	/* returns the files that match the pattern */
+	public function getFilesMatching($pattern) {
+		return preg_grep($pattern, $this->getAllFiles());
+	}
+	
 	/* returns the description text */
 	public function getText() {
 		if ($this->_text === null) {
