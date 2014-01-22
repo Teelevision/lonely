@@ -146,6 +146,12 @@ You can state images in '_thumb.txt' like this:
 By adding a file called '_text.txt' to a directory its content will be 
 displayed at the top of the album page. Html is possible.
 
+### Redirect album ###
+
+By placing a file called '_redirect.txt' in a directory it will redirect
+you to another album. Just write the path of the other album into the
+file like for album thumbnails (see above).
+
 ### Hidden files ###
 
 Files beginning with a dot (.), a minus (-) or an underscore (_) are not
@@ -360,6 +366,9 @@ class Lonely extends Component {
 	/* file containing text/html to display at top of an album */
 	public $albumText = '_text.txt';
 	
+	/* file containing redirect path to different album */
+	public $redirectFile = '_redirect.txt';
+	
 	/* album class to use */
 	public $albumClass = '\\LonelyGallery\\Album';
 	
@@ -491,7 +500,7 @@ class Lonely extends Component {
 		$this->configScript = $this->realRootScript.$this->configDirectory.'/';
 		
 		/* hidden files */
-		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).'|'.preg_quote($this->albumText).')$/i';
+		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).'|'.preg_quote($this->albumText).'|'.preg_quote($this->redirectFile).')$/i';
 		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).')$/i';
 		
 		/* initialize modules */
@@ -776,6 +785,13 @@ class Lonely extends Component {
 			$parents = $album->getParents();
 			$albums = $album->getAlbums();
 			$files = $album->getFiles();
+			
+			/* redirect */
+			/* placed here after loading the sub-albums and files because it takes the least time thanks to caching, also you probably want to redirect empty albums, so the overhead isn't that big */
+			if ($redirectAlbum = $album->getRedirectAlbum()) {
+				header('Location: '.$this->server.$this->rootScript.$redirectAlbum->getPath(), true, 302);
+				exit;
+			}
 			
 			/* title */
 			$title = $album->getName();
@@ -1729,6 +1745,15 @@ class Album extends Element {
 		return $this->_text;
 	}
 	
+	/* returns the album to redirect to or null */
+	public function getRedirectAlbum() {
+		if ($this->getFilesNamed(Lonely::model()->redirectFile)) {
+			$path = file_get_contents($this->location.Lonely::model()->redirectFile);
+			return Factory::createAlbumByRelPath($path, $this);
+		}
+		return null;
+	}
+	
 	/* returns the thumb image object or false if an own should be rendered */
 	public function getThumbImage() {
 		if ($this->_thumbImage === null) {
@@ -1867,63 +1892,72 @@ class Factory {
 	
 	/* returns the instance of the album */
 	public static function createAlbum($gPath) {
-		$gPathStr = implode('/', $gPath);
+		$path = implode('/', $gPath);
 		
 		/* check if object was already created */
-		if (isset(self::$_albums[$gPathStr])) {
-			return self::$_albums[$gPathStr];
+		if (isset(self::$_albums[$path])) {
+			return self::$_albums[$path];
 		}
 		
 		/* create object */
 		$parentStr = implode('/', array_slice($gPath, 0, -1));
 		$parent = isset(self::$_albums[$parentStr]) ? self::$_albums[$parentStr] : null;
 		$classname = Lonely::model()->albumClass;
-		return self::$_albums[$gPathStr] = new $classname($gPath, $parent);
+		return self::$_albums[$path] = new $classname($gPath, $parent);
+	}
+	
+	/* returns the instance of the album by path */
+	public static function createAlbumByRelPath($path, Album $parent) {
+		$gPath = explode('/', $path);
+		return self::createAlbum(self::consolidateGalleryPath($gPath, $parent));
 	}
 	
 	/* returns the instance of the file or null if not supported */
 	public static function createFile($filename, Album $parent) {
 		$gPath = array_merge($parent->getGalleryPath(), array($filename));
-		$gPathStr = implode('/', $gPath);
+		$path = implode('/', $gPath);
 		
 		/* check if object was already created */
-		if (isset(self::$_files[$gPathStr])) {
-			return self::$_files[$gPathStr];
+		if (isset(self::$_files[$path])) {
+			return self::$_files[$path];
 		}
 		
 		/* create object */
 		$patterns = Lonely::model()->getFilePatterns();
 		foreach ($patterns as $pattern => $classname) {
 			if (preg_match($pattern, $filename)) {
-				return self::$_files[$gPathStr] = new $classname($gPath, $filename, $parent);
+				return self::$_files[$path] = new $classname($gPath, $filename, $parent);
 			}
 		}
 		return null;
 	}
 	
-	/* returns the instance of the object by gallery path or null if not supported */
-	public static function createFileByRelPath($gPath, Album $album) {
-		$path = explode('/', $gPath);
-		
+	/* returns the instance of the object by path or null if not supported */
+	public static function createFileByRelPath($path, Album $album) {
+		$gPath = explode('/', $path);
+		$gPath = self::consolidateGalleryPath($gPath, $album);
+		/* load objects */
+		$album = self::createAlbum(array_slice($gPath, 0, -1));
+		return self::createFile(end($gPath), $album);
+	}
+	
+	/* consolidates a path (given as array) */
+	public static function consolidateGalleryPath(Array $gPath, Element $parent) {
 		/* relative path */
-		if (count($path) == 1 || $path[0] != '') {
-			$path = array_merge($album->getGalleryPath(), $path);
+		if (count($gPath) == 1 || $gPath[0] != '') {
+			$gPath = array_merge($parent->getGalleryPath(), $gPath);
 		}
-		
 		/* consolidate path (remove '', '.' and '..')*/
-		$path = array_diff($path, array('', '.'));
-		foreach ($path as $a => $v) {
+		$gPath = array_diff($gPath, array('', '.'));
+		foreach ($gPath as $a => $v) {
 			/* delete with previous part */
 			if ($v == '..') {
-				unset($path[$a]);
-				for ($b = $a - 1; $b > 0 && !isset($path[$b]); ) --$b;
-				unset($path[$b]);
+				unset($gPath[$a]);
+				for ($b = $a - 1; $b > 0 && !isset($gPath[$b]); ) --$b;
+				unset($gPath[$b]);
 			}
 		}
-		
-		/* load objects */
-		$album = self::createAlbum(array_slice($path, 0, -1));
-		return self::createFile(end($path), $album);
+		return $gPath;
 	}
 }
 
