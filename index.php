@@ -772,8 +772,10 @@ class Lonely extends Component {
 			
 			$html = "<section class=\"album\">\n\n";
 			
-			/* parent albums */
+			/* data */
 			$parents = $album->getParents();
+			$albums = $album->getAlbums();
+			$files = $album->getFiles()
 			
 			/* title */
 			$title = $album->getName();
@@ -814,7 +816,7 @@ class Lonely extends Component {
 			}
 			
 			/* albums */
-			if (count($albums = $album->getAlbums())) {
+			if (count($albums)) {
 				$html .= "\t<ul class=\"albums\">\n";
 				foreach ($albums as $element) {
 					$path = self::escape($this->rootScript.$element->getPath());
@@ -831,7 +833,7 @@ class Lonely extends Component {
 			
 			/* files */
 			$action = $this->defaultFileAction;
-			if (count($files = $album->getFiles())) {
+			if (count($files)) {
 				$html .= "\t<ul class=\"files\">\n";
 				foreach ($files as $element) {
 					$path = self::escape($this->rootScript.$element->getPath().'/'.$action);
@@ -1706,7 +1708,7 @@ class Album extends Element {
 		}
 		$result = array();
 		foreach ((array)$files as $file) {
-			if (is_file($this->location.$files)) {
+			if (is_file($this->location.$file)) {
 				$result[] = $file;
 			}
 		}
@@ -1720,8 +1722,8 @@ class Album extends Element {
 	
 	/* returns the description text */
 	public function getText() {
-		if ($this->_text === null) {
-			$text = @file_get_contents($this->location.Lonely::model()->albumText);
+		if ($this->_text === null && $this->getFilesNamed(Lonely::model()->albumText)) {
+			$text = file_get_contents($this->location.Lonely::model()->albumText);
 			$this->_text = $text ?: '';
 		}
 		return $this->_text;
