@@ -58,6 +58,16 @@ class Module extends \LonelyGallery\Module {
 	/* returns settings for default design */
 	public function afterConstruct() {
 		Lonely::model()->useOriginals = true;
+		Lonely::model()->footer .= "<script type=\"text/javascript\">
+var img = document.querySelectorAll('.file img.preview');
+for (var i = 0; i < img.length; ++i) {
+	img[i].addEventListener('load', function(image){
+		return function(){
+			initImageZoom(image);
+		};
+	}(img[i]));
+}
+</script>";
 	}
 	
 	/* includes css and js to the page */
@@ -103,36 +113,39 @@ var zoom_img, zoom_div;
 function initZoom() {
 	var img = document.querySelectorAll('.file img.preview');
 	for (var i = 0; i < img.length; ++i) {
-		if (window.innerHeight <= img[i].naturalHeight || window.innerWidth <= img[i].naturalWidth) {
-			if (img[i].getAttribute('data-zoom-on') != '1') {
-				var aZoom = document.createElement('a');
-				aZoom.href = '#';
-				aZoom.className = 'zoombox-tr';
-				aZoom.onclick = function(img){
-					return function(){
-						zoom_div = document.createElement('div');
-						zoom_div.id = 'zoombox';
-						zoom_div.onclick = function(){
-							window.removeEventListener('mousemove', zoomPos);
-							document.body.removeChild(zoom_div);
-						};
-						zoom_img = document.createElement('img');
-						zoom_img.src = img.src;
-						zoom_div.appendChild(zoom_img);
-						zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
-						document.body.appendChild(zoom_div);
-						window.addEventListener('mousemove', zoomPos);
-						return false;
+		initImageZoom(img[i]);
+	}
+}
+function initImageZoom(image) {
+	if (window.innerHeight <= image.naturalHeight || window.innerWidth <= image.naturalWidth) {
+		if (image.getAttribute('data-zoom-on') != '1') {
+			var aZoom = document.createElement('a');
+			aZoom.href = '#';
+			aZoom.className = 'zoombox-tr';
+			aZoom.onclick = function(img){
+				return function(){
+					zoom_div = document.createElement('div');
+					zoom_div.id = 'zoombox';
+					zoom_div.onclick = function(){
+						window.removeEventListener('mousemove', zoomPos);
+						document.body.removeChild(zoom_div);
 					};
-				}(img[i]);
-				img[i].parentNode.appendChild(aZoom);
-				img[i].setAttribute('data-zoom-on', '1');
-			}
-		} else if (img[i].getAttribute('data-zoom-on') == '1') {
-			var ztr = img[i].parentNode.querySelector('.zoombox-tr');
-			ztr.parentNode.removeChild(ztr);
-			img[i].setAttribute('data-zoom-on', '0');
+					zoom_img = document.createElement('img');
+					zoom_img.src = img.src;
+					zoom_div.appendChild(zoom_img);
+					zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
+					document.body.appendChild(zoom_div);
+					window.addEventListener('mousemove', zoomPos);
+					return false;
+				};
+			}(image);
+			image.parentNode.appendChild(aZoom);
+			image.setAttribute('data-zoom-on', '1');
 		}
+	} else if (image.getAttribute('data-zoom-on') == '1') {
+		var ztr = image.parentNode.querySelector('.zoombox-tr');
+		ztr.parentNode.removeChild(ztr);
+		image.setAttribute('data-zoom-on', '0');
 	}
 }
 function zoomPos(event) {
@@ -148,7 +161,6 @@ function zoomPos(event) {
 		zoom_img.style.top = '50%';
 	}
 }
-window.addEventListener('load', initZoom);
 window.addEventListener('resize', initZoom);
 <?php
 		exit;

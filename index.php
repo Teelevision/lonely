@@ -1151,14 +1151,6 @@ class Lonely extends Component {
 	
 	<?php echo $this->footer."\n"; ?>
 	
-<?php if ($this->adjustMaxImageHeight) { ?>
-<script type="text/javascript">
-<!--
-adjustMaxImageHeight();
--->
-</script>
-<?php } ?>
-	
 <!-- execution: <?php echo round((microtime(true) - $this->startTime) * 1000, 3); ?> ms -->
 </body>
 </html><?php
@@ -2069,7 +2061,6 @@ class Image extends ContentFile {
 	public function getPreviewHTML() {
 		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)) : Lonely::model()->rootPath.$this->path;
 		$name = Lonely::escape($this->getName());
-		Lonely::model()->adjustMaxImageHeight = true;
 		return "<img class=\"preview\" src=\"".Lonely::escape($path)."\" alt=\"".$name."\">\n";
 	}
 	
@@ -2223,6 +2214,17 @@ class Module extends \LonelyGallery\Design {
 	/* returns settings for default design */
 	public function afterConstruct() {
 		Lonely::model()->jsfiles[] = Lonely::model()->configScript.'lonely.js';
+		Lonely::model()->footer .= "<script type=\"text/javascript\">
+var img = document.querySelectorAll('.file img.preview');
+for (var i = 0; i < img.length; ++i) {
+	adjustImageHeight(img[i]);
+	img[i].addEventListener('load', function(image){
+		return function(){
+			adjustImageHeight(image);
+		};
+	}(img[i]));
+}
+</script>";
 	}
 	
 	/* returns an array with css files to be loaded as design */
@@ -2491,8 +2493,11 @@ ul.breadcrumbs > li:not(:first-child):before {
 function adjustMaxImageHeight() {
 	var img = document.querySelectorAll(".file img.preview");
 	for (var i = 0; i < img.length; ++i) {
-		img[i].style.maxHeight = window.innerHeight + 'px';
+		adjustImageHeight(img[i]);
 	}
+}
+function adjustImageHeight(image) {
+	image.style.maxHeight = window.innerHeight + 'px';
 }
 function navigate(event) {
 	var k = event.keyCode;
@@ -2507,7 +2512,7 @@ function navigate(event) {
 			break;
 	}
 }
-window.addEventListener('load', adjustMaxImageHeight);
+
 window.addEventListener('resize', adjustMaxImageHeight);
 window.addEventListener('keydown', navigate);
 <?php
