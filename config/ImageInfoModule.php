@@ -103,15 +103,15 @@ class Module extends \LonelyGallery\Module {
 			&& isset($iptc['2#105'][0])
 			&& ($name = trim($iptc['2#105'][0])) !== '')
 		{
-			return Lonely::model()->utf8ify($name);
+			return Lonely::utf8ify($name);
 		}
 		
 		/* EXIF */
 		if ($exif = exif_read_data($location)) {
 			if (isset($exif['ImageDescription']) && ($name = trim($exif['ImageDescription'])) !== '') {
-				return Lonely::model()->utf8ify($name);
+				return Lonely::utf8ify($name);
 			} else if (isset($exif['Title']) && ($name = trim($exif['Title'])) !== '') {
-				return Lonely::model()->utf8ify($name);
+				return Lonely::utf8ify($name);
 			}
 		}
 		
