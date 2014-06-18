@@ -66,6 +66,7 @@ Place the PHP file into the 'config' directory.
 namespace LonelyGallery\YouTubeModule;
 use \LonelyGallery\Lonely,
 	\LonelyGallery\Request,
+	\LonelyGallery\Album,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
 	private $_styleInitialized;
@@ -131,53 +132,65 @@ class Module extends \LonelyGallery\Module {
 	}
 }
 class YouTubeTextFile extends MetaFile {
-	private $_vData;
+	private $_v;
+	protected $_deleteThumbOnDestruct = false;
 	
 	/* whether to show the title */
 	public $showTitle = true;
 	
+	
+	function __construct($gPath, $filename, Album $parent) {
+		parent::__construct($gPath, $filename, $parent);
+		preg_match('#^(?P<name>.+)\.(?P<vid>[-_[:alnum:]]{11})(\.(?P<start>\d+)s?(-(?P<end>\d+)s?)?)?\.youtube\.txt$#i', $this->getFilename(), $match);
+		$this->_v = array(
+			'name' => $match['name'],
+			'vid' => $match['vid'],
+			'start' => (int)$match['start'],
+			'end' => (int)$match['end'],
+		);
+		$this->thumbLocationPattern = Lonely::model()->thumbDir.'youtube/<profile>'.DIRECTORY_SEPARATOR.$this->_v['vid'].'.jpg';
+	}
 	
 	/* file pattern */
 	public static function pattern() {
 		return '#\.[-_[:alnum:]]{11}(\.\d+s?(-\d+s?)?)?\.youtube\.txt$#i';
 	}
 	
-	/* returns the data about this video */
-	private function getVData() {
-		if ($this->_vData === null) {
-			preg_match('#^(?P<name>.+)\.(?P<vid>[-_[:alnum:]]{11})(\.(?P<start>\d+)s?(-(?P<end>\d+)s?)?)?\.youtube\.txt$#i', $this->getFilename(), $match);
-			$this->_vData = array(
-				'name' => $match['name'],
-				'vid' => $match['vid'],
-				'start' => (int)$match['start'],
-				'end' => (int)$match['end'],
-			);
-		}
-		return $this->_vData;
-	}
-	
 	/* loads the source location for the thumbnail */
 	public function loadThumbSourceLocation() {
-		$v = $this->getVData();
-		$tmpfile = tempnam(sys_get_temp_dir(), 'lonely_youtube');
-		$url = 'http://img.youtube.com/vi/'.$v['vid'].'/default.jpg';
-		if (($h = @fopen($url, 'r')) && file_put_contents($tmpfile, $h)) {
-			return $tmpfile;
+		$profile = 'default';
+		if ($this->initThumb($profile)) {
+			return $this->getThumbLocation($profile);
 		}
 		return '';
 	}
 	
+	/* creates a thumbnail */
+	protected function createThumb($profile, $saveTo) {
+		$url = 'http://img.youtube.com/vi/'.$this->_v['vid'].'/default.jpg';
+		
+		/* create dir */
+		$dir = dirname($saveTo);
+		if (!is_dir($dir)) {
+			mkdir($dir, -1, true);
+		}
+		
+		if (($h = @fopen($url, 'r')) && file_put_contents($saveTo, $h)) {
+			@fclose($h);
+			return true;
+		}
+		return false;
+	}
+	
 	/* returns the data about this video */
 	private function getVideoCode($width, $height, $urlData = '') {
-		$v = $this->getVData();
-		$url = $v['vid'] == '' ? '' : '//www.youtube-nocookie.com/v/'.$v['vid'].'?version=3&amp;rel=0'.($v['start'] ? '&amp;start='.$v['start'] : '').($v['end'] ? '&amp;end='.$v['end'] : '').$urlData;
+		$url = $this->_v['vid'] == '' ? '' : '//www.youtube-nocookie.com/v/'.$this->_v['vid'].'?version=3&amp;rel=0'.($this->_v['start'] ? '&amp;start='.$this->_v['start'] : '').($this->_v['end'] ? '&amp;end='.$this->_v['end'] : '').$urlData;
 		return "<object class=\"preview\" width=\"".$width."\" height=\"".$height."\"><param name=\"movie\" value=\"".$url."\"><param name=\"allowFullScreen\" value=\"true\"><param name=\"allowscriptaccess\" value=\"always\"><embed src=\"".$url."\" type=\"application/x-shockwave-flash\" width=\"".$width."\" height=\"".$height."\" allowscriptaccess=\"always\" allowfullscreen=\"true\"></object>";
 	}
 	
 	/* loads the name of this element */
 	protected function loadName() {
-		$v = $this->getVData();
-		$name = strtr($v['name'], '_', ' ');
+		$name = strtr($this->_v['name'], '_', ' ');
 		return $name;
 	}
 	

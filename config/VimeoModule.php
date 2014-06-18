@@ -55,6 +55,7 @@ Place the PHP file into the 'config' directory.
 namespace LonelyGallery\VimeoModule;
 use \LonelyGallery\Lonely,
 	\LonelyGallery\Request,
+	\LonelyGallery\Album,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
 	private $_styleInitialized;
@@ -120,55 +121,67 @@ class Module extends \LonelyGallery\Module {
 	}
 }
 class VimeoTextFile extends MetaFile {
-	private $_vData;
+	private $_v;
+	protected $_deleteThumbOnDestruct = false;
 	
 	/* whether to show the title */
 	public $showTitle = true;
 	
+	
+	function __construct($gPath, $filename, Album $parent) {
+		parent::__construct($gPath, $filename, $parent);
+		preg_match('#^(?P<name>.+)\.(?P<vid>\d+)\.vimeo\.txt$#i', $this->getFilename(), $match);
+		$this->_v = array(
+			'name' => $match['name'],
+			'vid' => $match['vid'],
+		);
+		$this->thumbLocationPattern = Lonely::model()->thumbDir.'vimeo/<profile>'.DIRECTORY_SEPARATOR.$this->_v['vid'].'.jpg';
+	}
 	
 	/* file pattern */
 	public static function pattern() {
 		return '#\.\d+\.vimeo\.txt$#i';
 	}
 	
-	/* returns the data about this video */
-	private function getVData() {
-		if ($this->_vData === null) {
-			preg_match('#^(?P<name>.+)\.(?P<vid>\d+)\.vimeo\.txt$#i', $this->getFilename(), $match);
-			$this->_vData = array(
-				'name' => $match['name'],
-				'vid' => $match['vid'],
-			);
-		}
-		return $this->_vData;
-	}
-	
 	/* loads the source location for the thumbnail */
 	public function loadThumbSourceLocation() {
-		$v = $this->getVData();
-		$infoUrl = 'http://vimeo.com/api/v2/video/'.$v['vid'].'.json';
-		if ($json = @file_get_contents($infoUrl)) {
-			$info = json_decode($json, true);
-			if (isset($info[0]['thumbnail_small'])) {
-				$tmpfile = tempnam(sys_get_temp_dir(), 'lonely_vimeo');
-				if (($h = @fopen($info[0]['thumbnail_small'], 'r')) && file_put_contents($tmpfile, $h)) {
-					return $tmpfile;
-				}
-			}
+		$profile = 'small';
+		if ($this->initThumb($profile)) {
+			return $this->getThumbLocation($profile);
 		}
 		return '';
 	}
 	
+	/* creates a thumbnail */
+	protected function createThumb($profile, $saveTo) {
+		$infoUrl = 'http://vimeo.com/api/v2/video/'.$this->_v['vid'].'.json';
+		if (($json = @file_get_contents($infoUrl)) && ($info = json_decode($json, true)) && isset($info[0]['thumbnail_small'])) {
+			$url = $info[0]['thumbnail_small'];
+		} else {
+			return false;
+		}
+		
+		/* create dir */
+		$dir = dirname($saveTo);
+		if (!is_dir($dir)) {
+			mkdir($dir, -1, true);
+		}
+		
+		if (($h = @fopen($url, 'r')) && file_put_contents($saveTo, $h)) {
+			@fclose($h);
+			return true;
+		}
+		return false;
+	}
+	
 	/* returns the data about this video */
 	private function getVideoCode($width, $height, $urlData = '') {
-		$v = $this->getVData();
-		return "<iframe class=\"preview\" src=\"//player.vimeo.com/video/".$v['vid']."?".$urlData."\" width=\"".$width."\" height=\"".$height."\" style=\"border: 0;\" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>";
+		return "<iframe class=\"preview\" src=\"//player.vimeo.com/video/".$this->_v['vid']."?".$urlData."\" width=\"".$width."\" height=\"".$height."\" style=\"border: 0;\" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>";
 	}
 	
 	/* loads the name of this element */
 	protected function loadName() {
-		$v = $this->getVData();
-		$name = strtr($v['name'], '_', ' ');
+		$name = strtr($this->_v['name'], '_', ' ');
 		return $name;
 	}
 	

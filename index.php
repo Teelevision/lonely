@@ -2008,13 +2008,14 @@ abstract class MetaFile extends File {
 	
 	/* image from which to render the thumbnail */
 	private $_thumbSourceLocation;
+	protected $_deleteThumbOnDestruct = true;
 	
 	/* whether to show the title */
 	public $showTitle = false;
 	
 	
 	function __destruct() {
-		if ($this->_thumbSourceLocation) {
+		if ($this->_deleteThumbOnDestruct && $this->_thumbSourceLocation) {
 			unlink($this->_thumbSourceLocation);
 		}
 	}
@@ -2439,6 +2440,7 @@ ul.breadcrumbs > li:not(:first-child):before {
 }
 .file .preview-box .preview-controls-sideways {
 	max-width: 700px;
+	display: inline-block;
 }
 .file .preview-box .preview-controls-sideways ~ a.prev {
 	left: 50%;
