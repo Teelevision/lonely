@@ -107,6 +107,9 @@ h1 a {
 .album > .albums > li, .album > .files > li {
 	background-color: #ddd;
 }
+body > #zoombox {
+	background-color: #eee !important;
+}
 <?php
 		exit;
 	}
