@@ -130,7 +130,7 @@ Designs are basicly modules.
 
 Album thumbnails are rendered with the first 4 files of a directory by 
 default. You can change the number by setting albumThumbSquare. You can 
-add a JPG file named '_thumb.jpg' to an album to make it the album's 
+add '_thumb.jpg' or '_thumb.png' files to albums to make it the album's
 thumbnail. You can add a text file named '_thumb.txt' to the album to 
 define which image is used as the album's thumbnail. If you define 
 several files within the '_thumb.txt', one per line, they are all taken 
@@ -357,8 +357,8 @@ class Lonely extends Component {
 	/* name of the config sub directory */
 	public $configDirectory = 'config';
 	
-	/* name of the thumb file of albums */
-	public $albumThumb = '_thumb.jpg';
+	/* names of the thumb file of albums */
+	public $albumThumb = array('_thumb.png', '_thumb.jpg');
 	
 	/* file containing the name of the thumb file of an album */
 	public $albumThumbFile = '_thumb.txt';
@@ -500,7 +500,7 @@ class Lonely extends Component {
 		$this->configScript = $this->realRootScript.$this->configDirectory.'/';
 		
 		/* hidden files */
-		$this->hiddenFileNames[] = '/^('.preg_quote($this->albumThumb).'|'.preg_quote($this->albumThumbFile).'|'.preg_quote($this->albumText).'|'.preg_quote($this->redirectFile).')$/i';
+		$this->hiddenFileNames[] = '/^('.implode('|', array_map('preg_quote', array_merge($this->albumThumb, array($this->albumThumbFile, $this->albumText, $this->redirectFile)))).')$/i';
 		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).')$/i';
 		
 		/* initialize modules */
@@ -621,7 +621,7 @@ class Lonely extends Component {
 			case 'lonely':
 			default:
 				/* don't display album files */
-				if ($request->file == $this->albumThumb) {
+				if (in_array($request->file, $this->albumThumb)) {
 					$this->error();
 				}
 				$method = $scope[0];
@@ -1270,7 +1270,7 @@ class Renderer {
 		$thumbSize = $this->s['width']/$num;
 		
 		/* create new image */
-		$thumb = self::createImage($this->s['width'], $this->s['width'], IMAGETYPE_JPEG);
+		$thumb = self::createImage($this->s['width'], $this->s['width'], IMAGETYPE_PNG);
 		
 		/* go through files and add them to the thumbnail */
 		$nr = 0;
@@ -1307,7 +1307,7 @@ class Renderer {
 		}
 		
 		/* write to file */
-		return self::saveImage($thumb, $saveTo, IMAGETYPE_JPEG);
+		return self::saveImage($thumb, $saveTo, IMAGETYPE_PNG);
 	}
 	
 	/* returns the info of an image */
@@ -1760,12 +1760,13 @@ class Album extends Element {
 			
 			/* default name */
 			if ($this->_thumbImage === null) {
-				$file = Factory::createFile(Lonely::model()->albumThumb, $this);
-				if ($file->isAvailable()) {
-					$this->_thumbImage = $file;
-				} else {
-					/* render own */
-					$this->_thumbImage = false;
+				$this->_thumbImage = false;
+				foreach (Lonely::model()->albumThumb as $name) {
+					$file = Factory::createFile($name, $this);
+					if ($file->isAvailable()) {
+						$this->_thumbImage = $file;
+						break;
+					}
 				}
 			}
 			
@@ -1778,7 +1779,7 @@ class Album extends Element {
 		if ($thumbImage = $this->getThumbImage()) {
 			return $thumbImage->getThumbLocation($profile);
 		}
-		return parent::getThumbLocation($profile).rawurlencode(Lonely::model()->albumThumb);
+		return parent::getThumbLocation($profile).rawurlencode(Lonely::model()->albumThumb[0]);
 	}
 	
 	/* returns the web thumb path */
@@ -1786,7 +1787,7 @@ class Album extends Element {
 		if ($thumbImage = $this->getThumbImage()) {
 			return $thumbImage->getThumbPath($profile);
 		}
-		return parent::getThumbPath($profile).rawurlencode(Lonely::model()->albumThumb);
+		return parent::getThumbPath($profile).rawurlencode(Lonely::model()->albumThumb[0]);
 	}
 	
 	/* checks if there is a up-to-date thumbnail file */

@@ -104,6 +104,9 @@ h1 a {
 .album .files li {
 	color: #fff;
 }
+.album > .albums > li, .album > .files > li {
+	background-color: #ddd;
+}
 <?php
 		exit;
 	}
