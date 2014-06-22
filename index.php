@@ -257,13 +257,13 @@ class Request extends Component {
 	*/
 	
 	/* scope, defaults to 'lonely' */
-	private $scope = array('lonely');
+	public $scope = array('lonely');
 	/* album, defaults to none */
-	private $album = array();
+	public $album = array();
 	/* file, defaults to none */
-	private $file = '';
+	public $file = '';
 	/* action, defaults to 'index' */
-	private $action = array('index');
+	public $action = array('');
 	
 	
 	function __construct($scopePatterns) {
@@ -319,22 +319,6 @@ class Request extends Component {
 			
 		}
 	}
-	
-	public function getScope() {
-		return $this->scope;
-	}
-	
-	public function getAlbum() {
-		return $this->album;
-	}
-	
-	public function getFile() {
-		return $this->file;
-	}
-	
-	public function getAction() {
-		return $this->action;
-	}
 }
 
 class Lonely extends Component {
@@ -368,6 +352,9 @@ class Lonely extends Component {
 	
 	/* file containing redirect path to different album */
 	public $redirectFile = '_redirect.txt';
+	
+	/* auto redirect to only sub-album in otherwise empty album */
+	public $autoRedirect = true;
 	
 	/* album class to use */
 	public $albumClass = '\\LonelyGallery\\Album';
@@ -586,20 +573,20 @@ class Lonely extends Component {
 		
 		/* let modules interrupt the request */
 		foreach ($this->_modules as $module) {
-			if (method_exists($module, 'checkAccess') && !call_user_func(array($module, 'checkAccess'), $request)) {
+			if (method_exists($module, 'checkAccess') && !$module->checkAccess($request)) {
 				$this->error(403, 'You are not allowed to access this page.');
 			}
 		}
 		
 		/* let modules handle the request */
 		foreach ($this->_modules as $module) {
-			if (method_exists($module, 'handleRequest') && !call_user_func(array($module, 'handleRequest'), $request)) {
+			if (method_exists($module, 'handleRequest') && !$module->handleRequest($request)) {
 				return;
 			}
 		}
 		
 		$scope = $request->scope;
-		$action = $request->action;
+		$action = $request->action[0] == '' ? array('index') : $request->action;
 		
 		switch ($scope[0]) {
 			
@@ -788,7 +775,7 @@ class Lonely extends Component {
 			
 			/* redirect */
 			/* placed here after loading the sub-albums and files because it takes the least time thanks to caching, also you probably want to redirect empty albums, so the overhead isn't that big */
-			if ($redirectAlbum = $album->getRedirectAlbum()) {
+			if (($redirectAlbum = $album->getRedirectAlbum()) || ($this->autoRedirect && !count($files) && count($albums) == 1 && ($redirectAlbum = reset($albums)))) {
 				header('Location: '.$this->server.$this->rootScript.$redirectAlbum->getPath(), true, 302);
 				exit;
 			}

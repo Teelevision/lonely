@@ -41,6 +41,8 @@ THE SOFTWARE.
 
 The Large Album View Module adds a page containing all images of an album in
 full size. It also adds a link to this page at the bottom of each album.
+You can place an empty file named '_large' to show the album's large view by
+default.
 
 ### Installation ###
 
@@ -56,6 +58,9 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\ContentFile;
 class Module extends \LonelyGallery\Module {
 	private $_styleInitialized;
+	
+	/* place an empty file named like this in an album to automatically switch to large view */
+	private static $_largeTriggerFile = '_large';
 	
 	/* includes css and js to the page */
 	public function initStyle() {
@@ -106,6 +111,22 @@ class Module extends \LonelyGallery\Module {
 }
 <?php
 		exit;
+	}
+	
+	/* check album requests to redirect automatically to large view */
+	public function handleRequest(Request &$request) {
+		/* redirect album action index to large */
+		if ($request->action[0] == '') {
+			$album = Factory::createAlbum($request->album);
+			$file = Factory::createFile($request->file, $album);
+			if ((!$file || !$file->isAvailable()) && $album->getFilesNamed(self::$_largeTriggerFile)) {
+				/* redirect to large view */
+				header('Location: '.Lonely::model()->server.Lonely::model()->rootScript.$album->getPath().'large', true, 302);
+				exit;
+			}
+		}
+		/* let others handle the request */
+		return true;
 	}
 	
 	/* returns links displayed at top of albums */
@@ -170,7 +191,7 @@ class Module extends \LonelyGallery\Module {
 			}
 			if ($html2 != "") {
 				$html .= "\t<ul class=\"links\">\n".
-					"\t\t<li><a href=\"".Lonely::escape(Lonely::model()->rootScript.$album->getPath())."\">index</a></li>\n".
+					"\t\t<li><a href=\"".Lonely::escape(Lonely::model()->rootScript.$album->getPath())."index\">index</a></li>\n".
 					$html2.
 					"\t</ul>\n\n";
 			}
