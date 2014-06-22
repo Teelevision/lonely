@@ -128,6 +128,14 @@ class Module extends \LonelyGallery\Module {
 	overflow: hidden;
 	height: 280px;
 	width: 280px;
+	transition-property: height, margin-top;
+	transition-duration: 2s;
+	transition-timing-function: cubic-bezier(.05,0,.6,.6);
+}
+.album .files li:hover .textmodule-thumb {
+	height: 2280px;
+	margin-top: -2000px;
+	transition-duration: 180s;
 }
 .album .files li .textmodule-thumb > *:first-child {
 	margin-top: 0;
