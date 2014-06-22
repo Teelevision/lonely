@@ -110,6 +110,17 @@ h1 a {
 body > #zoombox {
 	background-color: #eee !important;
 }
+.album .files li .textmodule-thumb {
+	color: #111 !important;
+}
+.album .files li .textmodule-thumb + a {
+	background-color: #ddd !important;
+	background: linear-gradient(rgba(221,221,221,0), rgba(221,221,221,1) 70%) !important;
+	color: #111 !important;
+}
+.album .files li .textmodule-thumb, .file .preview-box .textmodule-preview {
+	border: 1px solid #ccc !important;
+}
 <?php
 		exit;
 	}
