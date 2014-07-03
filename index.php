@@ -1106,7 +1106,7 @@ class Lonely extends Component {
 		/* CSS */
 		$cssfiles = array_merge($this->_design->cssFiles(), $this->cssfiles);
 		foreach ($cssfiles as $file) {
-			echo "\t<link type=\"text/css\" rel=\"stylesheet\" media=\"screen\" href=\"", self::escape($file), "\">\n";
+			echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", self::escape($file), "\">\n";
 		}
 		
 		/* JavaScript */
