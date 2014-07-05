@@ -1,0 +1,22 @@
+REM The following files are merged into one file.
+type ^
+	header.php ^
+	..\index.php ^
+	..\lonely\Component.php ^
+	..\lonely\Request.php ^
+	..\lonely\Lonely.php ^
+	..\lonely\functions.php ^
+	..\lonely\Renderer.php ^
+	..\lonely\RenderHelper.php ^
+	..\lonely\Element.php ^
+	..\lonely\Album.php ^
+	..\lonely\Factory.php ^
+	..\lonely\File.php ^
+	..\lonely\MetaFile.php ^
+	..\lonely\ContentFile.php ^
+	..\lonely\Image.php ^
+	..\lonely\GenericFile.php ^
+	..\lonely\Module.php ^
+	..\lonely\Design.php ^
+	..\lonely\DefaultDesign\Module.php ^
+	> index.php
