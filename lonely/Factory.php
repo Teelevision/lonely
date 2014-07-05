@@ -1,4 +1,29 @@
 <?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###      Factory       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Factory creates instances of files and albums by absolute or
+relative path in the gallery.
+*/
+
 namespace LonelyGallery;
 
 class Factory {

@@ -1,4 +1,30 @@
 <?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###       Render       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Render class does all the rendering. It is mainly used by the
+Render Helper. It is initialized with settings that define the output
+format of the resulting file.
+*/
+
 namespace LonelyGallery;
 
 class Renderer {
@@ -12,7 +38,7 @@ class Renderer {
 	
 	
 	/* init with profile name */
-	public function __construct(Array $settings) {
+	protected function __construct(Array $settings) {
 		$this->s = $settings + array(
 			'width' => 0,
 			'height' => 0,
@@ -38,7 +64,7 @@ class Renderer {
 	}
 	
 	/* render thumbnail from image */
-	public function renderThumbnail($path, $saveTo) {
+	protected function renderThumbnail($path, $saveTo) {
 		
 		/* get info */
 		$info = static::getInfo($path);
@@ -93,7 +119,7 @@ class Renderer {
 	}
 	
 	/* render checkboard pattern from images */
-	public function renderChessboard(Array $files, $saveTo) {
+	protected function renderChessboard(Array $files, $saveTo) {
 	
 		/* prepare */
 		$num = (int)sqrt(count($files));

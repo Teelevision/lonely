@@ -1,26 +1,58 @@
 <?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###      Request       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This class provides the matching of the url.
+
+Request url: /<scope>/<album>/<file>/<action>
+Each element is optional.
+While album and file refers to a real existing file or directory in the
+gallery, the scope can be a virtual directory. Additional scopes could
+be useful to implement new pages that refer to files or albums like
+slideshows or a shop system, or even file unrelated, static pages.
+The action is to provide several actions to one set of scope, album and
+file. You could use actions to provide e.g. a comment section or.
+Everything you could provide by scope you can also provide by action.
+The main difference is that scopes are matched befor album/file and
+actions after. Since you should take care that scope and action names
+don't collide with albums and files, it is mainly a design question
+whether to use scopes or actions.
+If the album/file is not recognized as a part of the gallery, it is
+matched as action.
+Examples:
+	/thumb/300px/Holiday/2013/01.jpg
+		scope: thumb/300px
+		album: Holiday/2013
+		file: 01.jpg
+		action: index
+	/ABC.png/comments/new
+		scope: lonely
+		album (empty)
+		file: ABC.png
+		action: /comments/new
+*/
+
 namespace LonelyGallery;
 
 class Request extends Component {
-	
-	/*
-	Request: /<scope>/<album>/<file>/<action>
-	Each element is optional.
-	While album and file refers to a real existing file or directory in the gallery, the scope can be a virtual directory. Additional scopes could be useful to implement new pages that refer to files or albums like slideshows or a shop system, or even file unrelated, static pages.
-	The action is to provide several actions to one set of scope, album and file. You could use actions to provide e.g. a comment section or. Everything you could provide by scope you can also provide by action. The main difference is that scopes are matched befor album/file and actions after. Since you should take care that scope and action names don't collide with albums and files, it is mainly a design question whether to use scopes or actions.
-	If the album/file is not recognized as a part of the gallery, it is matched as action.
-	Examples:
-		/thumb/300px/Holiday/2013/01.jpg
-			scope: thumb/300px
-			album: Holiday/2013
-			file: 01.jpg
-			action: index
-		/ABC.png/comments/new
-			scope: lonely
-			album (empty)
-			file: ABC.png
-			action: /comments/new
-	*/
 	
 	/* scope, defaults to 'lonely' */
 	public $scope = array('lonely');
@@ -28,7 +60,7 @@ class Request extends Component {
 	public $album = array();
 	/* file, defaults to none */
 	public $file = '';
-	/* action, defaults to 'index' */
+	/* action, defaults to '' */
 	public $action = array('');
 	
 	

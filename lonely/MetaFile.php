@@ -1,4 +1,29 @@
 <?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###     Meta File      ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Meta File is a special File that defines what to display instead
+of containing it. E.g. it could contain an url of an image to display.
+*/
+
 namespace LonelyGallery;
 
 abstract class MetaFile extends File {

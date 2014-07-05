@@ -1,4 +1,30 @@
 <?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###   Render Helper    ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Render Helper provides easy access to specific render scenarios.
+It is initialized with a profile that defines the output formats. It
+then handles rendering of images and albums.
+*/
+
 namespace LonelyGallery;
 
 class RenderHelper extends Renderer {

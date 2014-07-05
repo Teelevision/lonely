@@ -1,7 +1,33 @@
 <?php
-/* default design */
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+## Default Design Module #
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This is the default design.
+It provides a black CSS theme and image size adjustment via JavaScript
+to fit images into the screen if they exceed the height.
+*/
+
 namespace LonelyGallery\DefaultDesign;
 use \LonelyGallery\Lonely as Lonely;
+
 class Module extends \LonelyGallery\Design {
 	
 	/* returns settings for default design */
