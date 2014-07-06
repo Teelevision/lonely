@@ -118,10 +118,7 @@ class VimeoTextFile extends MetaFile {
 		}
 		
 		/* create dir */
-		$dir = dirname($saveTo);
-		if (!is_dir($dir)) {
-			mkdir($dir, -1, true);
-		}
+		\LonelyGallery\touch_mkdir($saveTo);
 		
 		if (($h = @fopen($url, 'r')) && file_put_contents($saveTo, $h)) {
 			@fclose($h);

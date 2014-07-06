@@ -1555,10 +1555,7 @@ class Renderer {
 	protected static function saveImage($image, $path, $type) {
 		
 		/* create dir */
-		$dir = dirname($path);
-		if (!is_dir($dir)) {
-			mkdir($dir, -1, true);
-		}
+		touch_mkdir($path);
 		
 		switch ($type) {
 			case IMAGETYPE_GIF: return imagegif($image, $path);
@@ -2582,10 +2579,7 @@ class GenericFile extends ContentFile {
 	protected function createThumb($profile, $saveTo) {
 		$thumbPathOriginal = $this->getThumbLocation('original');
 		/* create dir */
-		$dir = dirname($thumbPathOriginal);
-		if (!is_dir($dir)) {
-			mkdir($dir, -1, true);
-		}
+		touch_mkdir($thumbPathOriginal);
 		return file_put_contents($thumbPathOriginal, base64_decode($this->base64EncodedThumbFile)) && RenderHelper::profile($profile)->renderThumbnailOfElement($this, $thumbPathOriginal);
 	}
 	

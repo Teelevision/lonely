@@ -204,10 +204,7 @@ class Renderer {
 	protected static function saveImage($image, $path, $type) {
 		
 		/* create dir */
-		$dir = dirname($path);
-		if (!is_dir($dir)) {
-			mkdir($dir, -1, true);
-		}
+		touch_mkdir($path);
 		
 		switch ($type) {
 			case IMAGETYPE_GIF: return imagegif($image, $path);
