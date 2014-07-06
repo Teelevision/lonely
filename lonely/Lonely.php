@@ -145,7 +145,7 @@ class Lonely extends Component {
 		*/
 		
 		/* config directory */
-		$this->rootDir = $rootDir.DIRECTORY_SEPARATOR;
+		$this->rootDir = path(array($rootDir), true);
 		
 		/* set default design */
 		$this->_design = $this->defaultDesign;
@@ -156,7 +156,7 @@ class Lonely extends Component {
 		}
 		
 		/* config directory */
-		$this->configDir = $this->rootDir.$this->configDirectory.DIRECTORY_SEPARATOR;
+		$this->configDir = path(array($this->rootDir.$this->configDirectory), true);
 		if (!is_dir($this->configDir)) {
 			if (!mkdir($this->configDir)) {
 				$this->error(500, 'Config directory (/'.$this->configDirectory.') could not be created. Check if your user has permission to write to your gallery directory.');
@@ -171,7 +171,7 @@ class Lonely extends Component {
 		}
 		
 		/* render directory */
-		$this->thumbDir = $this->rootDir.$this->thumbDirectory.DIRECTORY_SEPARATOR;
+		$this->thumbDir = path(array($this->rootDir.$this->thumbDirectory), true);
 		if (!is_dir($this->thumbDir)) {
 			if (!mkdir($this->thumbDir)) {
 				$this->error(500, 'Thumbnail directory (/'.$this->thumbDirectory.') could not be created. Check if your user has permission to write to your gallery directory.');
@@ -722,7 +722,7 @@ class Lonely extends Component {
 	
 	/* shows the thumbnail */
 	protected function displayThumb(Request $request) {
-		$profile = implode('/', array_slice($request->scope, 1));
+		$profile = webpath(array_slice($request->scope, 1));
 		
 		$element = $album = Factory::createAlbum($request->album);
 		/* file thumbnail */

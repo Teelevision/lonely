@@ -36,7 +36,7 @@ class GenericFile extends ContentFile {
 		parent::__construct($gPath, $filename, $parent);
 		
 		if ($this->getFilename() !== "") {
-			$this->thumbLocationPattern = Lonely::model()->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<profile>'.DIRECTORY_SEPARATOR.$this->genericFileName;
+			$this->thumbLocationPattern = path(array(Lonely::model()->thumbDir.'generic', '<profile>', $this->genericFileName));
 		}
 	}
 	

@@ -38,13 +38,19 @@ function preg_match_any(Array $patterns, $value, &$match = null) {
 }
 
 /* builds a path */
-function path(Array $dirs) {
-	return implode(DIRECTORY_SEPARATOR, $dirs);
+function path(Array $p, $trailingSeparator = false) {
+	return implode(DIRECTORY_SEPARATOR, $p).($trailingSeparator ? DIRECTORY_SEPARATOR : '');
+}
+function unpath($path) {
+	return explode(DIRECTORY_SEPARATOR, $path);
 }
 
 /* builds a web path */
-function webpath(Array $dirs) {
-	return implode('/', $dirs);
+function webpath(Array $p, $trailingSeparator = false) {
+	return implode('/', $p).($trailingSeparator ? '/' : '');
+}
+function unwebpath($path) {
+	return explode('/', $path);
 }
 
 /* makes a string UTF-8 */

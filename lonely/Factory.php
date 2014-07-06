@@ -35,7 +35,7 @@ class Factory {
 	
 	/* returns the instance of the album */
 	public static function createAlbum($gPath) {
-		$path = implode('/', $gPath);
+		$path = webpath($gPath);
 		
 		/* check if object was already created */
 		if (isset(self::$_albums[$path])) {
@@ -43,7 +43,7 @@ class Factory {
 		}
 		
 		/* create object */
-		$parentStr = implode('/', array_slice($gPath, 0, -1));
+		$parentStr = webpath(array_slice($gPath, 0, -1));
 		$parent = isset(self::$_albums[$parentStr]) ? self::$_albums[$parentStr] : null;
 		$classname = Lonely::model()->albumClass;
 		return self::$_albums[$path] = new $classname($gPath, $parent);
@@ -51,14 +51,14 @@ class Factory {
 	
 	/* returns the instance of the album by path */
 	public static function createAlbumByRelPath($path, Album $parent) {
-		$gPath = explode('/', $path);
+		$gPath = unwebpath($path);
 		return self::createAlbum(self::consolidateGalleryPath($gPath, $parent));
 	}
 	
 	/* returns the instance of the file or null if not supported */
 	public static function createFile($filename, Album $parent) {
 		$gPath = array_merge($parent->getGalleryPath(), array($filename));
-		$path = implode('/', $gPath);
+		$path = webpath($gPath);
 		
 		/* check if object was already created */
 		if (isset(self::$_files[$path])) {
@@ -77,7 +77,7 @@ class Factory {
 	
 	/* returns the instance of the object by path or null if not supported */
 	public static function createFileByRelPath($path, Album $album) {
-		$gPath = explode('/', $path);
+		$gPath = unwebpath($path);
 		$gPath = self::consolidateGalleryPath($gPath, $album);
 		/* load objects */
 		$album = self::createAlbum(array_slice($gPath, 0, -1));

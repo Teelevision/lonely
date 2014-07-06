@@ -104,7 +104,7 @@ class YouTubeTextFile extends MetaFile {
 			'start' => (int)$match['start'],
 			'end' => (int)$match['end'],
 		);
-		$this->thumbLocationPattern = Lonely::model()->thumbDir.'youtube/<profile>'.DIRECTORY_SEPARATOR.$this->_v['vid'].'.jpg';
+		$this->thumbLocationPattern = \LonelyGallery\path(array(Lonely::model()->thumbDir.'youtube', '<profile>', $this->_v['vid'].'.jpg'));
 	}
 	
 	/* file pattern */

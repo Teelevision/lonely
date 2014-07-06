@@ -46,9 +46,9 @@ class Album extends Element {
 		
 		$gPath = $this->getGalleryPath();
 		$this->initId('album_'.end($gPath));
-		$this->location = Lonely::model()->rootDir.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
-		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<profile>'.DIRECTORY_SEPARATOR.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
-		$this->path = count($gPath) ? implode('/', array_map('rawurlencode', $gPath)).'/' : '';
+		$this->location = Lonely::model()->rootDir.(count($gPath) ? path($gPath, true) : '');
+		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<profile>'.DIRECTORY_SEPARATOR.(count($gPath) ? path($gPath, true) : '');
+		$this->path = count($gPath) ? webpath(array_map('rawurlencode', $gPath), true) : '';
 	}
 	
 	/* loads the name of this element */

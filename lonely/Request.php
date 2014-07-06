@@ -81,11 +81,11 @@ class Request extends Component {
 		}
 		
 		/* convert to array and remove empty entries, then rebuild keys */
-		$requestArray = array_values(array_diff(explode('/', $request), array('')));
+		$requestArray = array_values(array_diff(unwebpath($request), array('')));
 		
 		/* match scope */
-		if (preg_match_any((array)$scopePatterns, implode('/', $requestArray), $match)) {
-			$this->scope = explode('/', $match[1]);
+		if (preg_match_any((array)$scopePatterns, webpath($requestArray), $match)) {
+			$this->scope = unwebpath($match[1]);
 			$requestArray = array_slice($requestArray, count($this->scope));
 		}
 		
@@ -94,7 +94,7 @@ class Request extends Component {
 		$num = count($requestArray);
 		for ($i = 0; $i <= $num; ++$i) {
 			
-			$path = $rootDir.DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, array_slice($requestArray, 0, $num - $i));
+			$path = $rootDir.path(array_slice($requestArray, 0, $num - $i));
 			
 			/* check if file */
 			if (@is_file($path)) {

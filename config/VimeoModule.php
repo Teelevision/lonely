@@ -91,7 +91,7 @@ class VimeoTextFile extends MetaFile {
 			'name' => $match['name'],
 			'vid' => $match['vid'],
 		);
-		$this->thumbLocationPattern = Lonely::model()->thumbDir.'vimeo/<profile>'.DIRECTORY_SEPARATOR.$this->_v['vid'].'.jpg';
+		$this->thumbLocationPattern = \LonelyGallery\path(array(Lonely::model()->thumbDir.'vimeo', '<profile>', $this->_v['vid'].'.jpg'));
 	}
 	
 	/* file pattern */
