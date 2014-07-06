@@ -54,6 +54,9 @@ class Lonely extends Component {
 	/* name of the config sub directory */
 	public $configDirectory = 'config';
 	
+	/* name of the assets sub directory */
+	public $assetsDirectory = 'assets';
+	
 	/* names of the thumb file of albums */
 	public $albumThumb = array('_thumb.png', '_thumb.jpg');
 	
@@ -170,6 +173,9 @@ class Lonely extends Component {
 			$this->error(500, 'Config directory (/'.$this->configDirectory.') is missing some rights.');
 		}
 		
+		/* assets dir */
+		$this->assetsDir = path(array($this->rootDir.$this->assetsDirectory));
+		
 		/* render directory */
 		$this->thumbDir = path(array($this->rootDir.$this->thumbDirectory), true);
 		if (!is_dir($this->thumbDir)) {
@@ -196,10 +202,11 @@ class Lonely extends Component {
 		$this->thumbScript = $this->realRootScript.$this->thumbDirectory.'/';
 		$this->configPath = $this->rootPath.$this->configDirectory.'/';
 		$this->configScript = $this->realRootScript.$this->configDirectory.'/';
+		$this->assetsPath = $this->rootPath.$this->assetsDirectory;
 		
 		/* hidden files */
 		$this->hiddenFileNames[] = '/^('.implode('|', array_map('preg_quote', array_merge($this->albumThumb, array($this->albumThumbFile, $this->albumText, $this->redirectFile)))).')$/i';
-		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'|lonely)$/i';
+		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'|'.preg_quote($this->assetsDirectory).'|lonely)$/i';
 		
 		/* initialize modules */
 		$this->initModules();
@@ -802,7 +809,15 @@ class Lonely extends Component {
 		/* CSS & JS files */
 		foreach ($this->getModules() as $module) {
 			foreach ($module->resources() as $file => $res) {
-				$path = Lonely::model()->configScript.$file;
+				// $path = Lonely::model()->configScript.$file;
+				$location = path(array_merge(array($this->assetsDir), unwebpath($file)));
+				$path = webpath(array($this->assetsPath, $file));
+				
+				/* write the file to assets directory and let the web server handle requests */
+				if ((!is_file($location) || filemtime($location) < $res->whenModified()) && touch_mkdir($location)) {
+					file_put_contents($location, $res->getContent());
+				}
+				
 				if ($res instanceof CSSFile) {
 					echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", escape($path), "\"", ($res->media != '' ? " media=\"".escape($res->media)."\"" : ""), ">\n";
 				} else if ($res instanceof JSFile) {

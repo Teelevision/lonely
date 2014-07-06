@@ -76,4 +76,13 @@ function escape($string) {
 	}
 	return $text;
 }
+
+/* creates the dir of the file and touches it */
+function touch_mkdir($file) {
+	$dir = dirname($file);
+	if (!is_dir($dir)) {
+		mkdir($dir, -1, true);
+	}
+	return touch($file);
+}
 ?>

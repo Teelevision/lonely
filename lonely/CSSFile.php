@@ -25,10 +25,7 @@ This class represents a css file.
 
 namespace LonelyGallery;
 
-abstract class CSSFile extends ResourceFile {
-	
-	/* content type */
-	public $mime = 'text/css';
+abstract class CSSFile extends AssetFile {
 	
 	/* media attribute of <link> html tag */
 	public $media = '';

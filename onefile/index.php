@@ -367,11 +367,11 @@ class Request extends Component {
 		}
 		
 		/* convert to array and remove empty entries, then rebuild keys */
-		$requestArray = array_values(array_diff(explode('/', $request), array('')));
+		$requestArray = array_values(array_diff(unwebpath($request), array('')));
 		
 		/* match scope */
-		if (preg_match_any((array)$scopePatterns, implode('/', $requestArray), $match)) {
-			$this->scope = explode('/', $match[1]);
+		if (preg_match_any((array)$scopePatterns, webpath($requestArray), $match)) {
+			$this->scope = unwebpath($match[1]);
 			$requestArray = array_slice($requestArray, count($this->scope));
 		}
 		
@@ -380,7 +380,7 @@ class Request extends Component {
 		$num = count($requestArray);
 		for ($i = 0; $i <= $num; ++$i) {
 			
-			$path = $rootDir.DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, array_slice($requestArray, 0, $num - $i));
+			$path = $rootDir.path(array_slice($requestArray, 0, $num - $i));
 			
 			/* check if file */
 			if (@is_file($path)) {
@@ -459,6 +459,9 @@ class Lonely extends Component {
 	
 	/* name of the config sub directory */
 	public $configDirectory = 'config';
+	
+	/* name of the assets sub directory */
+	public $assetsDirectory = 'assets';
 	
 	/* names of the thumb file of albums */
 	public $albumThumb = array('_thumb.png', '_thumb.jpg');
@@ -551,7 +554,7 @@ class Lonely extends Component {
 		*/
 		
 		/* config directory */
-		$this->rootDir = $rootDir.DIRECTORY_SEPARATOR;
+		$this->rootDir = path(array($rootDir), true);
 		
 		/* set default design */
 		$this->_design = $this->defaultDesign;
@@ -562,7 +565,7 @@ class Lonely extends Component {
 		}
 		
 		/* config directory */
-		$this->configDir = $this->rootDir.$this->configDirectory.DIRECTORY_SEPARATOR;
+		$this->configDir = path(array($this->rootDir.$this->configDirectory), true);
 		if (!is_dir($this->configDir)) {
 			if (!mkdir($this->configDir)) {
 				$this->error(500, 'Config directory (/'.$this->configDirectory.') could not be created. Check if your user has permission to write to your gallery directory.');
@@ -576,8 +579,11 @@ class Lonely extends Component {
 			$this->error(500, 'Config directory (/'.$this->configDirectory.') is missing some rights.');
 		}
 		
+		/* assets dir */
+		$this->assetsDir = path(array($this->rootDir.$this->assetsDirectory));
+		
 		/* render directory */
-		$this->thumbDir = $this->rootDir.$this->thumbDirectory.DIRECTORY_SEPARATOR;
+		$this->thumbDir = path(array($this->rootDir.$this->thumbDirectory), true);
 		if (!is_dir($this->thumbDir)) {
 			if (!mkdir($this->thumbDir)) {
 				$this->error(500, 'Thumbnail directory (/'.$this->thumbDirectory.') could not be created. Check if your user has permission to write to your gallery directory.');
@@ -602,10 +608,11 @@ class Lonely extends Component {
 		$this->thumbScript = $this->realRootScript.$this->thumbDirectory.'/';
 		$this->configPath = $this->rootPath.$this->configDirectory.'/';
 		$this->configScript = $this->realRootScript.$this->configDirectory.'/';
+		$this->assetsPath = $this->rootPath.$this->assetsDirectory;
 		
 		/* hidden files */
 		$this->hiddenFileNames[] = '/^('.implode('|', array_map('preg_quote', array_merge($this->albumThumb, array($this->albumThumbFile, $this->albumText, $this->redirectFile)))).')$/i';
-		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'|lonely)$/i';
+		$this->hiddenAlbumNames[] = '/^('.preg_quote($this->configDirectory).'|'.preg_quote($this->thumbDirectory).'|'.preg_quote($this->assetsDirectory).'|lonely)$/i';
 		
 		/* initialize modules */
 		$this->initModules();
@@ -1128,7 +1135,7 @@ class Lonely extends Component {
 	
 	/* shows the thumbnail */
 	protected function displayThumb(Request $request) {
-		$profile = implode('/', array_slice($request->scope, 1));
+		$profile = webpath(array_slice($request->scope, 1));
 		
 		$element = $album = Factory::createAlbum($request->album);
 		/* file thumbnail */
@@ -1208,7 +1215,15 @@ class Lonely extends Component {
 		/* CSS & JS files */
 		foreach ($this->getModules() as $module) {
 			foreach ($module->resources() as $file => $res) {
-				$path = Lonely::model()->configScript.$file;
+				// $path = Lonely::model()->configScript.$file;
+				$location = path(array_merge(array($this->assetsDir), unwebpath($file)));
+				$path = webpath(array($this->assetsPath, $file));
+				
+				/* write the file to assets directory and let the web server handle requests */
+				if ((!is_file($location) || filemtime($location) < $res->whenModified()) && touch_mkdir($location)) {
+					file_put_contents($location, $res->getContent());
+				}
+				
 				if ($res instanceof CSSFile) {
 					echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", escape($path), "\"", ($res->media != '' ? " media=\"".escape($res->media)."\"" : ""), ">\n";
 				} else if ($res instanceof JSFile) {
@@ -1287,13 +1302,19 @@ function preg_match_any(Array $patterns, $value, &$match = null) {
 }
 
 /* builds a path */
-function path(Array $dirs) {
-	return implode(DIRECTORY_SEPARATOR, $dirs);
+function path(Array $p, $trailingSeparator = false) {
+	return implode(DIRECTORY_SEPARATOR, $p).($trailingSeparator ? DIRECTORY_SEPARATOR : '');
+}
+function unpath($path) {
+	return explode(DIRECTORY_SEPARATOR, $path);
 }
 
 /* builds a web path */
-function webpath(Array $dirs) {
-	return implode('/', $dirs);
+function webpath(Array $p, $trailingSeparator = false) {
+	return implode('/', $p).($trailingSeparator ? '/' : '');
+}
+function unwebpath($path) {
+	return explode('/', $path);
 }
 
 /* makes a string UTF-8 */
@@ -1318,6 +1339,15 @@ function escape($string) {
 		return preg_replace('#[^-_[:alnum:] ]#', '_', $string);
 	}
 	return $text;
+}
+
+/* creates the dir of the file and touches it */
+function touch_mkdir($file) {
+	$dir = dirname($file);
+	if (!is_dir($dir)) {
+		mkdir($dir, -1, true);
+	}
+	return touch($file);
 }
 ?><?php
 /*
@@ -1856,9 +1886,9 @@ class Album extends Element {
 		
 		$gPath = $this->getGalleryPath();
 		$this->initId('album_'.end($gPath));
-		$this->location = Lonely::model()->rootDir.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
-		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<profile>'.DIRECTORY_SEPARATOR.(count($gPath) ? implode(DIRECTORY_SEPARATOR, $gPath).DIRECTORY_SEPARATOR : '');
-		$this->path = count($gPath) ? implode('/', array_map('rawurlencode', $gPath)).'/' : '';
+		$this->location = Lonely::model()->rootDir.(count($gPath) ? path($gPath, true) : '');
+		$this->thumbLocationPattern = Lonely::model()->thumbDir.'<profile>'.DIRECTORY_SEPARATOR.(count($gPath) ? path($gPath, true) : '');
+		$this->path = count($gPath) ? webpath(array_map('rawurlencode', $gPath), true) : '';
 	}
 	
 	/* loads the name of this element */
@@ -2168,7 +2198,7 @@ class Factory {
 	
 	/* returns the instance of the album */
 	public static function createAlbum($gPath) {
-		$path = implode('/', $gPath);
+		$path = webpath($gPath);
 		
 		/* check if object was already created */
 		if (isset(self::$_albums[$path])) {
@@ -2176,7 +2206,7 @@ class Factory {
 		}
 		
 		/* create object */
-		$parentStr = implode('/', array_slice($gPath, 0, -1));
+		$parentStr = webpath(array_slice($gPath, 0, -1));
 		$parent = isset(self::$_albums[$parentStr]) ? self::$_albums[$parentStr] : null;
 		$classname = Lonely::model()->albumClass;
 		return self::$_albums[$path] = new $classname($gPath, $parent);
@@ -2184,14 +2214,14 @@ class Factory {
 	
 	/* returns the instance of the album by path */
 	public static function createAlbumByRelPath($path, Album $parent) {
-		$gPath = explode('/', $path);
+		$gPath = unwebpath($path);
 		return self::createAlbum(self::consolidateGalleryPath($gPath, $parent));
 	}
 	
 	/* returns the instance of the file or null if not supported */
 	public static function createFile($filename, Album $parent) {
 		$gPath = array_merge($parent->getGalleryPath(), array($filename));
-		$path = implode('/', $gPath);
+		$path = webpath($gPath);
 		
 		/* check if object was already created */
 		if (isset(self::$_files[$path])) {
@@ -2210,7 +2240,7 @@ class Factory {
 	
 	/* returns the instance of the object by path or null if not supported */
 	public static function createFileByRelPath($path, Album $album) {
-		$gPath = explode('/', $path);
+		$gPath = unwebpath($path);
 		$gPath = self::consolidateGalleryPath($gPath, $album);
 		/* load objects */
 		$album = self::createAlbum(array_slice($gPath, 0, -1));
@@ -2521,7 +2551,7 @@ class GenericFile extends ContentFile {
 		parent::__construct($gPath, $filename, $parent);
 		
 		if ($this->getFilename() !== "") {
-			$this->thumbLocationPattern = Lonely::model()->thumbDir.'generic'.DIRECTORY_SEPARATOR.'<profile>'.DIRECTORY_SEPARATOR.$this->genericFileName;
+			$this->thumbLocationPattern = path(array(Lonely::model()->thumbDir.'generic', '<profile>', $this->genericFileName));
 		}
 	}
 	
@@ -2566,7 +2596,7 @@ class GenericFile extends ContentFile {
 ##########################
 ### Lonely PHP Gallery ###
 ##########################
-###    Resource File   ###
+###     Asset File     ###
 ##########################
 This file is part of the the Lonely Gallery.
 
@@ -2589,10 +2619,7 @@ website.
 
 namespace LonelyGallery;
 
-abstract class ResourceFile {
-	
-	/* content type */
-	public $mime = '';
+abstract class AssetFile {
 	
 	/* returns when this file was updated last */
 	abstract public function whenModified();
@@ -2627,10 +2654,7 @@ This class represents a css file.
 
 namespace LonelyGallery;
 
-abstract class CSSFile extends ResourceFile {
-	
-	/* content type */
-	public $mime = 'text/css';
+abstract class CSSFile extends AssetFile {
 	
 	/* media attribute of <link> html tag */
 	public $media = '';
@@ -2663,10 +2687,7 @@ This class represents a JavaScript file.
 
 namespace LonelyGallery;
 
-abstract class JSFile extends ResourceFile {
-	
-	/* content type */
-	public $mime = 'text/javascript';
+abstract class JSFile extends AssetFile {
 	
 }
 ?><?php
@@ -2727,34 +2748,8 @@ abstract class Module {
 	}
 	
 	/* returns an array with config-relative web paths to ResourceFile instances */
-	public function resources($forceAll = false) {
+	public function resources() {
 		return array();
-	}
-	
-	/* config files */
-	public function configAction(\LonelyGallery\Request $request) {
-		$name = webpath($request->action);
-		$res = $this->resources(true);
-		
-		if (isset($res[$name])) {
-			/* output file */
-			
-			/* check time */
-			$lastmodified = $res[$name]->whenModified();
-			if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-				/* file didn't update */
-				header("HTTP/1.1 304 Not Modified", true, 304);
-				exit;
-			}
-			
-			/* headers */
-			header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-			header('Content-Type: '.$res[$name]->mime);
-			
-			/* content */
-			echo $res[$name]->getContent();
-			exit;
-		}
 	}
 }
 ?><?php

@@ -81,8 +81,8 @@ class Module extends \LonelyGallery\Module {
 	}
 	
 	/* returns an array with config-relative web paths to ResourceFile instances */
-	public function resources($forceAll = false) {
-		return ($forceAll || $this->initRes) ? array(
+	public function resources() {
+		return $this->initRes ? array(
 			'youtube/main.css' => new CSSFile(),
 		) : array();
 	}

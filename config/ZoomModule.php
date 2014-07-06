@@ -73,8 +73,8 @@ for (var i = 0; i < img.length; ++i) {
 	}
 	
 	/* returns an array with config-relative web paths to ResourceFile instances */
-	public function resources($forceAll = false) {
-		return ($forceAll || $this->initRes) ? array(
+	public function resources() {
+		return $this->initRes ? array(
 			'zoom/main.css' => new CSSFile(),
 			'zoom/main.js' => new JSFile(),
 		) : array();

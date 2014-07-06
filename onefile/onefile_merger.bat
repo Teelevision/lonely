@@ -16,7 +16,7 @@ type ^
 	..\lonely\ContentFile.php ^
 	..\lonely\Image.php ^
 	..\lonely\GenericFile.php ^
-	..\lonely\ResourceFile.php ^
+	..\lonely\AssetFile.php ^
 	..\lonely\CSSFile.php ^
 	..\lonely\JSFile.php ^
 	..\lonely\Module.php ^

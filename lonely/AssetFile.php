@@ -3,7 +3,7 @@
 ##########################
 ### Lonely PHP Gallery ###
 ##########################
-###  JavaScript File   ###
+###     Asset File     ###
 ##########################
 This file is part of the the Lonely Gallery.
 
@@ -20,12 +20,18 @@ and https://github.com/Teelevision/lonely
 
 ### Description ###
 
-This class represents a JavaScript file.
+This is the abstract base class resource files that are loaded on the
+website.
 */
 
 namespace LonelyGallery;
 
-abstract class JSFile extends AssetFile {
+abstract class AssetFile {
 	
+	/* returns when this file was updated last */
+	abstract public function whenModified();
+	
+	/* returns the content of the file */
+	abstract public function getContent();
 }
 ?>
