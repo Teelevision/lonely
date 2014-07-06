@@ -65,7 +65,7 @@ class Module extends \LonelyGallery\Module {
 		if ($element instanceof Album && $element->getFilesNamed($this->_nameFile)) {
 			$file = $element->getLocation().$this->_nameFile;
 			if (($name = trim(file_get_contents($file))) !== '') {
-				return Lonely::utf8ify($name);
+				return \LonelyGallery\utf8ify($name);
 			}
 		}
 		return null;

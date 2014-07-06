@@ -265,14 +265,14 @@ class Lonely extends Component {
 				if (substr($file, -9, -4) == ".list") {
 					$value = array();
 					foreach (file($dir.$file, FILE_SKIP_EMPTY_LINES|FILE_IGNORE_NEW_LINES) as $line) {
-						$value[] = self::utf8ify($line);
+						$value[] = utf8ify($line);
 					}
 					$this->{substr($file, 0, -9)} = $value;
 				}
 				/* single */
 				else {
 					$value = file_get_contents($dir.$file);
-					$value = self::utf8ify($value);
+					$value = utf8ify($value);
 					$this->{substr($file, 0, -4)} = trim($value);
 				}
 			}
@@ -513,9 +513,9 @@ class Lonely extends Component {
 					"\t\t<ul class=\"breadcrumbs\">\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
-					$html .= "\t\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
+					$html .= "\t\t\t<li><a href=\"".escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".escape($element->getName())."</a></li>\n";
 				}
-				$html .= "\t\t\t<li>".self::escape($album->getName())."</li>\n".
+				$html .= "\t\t\t<li>".escape($album->getName())."</li>\n".
 					"\t\t</ul>\n".
 					"\t</header>\n\n";
 			}
@@ -528,7 +528,7 @@ class Lonely extends Component {
 			$html2 = "";
 			foreach ($this->callEvent('albumLinks', $album) as $datas) {
 				foreach ($datas as $data) {
-					$html2 .= "\t\t<li><a href=\"".self::escape($data['url'])."\">".self::escape($data['label'])."</a></li>\n";
+					$html2 .= "\t\t<li><a href=\"".escape($data['url'])."\">".escape($data['label'])."</a></li>\n";
 				}
 			}
 			if ($html2 != "") {
@@ -542,8 +542,8 @@ class Lonely extends Component {
 			if (count($albums)) {
 				$html .= "\t<ul class=\"albums\">\n";
 				foreach ($albums as $element) {
-					$path = self::escape($this->rootScript.$element->getPath());
-					$name = self::escape($element->getName());
+					$path = escape($this->rootScript.$element->getPath());
+					$name = escape($element->getName());
 					$html .= "\t\t<li id=\"".$element->getId()."\">\n".
 						"\t\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
 						"\t\t\t<a class=\"thumb-link\" href=\"".$path."\">\n".
@@ -559,8 +559,8 @@ class Lonely extends Component {
 			if (count($files)) {
 				$html .= "\t<ul class=\"files\">\n";
 				foreach ($files as $element) {
-					$path = self::escape($this->rootScript.$element->getPath().'/'.$action);
-					$name = self::escape($element->getName());
+					$path = escape($this->rootScript.$element->getPath().'/'.$action);
+					$name = escape($element->getName());
 					$html .= "\t\t<li id=\"".$element->getId()."\">\n".
 						"\t\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
 						"\t\t\t<a class=\"thumb-link\" href=\"".$path."#p\">\n".
@@ -603,7 +603,7 @@ class Lonely extends Component {
 			
 			$html = "<section class=\"file\">\n\n".
 				"\t<header>\n\n";
-			$name = self::escape($file->getName());
+			$name = escape($file->getName());
 			$action = $this->defaultFileAction;
 			
 			/* parent albums */
@@ -621,7 +621,7 @@ class Lonely extends Component {
 				$html .= "\t\t<ul class=\"breadcrumbs\">\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
-					$html .= "\t\t\t<li><a href=\"".self::escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".self::escape($element->getName())."</a></li>\n";
+					$html .= "\t\t\t<li><a href=\"".escape($path == '' ? $this->rootScriptClean : $this->rootScript.$path)."\">".escape($element->getName())."</a></li>\n";
 				}
 				$html .= "\t\t\t<li>".$name."</li>\n".
 					"\t\t</ul>\n\n";
@@ -631,7 +631,7 @@ class Lonely extends Component {
 			$html2 = "";
 			foreach ($this->callEvent('fileLinks', $file) as $datas) {
 				foreach ($datas as $data) {
-					$html2 .= "\t\t<li><a href=\"".self::escape($data['url'])."\">".self::escape($data['label'])."</a></li>\n";
+					$html2 .= "\t\t<li><a href=\"".escape($data['url'])."\">".escape($data['label'])."</a></li>\n";
 				}
 			}
 			if ($html2 != "") {
@@ -656,11 +656,11 @@ class Lonely extends Component {
 			$last = ($pos+1) < $count ? $files[$count-1] : null;
 			if ($pos !== false) {
 				$html .= "\t\t<p class=\"nav\">\n".
-					"\t\t\t".($first ? "<a class=\"nav-first\" href=\"".self::escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span class=\"nav-first\">first</span>")."\n".
-					"\t\t\t".($prev ? "<a class=\"nav-prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span class=\"nav-prev\">previous</span>")."\n".
-					"\t\t\t<a class=\"nav-album\" href=\"".self::escape($this->rootScript.$element->getPath())."#".$file->getId()."\">album</a>\n".
-					"\t\t\t".($next ? "<a class=\"nav-next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span class=\"nav-next\">next</span>")."\n".
-					"\t\t\t".($last ? "<a class=\"nav-last\" href=\"".self::escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span class=\"nav-last\">last</span>")."\n".
+					"\t\t\t".($first ? "<a class=\"nav-first\" href=\"".escape($this->rootScript.$first->getPath().'/'.$action)."\">first</a>" : "<span class=\"nav-first\">first</span>")."\n".
+					"\t\t\t".($prev ? "<a class=\"nav-prev\" rel=\"prev\" href=\"".escape($this->rootScript.$prev->getPath().'/'.$action)."\">previous</a>" : "<span class=\"nav-prev\">previous</span>")."\n".
+					"\t\t\t<a class=\"nav-album\" href=\"".escape($this->rootScript.$element->getPath())."#".$file->getId()."\">album</a>\n".
+					"\t\t\t".($next ? "<a class=\"nav-next\" rel=\"next\" href=\"".escape($this->rootScript.$next->getPath().'/'.$action)."\">next</a>" : "<span class=\"nav-next\">next</span>")."\n".
+					"\t\t\t".($last ? "<a class=\"nav-last\" href=\"".escape($this->rootScript.$last->getPath().'/'.$action)."\">last</a>" : "<span class=\"nav-last\">last</span>")."\n".
 					"\t\t</p>\n\n";
 			}
 			
@@ -670,10 +670,10 @@ class Lonely extends Component {
 			$html .= "\t<div id=\"p\" class=\"preview-box\">\n".
 				"\t\t".$file->getPreviewHTML()."\n";
 			if ($prev) {
-				$html .= "\t\t<a class=\"nav prev\" rel=\"prev\" href=\"".self::escape($this->rootScript.$prev->getPath().'/'.$action)."#p\"></a>\n";
+				$html .= "\t\t<a class=\"nav prev\" rel=\"prev\" href=\"".escape($this->rootScript.$prev->getPath().'/'.$action)."#p\"></a>\n";
 			}
 			if ($next) {
-				$html .= "\t\t<a class=\"nav next\" rel=\"next\" href=\"".self::escape($this->rootScript.$next->getPath().'/'.$action)."#p\"></a>\n";
+				$html .= "\t\t<a class=\"nav next\" rel=\"next\" href=\"".escape($this->rootScript.$next->getPath().'/'.$action)."#p\"></a>\n";
 			}
 			$html .= "\t</div>\n\n";
 			
@@ -682,7 +682,7 @@ class Lonely extends Component {
 				$html .= "\t<div class=\"info\">\n".
 					"\t\t<p class=\"title\">".$name."</p>\n";
 				if ($file instanceof ContentFile) {
-					$html .= "\t\t<p class=\"download\"><a href=\"".self::escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
+					$html .= "\t\t<p class=\"download\"><a href=\"".escape($this->rootPath.$file->getPath())."\">Download</a></p>\n";
 					$dlOpen = false;
 					foreach ($this->callEvent('fileInfo', $file) as $data) {
 						foreach ($data as $key => $value) {
@@ -691,14 +691,14 @@ class Lonely extends Component {
 									$html .= "\t\t</dl>\n";
 									$dlOpen = false;
 								}
-								$html .= "\t\t<p>".self::escape($value)."</p>\n";
+								$html .= "\t\t<p>".escape($value)."</p>\n";
 							} else {
 								if (!$dlOpen) {
 									$html .= "\t\t<dl>\n";
 									$dlOpen = true;
 								}
-								$html .= "\t\t\t<dt>".self::escape($key)."</dt>\n".
-									"\t\t\t<dd>".self::escape($value)."</dd>\n";
+								$html .= "\t\t\t<dt>".escape($key)."</dt>\n".
+									"\t\t\t<dd>".escape($value)."</dd>\n";
 							}
 						}
 					}
@@ -772,33 +772,9 @@ class Lonely extends Component {
 			header(' ', true, $errno);
 		}
 		$this->HTMLTitle = "Error ".$errno." - ".$this->title;
-		$this->HTMLContent = "<p class=\"error\">".self::escape($message)."</p>\n\n";
+		$this->HTMLContent = "<p class=\"error\">".escape($message)."</p>\n\n";
 		$this->display();
 		exit;
-	}
-	
-	/* make it UTF-8 */
-	public static function utf8ify($string) {
-		$encoding = mb_detect_encoding($string, array('UTF-8', 'ISO-8859-1', 'WINDOWS-1252'));
-		if ($encoding != 'UTF-8') {
-			$string = iconv($encoding, 'UTF-8//TRANSLIT', $string);
-		}
-		return $string;
-	}
-	
-	/* reduces the string so it only contains alphanumeric chars, dashes and underscores */
-	public static function simplifyString($string) {
-		return preg_replace('#[^-_[:alnum:]]#', '_', $string);
-	}
-	
-	/* HTML escape */
-	public static function escape($string) {
-		$text = htmlentities(@iconv('UTF-8', 'UTF-8//IGNORE', $string), ENT_QUOTES, 'UTF-8');
-		/* umlauts workaround, https://bugs.php.net/bug.php?id=61484 */
-		if ($text == '' && $string != '') {
-			return preg_replace('#[^-_\w\d ]#', '_', $string);
-		}
-		return $text;
 	}
 	
 	/* displays the page */
@@ -811,16 +787,16 @@ class Lonely extends Component {
 		
 		/* optional meta information */
 		if (($m = $this->description) != "") {
-			echo "\t<meta name=\"description\" content=\"", self::escape($m), "\">\n";
+			echo "\t<meta name=\"description\" content=\"", escape($m), "\">\n";
 		}
 		if (($m = $this->keywords) != "") {
-			echo "\t<meta name=\"keywords\" content=\"", self::escape($m), "\">\n";
+			echo "\t<meta name=\"keywords\" content=\"", escape($m), "\">\n";
 		}
 		if (($m = $this->author) != "") {
-			echo "\t<meta name=\"author\" content=\"", self::escape($m), "\">\n";
+			echo "\t<meta name=\"author\" content=\"", escape($m), "\">\n";
 		}
 		if (($m = $this->robots) != "") {
-			echo "\t<meta name=\"robots\" content=\"", self::escape($m), "\">\n";
+			echo "\t<meta name=\"robots\" content=\"", escape($m), "\">\n";
 		}
 		
 		/* CSS & JS files */
@@ -828,15 +804,15 @@ class Lonely extends Component {
 			foreach ($module->resources() as $file => $res) {
 				$path = Lonely::model()->configScript.$file;
 				if ($res instanceof CSSFile) {
-					echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", self::escape($path), "\"", ($res->media != '' ? " media=\"".self::escape($res->media)."\"" : ""), ">\n";
+					echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", escape($path), "\"", ($res->media != '' ? " media=\"".escape($res->media)."\"" : ""), ">\n";
 				} else if ($res instanceof JSFile) {
-					echo "\t<script type=\"text/javascript\" src=\"", self::escape($path), "\"></script>\n";
+					echo "\t<script type=\"text/javascript\" src=\"", escape($path), "\"></script>\n";
 				}
 			}
 		}
 		
 		/* page title */
-		echo "\t<title>", self::escape($this->HTMLTitle ?: $this->title), "</title>\n";
+		echo "\t<title>", escape($this->HTMLTitle ?: $this->title), "</title>\n";
 		
 		if (isset($this->HTMLHead)) {
 			echo strtr($this->HTMLHead, array("\n" => "\n\t"));
@@ -846,7 +822,7 @@ class Lonely extends Component {
 <body>
 	
 	<h1>
-		<a href="<?php echo self::escape($this->rootScriptClean); ?>"><?php echo self::escape($this->title); ?></a>
+		<a href="<?php echo escape($this->rootScriptClean); ?>"><?php echo escape($this->title); ?></a>
 	</h1>
 
 	<div id="content">

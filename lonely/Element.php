@@ -62,7 +62,7 @@ abstract class Element extends Component {
 	protected static function createId($name) {
 		$i = 1;
 		do {
-			$id = Lonely::simplifyString($name).($i++ > 1 ? '_'.$i : '');
+			$id = simplifyString($name).($i++ > 1 ? '_'.$i : '');
 		} while (in_array($id, self::$_usedIds));
 		return $id;
 	}
@@ -188,8 +188,8 @@ abstract class Element extends Component {
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($profile) {
-		$thumbpath = Lonely::escape($this->getThumbPath($profile));
-		$name = Lonely::escape($this->getName());
+		$thumbpath = escape($this->getThumbPath($profile));
+		$name = escape($this->getName());
 		return "<img class=\"thumb\" src=\"".$thumbpath."\" alt=\"".$name."\">";
 	}
 }

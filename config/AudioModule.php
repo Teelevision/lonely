@@ -71,7 +71,7 @@ class AudioFile extends GenericFile {
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
 		$path = Lonely::model()->rootPath.$this->path;
-		return "<audio class=\"preview preview-controls-sideways\" controls src=\"".Lonely::escape($path)."\"></audio>";
+		return "<audio class=\"preview preview-controls-sideways\" controls src=\"".\LonelyGallery\escape($path)."\"></audio>";
 	}
 }
 ?>

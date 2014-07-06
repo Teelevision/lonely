@@ -55,8 +55,8 @@ class Image extends ContentFile {
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
 		$path = empty(Lonely::model()->useOriginals) ? $this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)) : Lonely::model()->rootPath.$this->path;
-		$name = Lonely::escape($this->getName());
-		return "<img class=\"preview\" src=\"".Lonely::escape($path)."\" alt=\"".$name."\">\n";
+		$name = escape($this->getName());
+		return "<img class=\"preview\" src=\"".escape($path)."\" alt=\"".$name."\">\n";
 	}
 	
 	/* returns whether this file is suitable as a thumb without resizing */

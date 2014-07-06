@@ -117,7 +117,7 @@ class LinkTextFile extends MetaFile {
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
-			return $thumb->getPreviewHTML()."<p class=\"linkmodule-prev\"><a href=\"".Lonely::escape($l['url'])."\">".Lonely::escape($l['label'])."</a></p>";
+			return $thumb->getPreviewHTML()."<p class=\"linkmodule-prev\"><a href=\"".\LonelyGallery\escape($l['url'])."\">".\LonelyGallery\escape($l['label'])."</a></p>";
 		}
 		return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
 	}
@@ -128,7 +128,7 @@ class LinkTextFile extends MetaFile {
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
-			return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a class=\"linkmodule-thumb-link thumb-link\" href=\"".Lonely::escape($l['url'])."\"><span>".Lonely::escape($l['label'])."</span></a>";
+			return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a class=\"linkmodule-thumb-link thumb-link\" href=\"".\LonelyGallery\escape($l['url'])."\"><span>".\LonelyGallery\escape($l['label'])."</span></a>";
 		}
 		return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
 	}

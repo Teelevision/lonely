@@ -47,8 +47,8 @@ class GenericFile extends ContentFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		$path = Lonely::escape($this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)));
-		$name = Lonely::escape($this->getName());
+		$path = escape($this->getThumbPath(Lonely::model()->getDesign()->previewProfile($this)));
+		$name = escape($this->getName());
 		return "<img class=\"preview\" src=\"".$path."\" alt=\"".$name."\">";
 	}
 	

@@ -95,7 +95,7 @@ class SnippetTextFile extends MetaFile {
 		Lonely::model()->getModule('TextModule')->initRes = true;
 		$text = file_get_contents($this->location);
 		if (substr($this->getFilename(), -3) == 'txt') {
-			$text = nl2br(Lonely::model()->escape($text), false);
+			$text = nl2br(\LonelyGallery\escape($text), false);
 		}
 		return "<div class=\"textmodule-preview preview preview-controls-sideways\">".$text."</div>";
 	}
@@ -104,7 +104,7 @@ class SnippetTextFile extends MetaFile {
 	public function getThumbHTML($mode) {
 		Lonely::model()->getModule('TextModule')->initRes = true;
 		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
-		$text = substr($this->getFilename(), -3) == 'txt' ? Lonely::model()->escape($text[0]) : $text[0];
+		$text = substr($this->getFilename(), -3) == 'txt' ? \LonelyGallery\escape($text[0]) : $text[0];
 		return "<div class=\"textmodule-thumb\">".$text."</div>";
 	}
 }

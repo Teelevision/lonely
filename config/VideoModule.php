@@ -71,7 +71,7 @@ class VideoFile extends GenericFile {
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
 		$path = Lonely::model()->rootPath.$this->path;
-		return "<video class=\"preview preview-controls-sideways\" controls src=\"".Lonely::escape($path)."\"></video>";
+		return "<video class=\"preview preview-controls-sideways\" controls src=\"".\LonelyGallery\escape($path)."\"></video>";
 	}
 }
 ?>

@@ -126,9 +126,9 @@ class Module extends \LonelyGallery\Module {
 					"\t\t<ul class=\"breadcrumbs\">\n";
 				foreach (array_reverse($parents) as $element) {
 					$path = $element->getPath();
-					$html .= "\t\t\t<li><a href=\"".Lonely::escape($path == '' ? $lonely->rootScriptClean : $lonely->rootScript.$path)."\">".Lonely::escape($element->getName())."</a></li>\n";
+					$html .= "\t\t\t<li><a href=\"".\LonelyGallery\escape($path == '' ? $lonely->rootScriptClean : $lonely->rootScript.$path)."\">".\LonelyGallery\escape($element->getName())."</a></li>\n";
 				}
-				$html .= "\t\t\t<li>".Lonely::escape($album->getName())."</li>\n".
+				$html .= "\t\t\t<li>".\LonelyGallery\escape($album->getName())."</li>\n".
 					"\t\t</ul>\n".
 					"\t</header>\n\n";
 			}
@@ -142,15 +142,15 @@ class Module extends \LonelyGallery\Module {
 			foreach ($lonely->callEvent('albumLinks', $album) as $name => $datas) {
 				foreach ($datas as $data) {
 					if ($name == 'LargeAlbumViewModule') {
-						$html2 .= "\t\t<li class=\"active\"><span>".Lonely::escape($data['label'])."</span></li>\n";
+						$html2 .= "\t\t<li class=\"active\"><span>".\LonelyGallery\escape($data['label'])."</span></li>\n";
 					} else {
-						$html2 .= "\t\t<li><a href=\"".Lonely::escape($data['url'])."\">".Lonely::escape($data['label'])."</a></li>\n";
+						$html2 .= "\t\t<li><a href=\"".\LonelyGallery\escape($data['url'])."\">".\LonelyGallery\escape($data['label'])."</a></li>\n";
 					}
 				}
 			}
 			if ($html2 != "") {
 				$html .= "\t<ul class=\"links\">\n".
-					"\t\t<li><a href=\"".Lonely::escape(Lonely::model()->rootScript.$album->getPath())."index\">index</a></li>\n".
+					"\t\t<li><a href=\"".\LonelyGallery\escape(Lonely::model()->rootScript.$album->getPath())."index\">index</a></li>\n".
 					$html2.
 					"\t</ul>\n\n";
 			}
@@ -161,7 +161,7 @@ class Module extends \LonelyGallery\Module {
 				foreach ($files as $file) {
 					
 					/* image */
-					$name = Lonely::escape($file->getName());
+					$name = \LonelyGallery\escape($file->getName());
 					$html .= "\t<section class=\"file\">\n";
 					
 					/* preview */
@@ -173,7 +173,7 @@ class Module extends \LonelyGallery\Module {
 					if ($file instanceof ContentFile || $file->showTitle) {
 						$html .= "\t\t<div class=\"info\">\n".
 							"\t\t\t<p class=\"title\">\n".
-							"\t\t\t\t<a href=\"".Lonely::escape($lonely->rootScript.$file->getPath().'/'.$action)."\">".$name."</a>\n".
+							"\t\t\t\t<a href=\"".\LonelyGallery\escape($lonely->rootScript.$file->getPath().'/'.$action)."\">".$name."</a>\n".
 							"\t\t\t</p>\n".
 							"\t\t</div>\n";
 					}
