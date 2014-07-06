@@ -53,7 +53,9 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Image,
 	\LonelyGallery\Request;
 class Module extends \LonelyGallery\Module {
-	private $_initialized;
+	
+	/* whether to include the style sheet and javascript */
+	public $initRes = false;
 	
 	/* returns settings for default design */
 	public function afterConstruct() {
@@ -70,45 +72,84 @@ for (var i = 0; i < img.length; ++i) {
 </script>";
 	}
 	
-	/* includes css and js to the page */
-	public function initRessources() {
-		if (!$this->_initialized) {
-			Lonely::model()->jsfiles[] = Lonely::model()->configScript.'zoom/main.js';
-			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'zoom/main.css';
-			$this->_initialized = true;
-		}
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources($forceAll = false) {
+		return ($forceAll || $this->initRes) ? array(
+			'zoom/main.css' => new CSSFile(),
+			'zoom/main.js' => new JSFile(),
+		) : array();
 	}
 	
 	/* activates zoom on preview action and LargeAlbumViewModule's large action */
 	public function handleRequest(Request $request) {
 		if ($request->scope == array('lonely') && (($request->action == array('preview') && preg_match('/\.(png|jpe?g|gif)$/i', $request->file)) || $request->action == array('large'))) {
-			$this->initRessources();
+			$this->initRes = true;
 		}
 		/* don't stop execution */
 		return true;
 	}
+}
+
+class CSSFile extends \LonelyGallery\CSSFile {
 	
-	/* config files */
-	public function configAction(Request $request) {
-		if (count($request->action) > 1 && $request->action[0] == 'zoom') {
-			switch ($request->action[1]) {
-				case 'main.js': $this->displayJS();
-				case 'main.css': $this->displayCSS();
-			}
-		}
+	public function whenModified() {
+		return filemtime(__FILE__);
 	}
 	
-	/* main.js */
-	public function displayJS() {
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
-		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/javascript');
-		?>
+	public function getContent() {
+		return <<<'CSS'
+body > #zoombox {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+	text-align: center;
+	background-color: #111;
+	cursor: none;
+}
+body > #zoombox img {
+	position: relative;
+	width: auto;
+	height: auto;
+}
+a.zoombox-tr {
+	position: absolute;
+	top: 0;
+	left: 40%;
+	height: 100%;
+	width: 20%;
+	color: #fff;
+	opacity: 0;
+	transition: opacity 0.3s;
+	text-shadow: #000 0px 0px 10px;
+}
+a.zoombox-tr:hover, a.zoombox-tr:focus {
+	opacity: 1;
+}
+a.zoombox-tr:after {
+    content: "+";
+	display: block;
+	line-height: 80px;
+    font-size: 80px;
+    margin-top: -40px;
+    position: relative;
+    top: 50%;
+}
+CSS;
+	}
+}
+
+class JSFile extends \LonelyGallery\JSFile {
+	
+	public function whenModified() {
+		return filemtime(__FILE__);
+	}
+	
+	public function getContent() {
+		return <<<'JS'
 var zoom_img, zoom_div;
 function initZoom() {
 	var img = document.querySelectorAll('.file img.preview');
@@ -162,63 +203,7 @@ function zoomPos(event) {
 	}
 }
 window.addEventListener('resize', initZoom);
-<?php
-		exit;
-	}
-	
-	/* main.css */
-	public function displayCSS() {
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
-		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/css');
-		?>
-body > #zoombox {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
-	margin: 0;
-	text-align: center;
-	background-color: #111;
-	cursor: none;
-}
-body > #zoombox img {
-	position: relative;
-	width: auto;
-	height: auto;
-}
-a.zoombox-tr {
-	position: absolute;
-	top: 0;
-	left: 40%;
-	height: 100%;
-	width: 20%;
-	color: #fff;
-	opacity: 0;
-	transition: opacity 0.3s;
-	text-shadow: #000 0px 0px 10px;
-}
-a.zoombox-tr:hover, a.zoombox-tr:focus {
-	opacity: 1;
-}
-a.zoombox-tr:after {
-    content: "+";
-	display: block;
-	line-height: 80px;
-    font-size: 80px;
-    margin-top: -40px;
-    position: relative;
-    top: 50%;
-}
-<?php
-		exit;
+JS;
 	}
 }
 ?>

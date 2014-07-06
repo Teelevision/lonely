@@ -28,11 +28,6 @@ namespace LonelyGallery;
 /* class to extend when developing a design */
 abstract class Design extends Module {
 	
-	/* returns an array with css files to be loaded as design */
-	public function cssFiles() {
-		return array();
-	}
-	
 	/* returns an array of thumbnail profiles */
 	public function renderProfiles() {
 		return array(

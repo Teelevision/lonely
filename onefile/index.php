@@ -196,81 +196,149 @@ if (!defined('LONELY_ONEFILE')) {
 \LonelyGallery\Lonely::model()->run(__DIR__, array());
 
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###     Component      ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Component is a basic class that allows property overloading.
+
+On setting/getting of a property the setter/getter method is called.
+If there is no such method, it will be stored to / fetched from the
+$_data property.
+Getters/setters start with get/set followed by one upper case letter,
+then only lower case.
+Example:
+		$this->ABContent = 123;
+	will call the method setAbcontent() if defined or it is stored as
+	$_data['abcontent'].
+*/
+
 namespace LonelyGallery;
 
 /* base class for all lonely classes */
 abstract class Component {
 	
-	protected $data = array();
+	/* storage for properties */
+	private $_data = array();
 	
-	/*
-	property overloading
-	On setting/getting of a property the setter/getter method is called.
-	If there is no such method, it will be stored to / fetched from the $data property.
-	Getters/setters start with get/set followed by one upper case letter, then only lower case.
-	Example:
-			$this->ABContent = 123;
-		will call the method setAbcontent() if defined or it is stored as $data['abcontent'].
-	*/
-	
+	/* called when isset() is called on a not defined property */
 	public function __isset($name) {
 		$name = strtolower($name);
 		$method = 'get'.ucfirst($name);
-		return (method_exists($this, $method) || isset($this->data[$name]));
+		/* check if there is a method or a key in the storage */
+		return (method_exists($this, $method) || isset($this->_data[$name]));
 	}
 	
+	/* called when a not defined property is needed */
 	public function __get($name) {
 		$name = strtolower($name);
 		$method = 'get'.ucfirst($name);
+		/* call getter method if one exists */
 		if (method_exists($this, $method)) {
 			return call_user_func(array($this, $method));
 		}
-		return isset($this->data[$name]) ? $this->data[$name] : null;
+		/* return value from storage or null */
+		return isset($this->_data[$name]) ? $this->_data[$name] : null;
 	}
 	
+	/* called when a not defined property is set */
 	public function __set($name, $value) {
 		$name = strtolower($name);
 		$method = 'set'.ucfirst($name);
+		/* call setter method if one exists */
 		if (method_exists($this, $method)) {
 			return call_user_func(array($this, $method), $value);
 		}
-		$this->data[$name] = $value;
+		/* into storage */
+		$this->_data[$name] = $value;
 	}
 	
+	/* called when unset() is called on a not defined property */
 	public function __unset($name) {
 		$name = strtolower($name);
 		$method = 'unset'.ucfirst($name);
+		/* call unset method if one exists */
 		if (method_exists($this, $method)) {
 			return call_user_func(array($this, $method), $value);
 		}
-		if (isset($this->data[$name])) {
-			unset($this->data[$name]);
+		/* unset from storage */
+		if (isset($this->_data[$name])) {
+			unset($this->_data[$name]);
 		}
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###      Request       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This class provides the matching of the url.
+
+Request url: /<scope>/<album>/<file>/<action>
+Each element is optional.
+While album and file refers to a real existing file or directory in the
+gallery, the scope can be a virtual directory. Additional scopes could
+be useful to implement new pages that refer to files or albums like
+slideshows or a shop system, or even file unrelated, static pages.
+The action is to provide several actions to one set of scope, album and
+file. You could use actions to provide e.g. a comment section or.
+Everything you could provide by scope you can also provide by action.
+The main difference is that scopes are matched befor album/file and
+actions after. Since you should take care that scope and action names
+don't collide with albums and files, it is mainly a design question
+whether to use scopes or actions.
+If the album/file is not recognized as a part of the gallery, it is
+matched as action.
+Examples:
+	/thumb/300px/Holiday/2013/01.jpg
+		scope: thumb/300px
+		album: Holiday/2013
+		file: 01.jpg
+		action: index
+	/ABC.png/comments/new
+		scope: lonely
+		album (empty)
+		file: ABC.png
+		action: /comments/new
+*/
+
 namespace LonelyGallery;
 
 class Request extends Component {
-	
-	/*
-	Request: /<scope>/<album>/<file>/<action>
-	Each element is optional.
-	While album and file refers to a real existing file or directory in the gallery, the scope can be a virtual directory. Additional scopes could be useful to implement new pages that refer to files or albums like slideshows or a shop system, or even file unrelated, static pages.
-	The action is to provide several actions to one set of scope, album and file. You could use actions to provide e.g. a comment section or. Everything you could provide by scope you can also provide by action. The main difference is that scopes are matched befor album/file and actions after. Since you should take care that scope and action names don't collide with albums and files, it is mainly a design question whether to use scopes or actions.
-	If the album/file is not recognized as a part of the gallery, it is matched as action.
-	Examples:
-		/thumb/300px/Holiday/2013/01.jpg
-			scope: thumb/300px
-			album: Holiday/2013
-			file: 01.jpg
-			action: index
-		/ABC.png/comments/new
-			scope: lonely
-			album (empty)
-			file: ABC.png
-			action: /comments/new
-	*/
 	
 	/* scope, defaults to 'lonely' */
 	public $scope = array('lonely');
@@ -278,7 +346,7 @@ class Request extends Component {
 	public $album = array();
 	/* file, defaults to none */
 	public $file = '';
-	/* action, defaults to 'index' */
+	/* action, defaults to '' */
 	public $action = array('');
 	
 	
@@ -337,6 +405,32 @@ class Request extends Component {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###    Lonely Core     ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This is the Lonely Core class which is loaded and initialized by the
+bootstrap. It handles settings, requests, modules, default pages,
+html output, the interaction of all and more.
+*/
+
 namespace LonelyGallery;
 
 if (!defined('LONELY_ONEFILE')) {
@@ -412,7 +506,7 @@ class Lonely extends Component {
 	private $_modules = array();
 	
 	/* design */
-	private $_design = null;
+	private $_design = '';
 	
 	/* files */
 	private $_files = array();
@@ -460,9 +554,7 @@ class Lonely extends Component {
 		$this->rootDir = $rootDir.DIRECTORY_SEPARATOR;
 		
 		/* set default design */
-		if ($this->defaultDesign) {
-			$this->addModule($this->defaultDesign);
-		}
+		$this->_design = $this->defaultDesign;
 		
 		/* check for GD */
 		if (!function_exists('gd_info')) {
@@ -562,9 +654,15 @@ class Lonely extends Component {
 				}
 			}
 			
-			/* modules always end on 'Module.php' and designs are modules ending on 'Design.php' */
-			else if (($s = substr($file, -10)) == 'Module.php' || $s == 'Design.php') {
+			/* modules always end on 'Module.php' */
+			else if (($s = substr($file, -10)) == 'Module.php') {
 				$this->addModule(substr($file, 0, -4));
+			}
+			
+			/* designs always end on 'Design.php' */
+			else if ($s == 'Design.php') {
+				/* replace previous design */
+				$this->_design = substr($file, 0, -4);
 			}
 			
 			/* value */
@@ -707,6 +805,9 @@ class Lonely extends Component {
 	
 	/* initializes the modules */
 	public function initModules() {
+		
+		/* add design at front to modules */
+		$this->_modules = array($this->_design => null) + $this->_modules;
 		
 		/* first load all files to prevent missing requirements */
 		foreach ($this->_modules as $name => &$module) {
@@ -1128,15 +1229,16 @@ class Lonely extends Component {
 			echo "\t<meta name=\"robots\" content=\"", self::escape($m), "\">\n";
 		}
 		
-		/* CSS */
-		$cssfiles = array_merge($this->_design->cssFiles(), $this->cssfiles);
-		foreach ($cssfiles as $file) {
-			echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", self::escape($file), "\">\n";
-		}
-		
-		/* JavaScript */
-		foreach ($this->jsfiles as $file) {
-			echo "\t<script type=\"text/javascript\" src=\"", self::escape($file), "\"></script>\n";
+		/* CSS & JS files */
+		foreach ($this->getModules() as $module) {
+			foreach ($module->resources() as $file => $res) {
+				$path = Lonely::model()->configScript.$file;
+				if ($res instanceof CSSFile) {
+					echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", self::escape($path), "\"", ($res->media != '' ? " media=\"".self::escape($res->media)."\"" : ""), ">\n";
+				} else if ($res instanceof JSFile) {
+					echo "\t<script type=\"text/javascript\" src=\"", self::escape($path), "\"></script>\n";
+				}
+			}
 		}
 		
 		/* page title */
@@ -1170,6 +1272,30 @@ class Lonely extends Component {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+### helpful functions  ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+Some generic helpful functions.
+*/
+
 namespace LonelyGallery;
 
 /* help functions */
@@ -1188,7 +1314,38 @@ function preg_match_any(Array $patterns, $value, &$match = null) {
 function path(Array $dirs) {
 	return implode(DIRECTORY_SEPARATOR, $dirs);
 }
+
+/* builds a web path */
+function webpath(Array $dirs) {
+	return implode('/', $dirs);
+}
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###       Render       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Render class does all the rendering. It is mainly used by the
+Render Helper. It is initialized with settings that define the output
+format of the resulting file.
+*/
+
 namespace LonelyGallery;
 
 class Renderer {
@@ -1202,7 +1359,7 @@ class Renderer {
 	
 	
 	/* init with profile name */
-	public function __construct(Array $settings) {
+	protected function __construct(Array $settings) {
 		$this->s = $settings + array(
 			'width' => 0,
 			'height' => 0,
@@ -1228,7 +1385,7 @@ class Renderer {
 	}
 	
 	/* render thumbnail from image */
-	public function renderThumbnail($path, $saveTo) {
+	protected function renderThumbnail($path, $saveTo) {
 		
 		/* get info */
 		$info = static::getInfo($path);
@@ -1283,7 +1440,7 @@ class Renderer {
 	}
 	
 	/* render checkboard pattern from images */
-	public function renderChessboard(Array $files, $saveTo) {
+	protected function renderChessboard(Array $files, $saveTo) {
 	
 		/* prepare */
 		$num = (int)sqrt(count($files));
@@ -1387,6 +1544,32 @@ class Renderer {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###   Render Helper    ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Render Helper provides easy access to specific render scenarios.
+It is initialized with a profile that defines the output formats. It
+then handles rendering of images and albums.
+*/
+
 namespace LonelyGallery;
 
 class RenderHelper extends Renderer {
@@ -1431,6 +1614,30 @@ class RenderHelper extends Renderer {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###      Element       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Element represents an file system entity like a file or an album.
+*/
+
 namespace LonelyGallery;
 
 abstract class Element extends Component {
@@ -1602,6 +1809,30 @@ abstract class Element extends Component {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###       Album        ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Album class represents a folder.
+*/
+
 namespace LonelyGallery;
 
 class Album extends Element {
@@ -1901,6 +2132,31 @@ class Album extends Element {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###      Factory       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Factory creates instances of files and albums by absolute or
+relative path in the gallery.
+*/
+
 namespace LonelyGallery;
 
 class Factory {
@@ -1981,6 +2237,30 @@ class Factory {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###       File         ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The class File represents an actual file.
+*/
+
 namespace LonelyGallery;
 
 abstract class File extends Element {
@@ -2026,6 +2306,31 @@ abstract class File extends Element {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###     Meta File      ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Meta File is a special File that defines what to display instead
+of containing it. E.g. it could contain an url of an image to display.
+*/
+
 namespace LonelyGallery;
 
 abstract class MetaFile extends File {
@@ -2058,12 +2363,62 @@ abstract class MetaFile extends File {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###    Content File    ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+A Content File represents a file that contains the data to display
+rather than linking to it. Usually files you would expect in a gallery:
+images and such.
+*/
+
 namespace LonelyGallery;
 
 abstract class ContentFile extends File {
 
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###    Lonely Core     ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Image is the class referring to an image file.
+*/
+
 namespace LonelyGallery;
 
 class Image extends ContentFile {
@@ -2129,6 +2484,32 @@ class Image extends ContentFile {
 	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###    Lonely Core     ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+The Generic File refers to files which is not rendered in a preview,
+like text, audio and video. This class therefore carries a default
+thumbnail to display instead.
+*/
+
 namespace LonelyGallery;
 
 class GenericFile extends ContentFile {
@@ -2181,6 +2562,138 @@ class GenericFile extends ContentFile {
 	protected $base64EncodedThumbFile = 'iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAADzUlEQVR42u3YwQ2CQBRFUTS0oQspgxUNaQW4oANdUY0xUctgo/ShNZgYne8/pwIYkps3LPrr5lkBBLB0BIBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFUJK69Acc2slXgi/Z3xoLC0CwAMECKFEd7YFLv2NDJNH+EVtYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAEIFiBYAIIFIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUIliMABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLECwAAQLQLAAwQIQLADBAgQLQLAABAsQLADBAhAsQLAABAtAsADBAhAsQLAABAtAsADBAhAsAMECBAtAsAAECxAsAMECECxAsAAEC0CwAMECECwAwQIEC0CwAAQLECwAwQIQLCCm2hHw74Z2cggWFoBgAQgWEJt/WKSzvzXpz6BbbatuvbOwgJixOt0PggXEiNX5cRQsoOxYXeYxRKyqyj8ssKyCxMrCAssq1LtYWGBZWViAWAkWkDJWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWkDZWggViJViAWAkWiFXaWAkWiJVgAWIlWCBWaWMlWCBWggWIlWCBWAkWIFaCBYiVYIFYCRYgVoIFiJVggVgJFiBWggViJVaCBWIlWIBYCRaIlVgJFoiVYAFiJVggVggWiJVgAWIlWCBWCBaIlWABYiVYIFYIFoiVYIFYiZVggVghWCBWggVihWCBWCFYIFaCBWKFYIFYCRYgVoIFYoVggVgJFoiVWAkWiBWCBWIlWCBWYiVYIFYIFoiVYIFYIVjwq2CJVVh1tAce2slX46Mu8yhWggXls6xcCcGywsICyyq3RX/dPB0D4EoIIFiAYAEIFoBgAYIFIFgAggUIFoBgAQgWIFgAggUgWIBgAQgWgGABggUgWACCBQgWgGABCBYgWACCBSBYgGABCBYgWACCBSBYgGABCBaAYAGCBSBYAIIFCBaAYAG86QXYMa4//4/U4QAAAABJRU5ErkJggg==';
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###    Resource File   ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-06
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This is the abstract base class resource files that are loaded on the
+website.
+*/
+
+namespace LonelyGallery;
+
+abstract class ResourceFile {
+	
+	/* content type */
+	public $mime = '';
+	
+	/* returns when this file was updated last */
+	abstract public function whenModified();
+	
+	/* returns the content of the file */
+	abstract public function getContent();
+}
+?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###      CSS File      ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-06
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This class represents a css file.
+*/
+
+namespace LonelyGallery;
+
+abstract class CSSFile extends ResourceFile {
+	
+	/* content type */
+	public $mime = 'text/css';
+	
+	/* media attribute of <link> html tag */
+	public $media = '';
+	
+}
+?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###  JavaScript File   ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-06
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This class represents a JavaScript file.
+*/
+
+namespace LonelyGallery;
+
+abstract class JSFile extends ResourceFile {
+	
+	/* content type */
+	public $mime = 'text/javascript';
+	
+}
+?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###       Module       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This is the abstract base class for modules.
+*/
+
 namespace LonelyGallery;
 
 /* class to extend when developing a module */
@@ -2212,17 +2725,67 @@ abstract class Module {
 		/* return false if the request is handled */
 		return true;
 	}
+	
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources($forceAll = false) {
+		return array();
+	}
+	
+	/* config files */
+	public function configAction(\LonelyGallery\Request $request) {
+		$name = webpath($request->action);
+		$res = $this->resources(true);
+		
+		if (isset($res[$name])) {
+			/* output file */
+			
+			/* check time */
+			$lastmodified = $res[$name]->whenModified();
+			if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
+				/* file didn't update */
+				header("HTTP/1.1 304 Not Modified", true, 304);
+				exit;
+			}
+			
+			/* headers */
+			header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
+			header('Content-Type: '.$res[$name]->mime);
+			
+			/* content */
+			echo $res[$name]->getContent();
+			exit;
+		}
+	}
 }
 ?><?php
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+###       Design       ###
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+A Design is a special Module that sets CSS files and render profiles.
+*/
+
 namespace LonelyGallery;
 
 /* class to extend when developing a design */
 abstract class Design extends Module {
-	
-	/* returns an array with css files to be loaded as design */
-	public function cssFiles() {
-		return array();
-	}
 	
 	/* returns an array of thumbnail profiles */
 	public function renderProfiles() {
@@ -2252,14 +2815,39 @@ abstract class Design extends Module {
 	}
 }
 ?><?php
-/* default design */
+/*
+##########################
+### Lonely PHP Gallery ###
+##########################
+## Default Design Module #
+##########################
+This file is part of the the Lonely Gallery.
+
+### Version ###
+
+1.1.0 dev
+date: 2014-07-05
+
+### License & Requirements & More ###
+
+Copyright (c) 2014 Marius 'Teelevision' Neugebauer.
+See LICENSE.txt, README.txt
+and https://github.com/Teelevision/lonely
+
+### Description ###
+
+This is the default design.
+It provides a black CSS theme and image size adjustment via JavaScript
+to fit images into the screen if they exceed the height.
+*/
+
 namespace LonelyGallery\DefaultDesign;
 use \LonelyGallery\Lonely as Lonely;
+
 class Module extends \LonelyGallery\Design {
 	
 	/* returns settings for default design */
 	public function afterConstruct() {
-		Lonely::model()->jsfiles[] = Lonely::model()->configScript.'lonely.js';
 		Lonely::model()->footer .= "<script type=\"text/javascript\">
 var img = document.querySelectorAll('.file img.preview');
 for (var i = 0; i < img.length; ++i) {
@@ -2273,32 +2861,23 @@ for (var i = 0; i < img.length; ++i) {
 </script>";
 	}
 	
-	/* returns an array with css files to be loaded as design */
-	public function cssFiles() {
-		return array(Lonely::model()->configScript.'lonely.css');
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources() {
+		return array(
+			'lonely.css' => new CSSFile(),
+			'lonely.js' => new JSFile(),
+		);
+	}
+}
+
+class CSSFile extends \LonelyGallery\CSSFile {
+	
+	public function whenModified() {
+		return filemtime(__FILE__);
 	}
 	
-	/* config files */
-	public function configAction(\LonelyGallery\Request $request) {
-		if ($request->action[0] == 'lonely.css') {
-			$this->displayCSS();
-		} else if ($request->action[0] == 'lonely.js') {
-			$this->displayJS();
-		}
-	}
-	
-	/* lonely.css */
-	public function displayCSS() {
-		
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
-		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/css');
-		?>
+	public function getContent() {
+		return <<<'CSS'
 body {
     margin: 0;
 	background-color: #111;
@@ -2521,21 +3100,18 @@ ul.breadcrumbs > li:not(:first-child):before {
 .file .title:after {
     content: " «";
 }
-<?php
-		exit;
+CSS;
+	}
+}
+
+class JSFile extends \LonelyGallery\JSFile {
+	
+	public function whenModified() {
+		return filemtime(__FILE__);
 	}
 	
-	/* lonely.js */
-	public function displayJS() {
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
-		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/javascript');
-		?>
+	public function getContent() {
+		return <<<'JS'
 function adjustMaxImageHeight() {
 	var img = document.querySelectorAll(".file img.preview");
 	for (var i = 0; i < img.length; ++i) {
@@ -2561,8 +3137,7 @@ function navigate(event) {
 
 window.addEventListener('resize', adjustMaxImageHeight);
 window.addEventListener('keydown', navigate);
-<?php
-		exit;
+JS;
 	}
 }
 ?>

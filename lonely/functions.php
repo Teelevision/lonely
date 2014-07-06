@@ -41,4 +41,9 @@ function preg_match_any(Array $patterns, $value, &$match = null) {
 function path(Array $dirs) {
 	return implode(DIRECTORY_SEPARATOR, $dirs);
 }
+
+/* builds a web path */
+function webpath(Array $dirs) {
+	return implode('/', $dirs);
+}
 ?>

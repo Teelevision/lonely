@@ -54,5 +54,36 @@ abstract class Module {
 		/* return false if the request is handled */
 		return true;
 	}
+	
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources($forceAll = false) {
+		return array();
+	}
+	
+	/* config files */
+	public function configAction(\LonelyGallery\Request $request) {
+		$name = webpath($request->action);
+		$res = $this->resources(true);
+		
+		if (isset($res[$name])) {
+			/* output file */
+			
+			/* check time */
+			$lastmodified = $res[$name]->whenModified();
+			if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
+				/* file didn't update */
+				header("HTTP/1.1 304 Not Modified", true, 304);
+				exit;
+			}
+			
+			/* headers */
+			header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
+			header('Content-Type: '.$res[$name]->mime);
+			
+			/* content */
+			echo $res[$name]->getContent();
+			exit;
+		}
+	}
 }
 ?>

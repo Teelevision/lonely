@@ -60,7 +60,9 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Request,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
-	private $_styleInitialized;
+	
+	/* whether to include the style sheet */
+	public $initRes = false;
 	
 	/* returns array of file classes to priority */
 	public function fileClasses() {
@@ -69,34 +71,52 @@ class Module extends \LonelyGallery\Module {
 		);
 	}
 	
-	/* includes the css to the page */
-	public function initStyle() {
-		if (!$this->_styleInitialized) {
-			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'text/main.css';
-			$this->_styleInitialized = true;
-		}
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources($forceAll = false) {
+		return ($forceAll || $this->initRes) ? array(
+			'text/main.css' => new CSSFile(),
+		) : array();
+	}
+}
+class SnippetTextFile extends MetaFile {
+
+	/* file pattern */
+	public static function pattern() {
+		return '/\.snip\.(txt|html?)$/i';
 	}
 	
-	/* config files */
-	public function configAction(Request $request) {
-		if (count($request->action) > 1 && $request->action[0] == 'text') {
-			switch ($request->action[1]) {
-				case 'main.css': $this->displayCSS();
-			}
-		}
+	/* loads the name of this element */
+	protected function loadName() {
+		return '...';
 	}
 	
-	/* main.css */
-	public function displayCSS() {
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
+	/* returns the HTML code for the preview */
+	public function getPreviewHTML() {
+		Lonely::model()->getModule('TextModule')->initRes = true;
+		$text = file_get_contents($this->location);
+		if (substr($this->getFilename(), -3) == 'txt') {
+			$text = nl2br(Lonely::model()->escape($text), false);
 		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/css');
-		?>
+		return "<div class=\"textmodule-preview preview preview-controls-sideways\">".$text."</div>";
+	}
+	
+	/* returns the HTML code for the thumbnail */
+	public function getThumbHTML($mode) {
+		Lonely::model()->getModule('TextModule')->initRes = true;
+		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
+		$text = substr($this->getFilename(), -3) == 'txt' ? Lonely::model()->escape($text[0]) : $text[0];
+		return "<div class=\"textmodule-thumb\">".$text."</div>";
+	}
+}
+
+class CSSFile extends \LonelyGallery\CSSFile {
+	
+	public function whenModified() {
+		return filemtime(__FILE__);
+	}
+	
+	public function getContent() {
+		return <<<'CSS'
 .album .files li .textmodule-thumb, .file .preview-box .textmodule-preview {
 	text-align: justify;
 	padding: 9px;
@@ -176,38 +196,7 @@ class Module extends \LonelyGallery\Module {
 	opacity: 1;
 	transition: opacity .15s ease .15s;
 }
-<?php
-		exit;
-	}
-}
-class SnippetTextFile extends MetaFile {
-
-	/* file pattern */
-	public static function pattern() {
-		return '/\.snip\.(txt|html?)$/i';
-	}
-	
-	/* loads the name of this element */
-	protected function loadName() {
-		return '...';
-	}
-	
-	/* returns the HTML code for the preview */
-	public function getPreviewHTML() {
-		Lonely::model()->getModule('TextModule')->initStyle();
-		$text = file_get_contents($this->location);
-		if (substr($this->getFilename(), -3) == 'txt') {
-			$text = nl2br(Lonely::model()->escape($text), false);
-		}
-		return "<div class=\"textmodule-preview preview preview-controls-sideways\">".$text."</div>";
-	}
-	
-	/* returns the HTML code for the thumbnail */
-	public function getThumbHTML($mode) {
-		Lonely::model()->getModule('TextModule')->initStyle();
-		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
-		$text = substr($this->getFilename(), -3) == 'txt' ? Lonely::model()->escape($text[0]) : $text[0];
-		return "<div class=\"textmodule-thumb\">".$text."</div>";
+CSS;
 	}
 }
 ?>

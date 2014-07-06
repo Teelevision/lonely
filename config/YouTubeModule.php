@@ -69,7 +69,9 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Album,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
-	private $_styleInitialized;
+	
+	/* whether to include the style sheet */
+	public $initRes = false;
 	
 	/* returns array of file classes to priority */
 	public function fileClasses() {
@@ -78,57 +80,11 @@ class Module extends \LonelyGallery\Module {
 		);
 	}
 	
-	/* includes the css to the page */
-	public function initStyle() {
-		if (!$this->_styleInitialized) {
-			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'youtube/main.css';
-			$this->_styleInitialized = true;
-		}
-	}
-	
-	/* config files */
-	public function configAction(Request $request) {
-		if (count($request->action) > 1 && $request->action[0] == 'youtube') {
-			switch ($request->action[1]) {
-				case 'main.css': $this->displayCSS();
-			}
-		}
-	}
-	
-	/* main.css */
-	public function displayCSS() {
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
-		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/css');
-		?>
-.album .files li .youtubemodule-thumb + a.thumb-link {
-	opacity: 1;
-	width: 300px;
-	left: 0;
-	bottom: 0;
-	border-top: 2px solid #767676;
-	top: auto;
-	height: 38px;
-	padding: 0;
-	background-color: #1b1b1b;
-	line-height: 38px;
-}
-.album .files li .youtubemodule-thumb + a.thumb-link span {
-	background-color: transparent;
-	box-shadow: none;
-	line-height: 38px;
-	padding: 0px 5px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-<?php
-		exit;
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources($forceAll = false) {
+		return ($forceAll || $this->initRes) ? array(
+			'youtube/main.css' => new CSSFile(),
+		) : array();
 	}
 }
 class YouTubeTextFile extends MetaFile {
@@ -201,8 +157,41 @@ class YouTubeTextFile extends MetaFile {
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
-		Lonely::model()->getModule('YouTubeModule')->initStyle();
+		Lonely::model()->getModule('YouTubeModule')->initRes = true;
 		return "<div class=\"youtubemodule-thumb\">".$this->getVideoCode(300, 260, '&amp;showinfo=0&amp;controls=1')."</div>";
+	}
+}
+
+class CSSFile extends \LonelyGallery\CSSFile {
+	
+	public function whenModified() {
+		return filemtime(__FILE__);
+	}
+	
+	public function getContent() {
+		return <<<'CSS'
+.album .files li .youtubemodule-thumb + a.thumb-link {
+	opacity: 1;
+	width: 300px;
+	left: 0;
+	bottom: 0;
+	border-top: 2px solid #767676;
+	top: auto;
+	height: 38px;
+	padding: 0;
+	background-color: #1b1b1b;
+	line-height: 38px;
+}
+.album .files li .youtubemodule-thumb + a.thumb-link span {
+	background-color: transparent;
+	box-shadow: none;
+	line-height: 38px;
+	padding: 0px 5px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+CSS;
 	}
 }
 ?>

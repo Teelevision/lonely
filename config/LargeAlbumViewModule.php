@@ -57,60 +57,19 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Album,
 	\LonelyGallery\ContentFile;
 class Module extends \LonelyGallery\Module {
-	private $_styleInitialized;
+	
+	/* whether to include the style sheet */
+	public $initRes = false;
 	
 	/* place an empty file named like this in an album to automatically switch to large view */
 	private static $_largeTriggerFile = '_large';
 	
-	/* includes css and js to the page */
-	public function initStyle() {
-		if (!$this->_styleInitialized) {
-			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'largealbumview/main.css';
-			$this->_styleInitialized = true;
-		}
-	}
 	
-	/* config files */
-	public function configAction(Request $request) {
-		if (count($request->action) > 1 && $request->action[0] == 'largealbumview') {
-			switch ($request->action[1]) {
-				case 'main.css': $this->displayCSS();
-			}
-		}
-	}
-	
-	/* main.css */
-	public function displayCSS() {
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
-		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/css');
-		?>
-#content > .album.largealbumview {
-	margin: 0;
-}
-#content > .album.largealbumview > .file {
-	margin-left: 0;
-	margin-right: 0;
-}
-#content > .album.largealbumview > *:not(.file) {
-	margin-left: 8px;
-	margin-right: 8px;
-}
-#content > .album.largealbumview > .file {
-	margin-bottom: 20px;
-	margin-top: 20px;
-}
-#content > .album.largealbumview > .file > .preview-box {
-	line-height: 100%;
-	min-height: 0;
-}
-<?php
-		exit;
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources($forceAll = false) {
+		return ($forceAll || $this->initRes) ? array(
+			'largealbumview/main.css' => new CSSFile(),
+		) : array();
 	}
 	
 	/* check album requests to redirect automatically to large view */
@@ -147,7 +106,7 @@ class Module extends \LonelyGallery\Module {
 		
 		/* album requested */
 		if ($album->isAvailable()) {
-			Lonely::model()->getModule('LargeAlbumViewModule')->initStyle();
+			$this->initRes = true;
 			
 			$html = "<section class=\"album largealbumview\">\n\n";
 			
@@ -242,6 +201,37 @@ class Module extends \LonelyGallery\Module {
 		
 		/* nothing requested */
 		$lonely->error();
+	}
+}
+
+class CSSFile extends \LonelyGallery\CSSFile {
+	
+	public function whenModified() {
+		return filemtime(__FILE__);
+	}
+	
+	public function getContent() {
+		return <<<'CSS'
+#content > .album.largealbumview {
+	margin: 0;
+}
+#content > .album.largealbumview > .file {
+	margin-left: 0;
+	margin-right: 0;
+}
+#content > .album.largealbumview > *:not(.file) {
+	margin-left: 8px;
+	margin-right: 8px;
+}
+#content > .album.largealbumview > .file {
+	margin-bottom: 20px;
+	margin-top: 20px;
+}
+#content > .album.largealbumview > .file > .preview-box {
+	line-height: 100%;
+	min-height: 0;
+}
+CSS;
 	}
 }
 ?>

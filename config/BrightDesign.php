@@ -54,34 +54,24 @@ None.
 namespace LonelyGallery\BrightDesign;
 use \LonelyGallery\Lonely,
 	\LonelyGallery\Request;
-class Module extends \LonelyGallery\Design {
+class Module extends \LonelyGallery\DefaultDesign\Module {
 	
-	/* returns an array with css files to be loaded as design */
-	public function cssFiles() {
-		return array(
-			Lonely::model()->configScript.'lonely.css',
-			Lonely::model()->configScript.'design/bright.css',
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources() {
+		return parent::resources() + array(
+			'design/bright.css' => new CSSFile(),
 		);
 	}
+}
+
+class CSSFile extends \LonelyGallery\CSSFile {
 	
-	/* config files */
-	public function configAction(Request $request) {
-		if ($request->action == array('design', 'bright.css')) {
-			$this->displayCSS();
-		}
+	public function whenModified() {
+		return filemtime(__FILE__);
 	}
 	
-	/* design/bright.css */
-	public function displayCSS() {
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
-		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/css');
-		?>
+	public function getContent() {
+		return <<<'CSS'
 body {
 	background-color: #eee;
 	color: #111;
@@ -121,8 +111,7 @@ body > #zoombox {
 .album .files li .textmodule-thumb, .file .preview-box .textmodule-preview {
 	border: 1px solid #ccc !important;
 }
-<?php
-		exit;
+CSS;
 	}
 }
 ?>

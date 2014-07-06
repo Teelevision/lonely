@@ -61,7 +61,9 @@ use \LonelyGallery\Lonely,
 	\LonelyGallery\Factory,
 	\LonelyGallery\MetaFile;
 class Module extends \LonelyGallery\Module {
-	private $_styleInitialized;
+	
+	/* whether to include the style sheet */
+	public $initRes = false;
 	
 	/* returns array of file classes to priority */
 	public function fileClasses() {
@@ -70,68 +72,11 @@ class Module extends \LonelyGallery\Module {
 		);
 	}
 	
-	/* includes the css to the page */
-	public function initStyle() {
-		if (!$this->_styleInitialized) {
-			Lonely::model()->cssfiles[] = Lonely::model()->configScript.'link/main.css';
-			$this->_styleInitialized = true;
-		}
-	}
-	
-	/* config files */
-	public function configAction(Request $request) {
-		if (count($request->action) > 1 && $request->action[0] == 'link') {
-			switch ($request->action[1]) {
-				case 'main.css': $this->displayCSS();
-			}
-		}
-	}
-	
-	/* main.css */
-	public function displayCSS() {
-		$lastmodified = filemtime(__FILE__);
-		if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $lastmodified && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmodified) {
-			header("HTTP/1.1 304 Not Modified", true, 304);
-			exit;
-		}
-		
-		header("Last-Modified: ".date(DATE_RFC1123, $lastmodified));
-		header('Content-Type: text/css');
-		?>
-.linkmodule-prev {
-	font-size: 16px;
-	margin: 10px 10px 0;
-	line-height: 40px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.linkmodule-prev ~ a {
-	max-height: calc(100% - 50px);
-}
-.linkmodule-thumb-link + .thumb-link {
-	display: none;
-}
-.linkmodule-thumb-link span:before, .linkmodule-prev > a:before {
-	content: "⇒ ";
-}
-.album > .files > li .linkmodule-thumb img {
-	margin-left: 0px;
-	transition: margin-left 0.3s ease;
-}
-.album > .files > li:hover .linkmodule-thumb img {
-	margin-left: -600px;
-}
-.album > .files > li > a.thumb-link.linkmodule-thumb-link {
-	margin-left: 300px;
-	transition: margin-left 0.3s ease;
-	opacity: 1;
-}
-.album > .files > li:hover > a.thumb-link.linkmodule-thumb-link {
-	margin-left: 0px;
-}
-<?php
-		exit;
+	/* returns an array with config-relative web paths to ResourceFile instances */
+	public function resources($forceAll = false) {
+		return ($forceAll || $this->initRes) ? array(
+			'link/main.css' => new CSSFile(),
+		) : array();
 	}
 }
 class LinkTextFile extends MetaFile {
@@ -168,7 +113,7 @@ class LinkTextFile extends MetaFile {
 	
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
-		Lonely::model()->getModule('LinkModule')->initStyle();
+		Lonely::model()->getModule('LinkModule')->initRes = true;
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
@@ -179,13 +124,57 @@ class LinkTextFile extends MetaFile {
 	
 	/* returns the HTML code for the thumbnail */
 	public function getThumbHTML($mode) {
-		Lonely::model()->getModule('LinkModule')->initStyle();
+		Lonely::model()->getModule('LinkModule')->initRes = true;
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
 			return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a class=\"linkmodule-thumb-link thumb-link\" href=\"".Lonely::escape($l['url'])."\"><span>".Lonely::escape($l['label'])."</span></a>";
 		}
 		return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
+	}
+}
+
+class CSSFile extends \LonelyGallery\CSSFile {
+	
+	public function whenModified() {
+		return filemtime(__FILE__);
+	}
+	
+	public function getContent() {
+		return <<<'CSS'
+.linkmodule-prev {
+	font-size: 16px;
+	margin: 10px 10px 0;
+	line-height: 40px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.linkmodule-prev ~ a {
+	max-height: calc(100% - 50px);
+}
+.linkmodule-thumb-link + .thumb-link {
+	display: none;
+}
+.linkmodule-thumb-link span:before, .linkmodule-prev > a:before {
+	content: "⇒ ";
+}
+.album > .files > li .linkmodule-thumb img {
+	margin-left: 0px;
+	transition: margin-left 0.3s ease;
+}
+.album > .files > li:hover .linkmodule-thumb img {
+	margin-left: -600px;
+}
+.album > .files > li > a.thumb-link.linkmodule-thumb-link {
+	margin-left: 300px;
+	transition: margin-left 0.3s ease;
+	opacity: 1;
+}
+.album > .files > li:hover > a.thumb-link.linkmodule-thumb-link {
+	margin-left: 0px;
+}
+CSS;
 	}
 }
 ?>

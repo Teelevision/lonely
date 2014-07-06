@@ -100,7 +100,7 @@ class Lonely extends Component {
 	private $_modules = array();
 	
 	/* design */
-	private $_design = null;
+	private $_design = '';
 	
 	/* files */
 	private $_files = array();
@@ -148,9 +148,7 @@ class Lonely extends Component {
 		$this->rootDir = $rootDir.DIRECTORY_SEPARATOR;
 		
 		/* set default design */
-		if ($this->defaultDesign) {
-			$this->addModule($this->defaultDesign);
-		}
+		$this->_design = $this->defaultDesign;
 		
 		/* check for GD */
 		if (!function_exists('gd_info')) {
@@ -250,9 +248,15 @@ class Lonely extends Component {
 				}
 			}
 			
-			/* modules always end on 'Module.php' and designs are modules ending on 'Design.php' */
-			else if (($s = substr($file, -10)) == 'Module.php' || $s == 'Design.php') {
+			/* modules always end on 'Module.php' */
+			else if (($s = substr($file, -10)) == 'Module.php') {
 				$this->addModule(substr($file, 0, -4));
+			}
+			
+			/* designs always end on 'Design.php' */
+			else if ($s == 'Design.php') {
+				/* replace previous design */
+				$this->_design = substr($file, 0, -4);
 			}
 			
 			/* value */
@@ -395,6 +399,9 @@ class Lonely extends Component {
 	
 	/* initializes the modules */
 	public function initModules() {
+		
+		/* add design at front to modules */
+		$this->_modules = array($this->_design => null) + $this->_modules;
 		
 		/* first load all files to prevent missing requirements */
 		foreach ($this->_modules as $name => &$module) {
@@ -816,15 +823,16 @@ class Lonely extends Component {
 			echo "\t<meta name=\"robots\" content=\"", self::escape($m), "\">\n";
 		}
 		
-		/* CSS */
-		$cssfiles = array_merge($this->_design->cssFiles(), $this->cssfiles);
-		foreach ($cssfiles as $file) {
-			echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", self::escape($file), "\">\n";
-		}
-		
-		/* JavaScript */
-		foreach ($this->jsfiles as $file) {
-			echo "\t<script type=\"text/javascript\" src=\"", self::escape($file), "\"></script>\n";
+		/* CSS & JS files */
+		foreach ($this->getModules() as $module) {
+			foreach ($module->resources() as $file => $res) {
+				$path = Lonely::model()->configScript.$file;
+				if ($res instanceof CSSFile) {
+					echo "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"", self::escape($path), "\"", ($res->media != '' ? " media=\"".self::escape($res->media)."\"" : ""), ">\n";
+				} else if ($res instanceof JSFile) {
+					echo "\t<script type=\"text/javascript\" src=\"", self::escape($path), "\"></script>\n";
+				}
+			}
 		}
 		
 		/* page title */
