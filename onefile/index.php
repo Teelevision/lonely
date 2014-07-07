@@ -238,6 +238,13 @@ abstract class Component {
 	/* storage for properties */
 	private $_data = array();
 	
+	/* mass assignment with an array of settings */
+	public function set(Array $settings) {
+		foreach ($settings as $name => $value) {
+			$this->{$name} = $value;
+		}
+	}
+	
 	/* called when isset() is called on a not defined property */
 	public function __isset($name) {
 		$name = strtolower($name);
@@ -637,14 +644,13 @@ class Lonely extends Component {
 		
 	}
 	
-	public function set(Array $settings) {
-		foreach ($settings as $name => $value) {
-			$this->{$name} = $value;
-		}
-	}
-	
 	/* reads the files in the config directory */
 	private function readConfig($dir) {
+		
+		/* first load settings from lonely.php */
+		$this->set($this->getLonelySettings());
+		
+		/* then load file-settings */
 		foreach (scandir($dir) as $file) {
 			
 			/* skip hidden (./../.htaccess) */
@@ -696,6 +702,15 @@ class Lonely extends Component {
 			}
 			
 		}
+	}
+	
+	/* returns the settings from lonely.php */
+	private function getLonelySettings() {
+		$file = $this->configDir.'lonely.php';
+		if (is_file($file)) {
+			return include($file);
+		}
+		return array();
 	}
 	
 	/* handle request */

@@ -41,6 +41,13 @@ abstract class Component {
 	/* storage for properties */
 	private $_data = array();
 	
+	/* mass assignment with an array of settings */
+	public function set(Array $settings) {
+		foreach ($settings as $name => $value) {
+			$this->{$name} = $value;
+		}
+	}
+	
 	/* called when isset() is called on a not defined property */
 	public function __isset($name) {
 		$name = strtolower($name);
