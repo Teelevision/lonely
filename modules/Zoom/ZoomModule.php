@@ -168,6 +168,7 @@ var zoom_img, zoom_div,
 	zoom_map_view_height, zoom_map_view_width,
 	zoom_map_move_height, zoom_map_move_width,
 	aspect_ratio, width_aspect, height_aspect,
+	body_overflow,
 	zoom_map_area = 2500;
 
 function initZoom() {
@@ -192,6 +193,7 @@ function initImageZoom(image) {
 						window.removeEventListener('mousemove', zoomPos);
 						window.removeEventListener('resize', zoomChangeMap);
 						document.body.removeChild(zoom_div);
+						document.body.style.overflowY = body_overflow;
 					};
 					
 					zoom_img = document.createElement('img');
@@ -216,6 +218,9 @@ function initImageZoom(image) {
 					zoomChangeMap();
 					zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
 					document.body.appendChild(zoom_div);
+					
+					body_overflow = document.body.style.overflowY;
+					document.body.style.overflowY = 'hidden';
 					
 					window.addEventListener('mousemove', zoomPos);
 					window.addEventListener('resize', zoomChangeMap);
