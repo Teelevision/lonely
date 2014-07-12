@@ -162,7 +162,13 @@ class JSFile extends \LonelyGallery\JSFile {
 	
 	public function getContent() {
 		return <<<'JS'
-var zoom_img, zoom_div, zoom_map, zoom_view, zoom_map_size, zoom_map_height, zoom_map_width, aspect_ratio, width_aspect, height_aspect, zoom_map_area = 2500;
+var zoom_img, zoom_div,
+	zoom_map, zoom_view,
+	zoom_map_height, zoom_map_width,
+	zoom_map_view_height, zoom_map_view_width,
+	zoom_map_move_height, zoom_map_move_width,
+	aspect_ratio, width_aspect, height_aspect,
+	zoom_map_area = 2500;
 
 function initZoom() {
 	var img = document.querySelectorAll('.file img.preview');
@@ -194,8 +200,6 @@ function initImageZoom(image) {
 					zoom_map.id = 'zoombox-map';
 					
 					aspect_ratio = img.naturalWidth/img.naturalHeight;
-					width_aspect = img.naturalWidth/window.innerWidth;
-					height_aspect = img.naturalHeight/window.innerHeight;
 					
 					zoom_map_height = Math.round(Math.sqrt(zoom_map_area/aspect_ratio));
 					zoom_map_width = Math.round(zoom_map_area/zoom_map_height);
@@ -204,13 +208,12 @@ function initImageZoom(image) {
 					
 					zoom_view = document.createElement('div');
 					zoom_view.id = 'zoombox-view';
-					zoom_view.style.width = Math.round(Math.min(zoom_map_width, zoom_map_width/width_aspect)) + 'px';
-					zoom_view.style.height = Math.round(Math.min(zoom_map_height, zoom_map_height/height_aspect)) + 'px';
 					
 					zoom_map.appendChild(zoom_view);
 					zoom_div.appendChild(zoom_img);
 					zoom_div.appendChild(zoom_map);
 					
+					zoomChangeMap();
 					zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
 					document.body.appendChild(zoom_div);
 					
@@ -232,25 +235,29 @@ function initImageZoom(image) {
 
 function zoomPos(event) {
 	if (window.innerWidth <= zoom_img.naturalWidth) {
-		var x = Math.min(1, (event.clientX - 200) / (window.innerWidth - 400)) * (zoom_img.naturalWidth - window.innerWidth);
-		zoom_img.style.marginLeft = '-'+x+'px';
-		zoom_view.style.marginLeft = Math.max(0, x * zoom_map_height / zoom_img.naturalHeight) + 'px';
+		var x = Math.min(1, (event.clientX - 200) / (window.innerWidth - 400));
+		zoom_img.style.marginLeft = '-' + (x * (zoom_img.naturalWidth - window.innerWidth)) + 'px';
+		zoom_view.style.marginLeft = Math.max(0, x * zoom_map_move_width) + 'px';
 	}
 	if (window.innerHeight <= zoom_img.naturalHeight) {
-		var y = Math.min(1, (event.clientY - 200) / (window.innerHeight - 400)) * (zoom_img.naturalHeight - window.innerHeight);
-		zoom_img.style.marginTop = '-'+y+'px';
-		zoom_view.style.marginTop = Math.max(0, y * zoom_map_width / zoom_img.naturalWidth) + 'px';
+		var y = Math.min(1, (event.clientY - 200) / (window.innerHeight - 400));
+		zoom_img.style.marginTop = '-' + (y * (zoom_img.naturalHeight - window.innerHeight)) + 'px';
+		zoom_view.style.marginTop = Math.max(0, y * zoom_map_move_height) + 'px';
 	} else {
-		zoom_img.style.marginTop = '-'+zoom_img.naturalHeight/2+'px';
+		zoom_img.style.marginTop = '-' + zoom_img.naturalHeight/2 + 'px';
 		zoom_img.style.top = '50%';
 	}
 }
 
-function zoomChangeMap(event) {
+function zoomChangeMap() {
 	width_aspect = zoom_img.naturalWidth/window.innerWidth;
 	height_aspect = zoom_img.naturalHeight/window.innerHeight;
-	zoom_view.style.width = Math.round(Math.min(zoom_map_width, zoom_map_width/width_aspect)) + 'px';
-	zoom_view.style.height = Math.round(Math.min(zoom_map_height, zoom_map_height/height_aspect)) + 'px';
+	zoom_map_view_width = Math.round(Math.min(zoom_map_width, zoom_map_width/width_aspect));
+	zoom_map_view_height = Math.round(Math.min(zoom_map_height, zoom_map_height/height_aspect));
+	zoom_map_move_width = zoom_map_width - zoom_map_view_width;
+	zoom_map_move_height = zoom_map_height - zoom_map_view_height;
+	zoom_view.style.width = zoom_map_view_width + 'px';
+	zoom_view.style.height = zoom_map_view_height + 'px';
 }
 window.addEventListener('resize', initZoom);
 JS;
