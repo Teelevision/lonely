@@ -115,6 +115,18 @@ body > #zoombox img {
 	width: auto;
 	height: auto;
 }
+body > #zoombox #zoombox-map {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	border: 1px solid #ccc;
+	background-color: rgba(255, 255, 255, .1);
+}
+body > #zoombox #zoombox-map #zoombox-view {
+	position: relative;
+	background-color: rgba(255, 255, 255, .1);
+	border: 1px solid #333;
+}
 a.zoombox-tr {
 	position: absolute;
 	top: 0;
@@ -150,13 +162,15 @@ class JSFile extends \LonelyGallery\JSFile {
 	
 	public function getContent() {
 		return <<<'JS'
-var zoom_img, zoom_div;
+var zoom_img, zoom_div, zoom_map, zoom_view, zoom_map_size, zoom_map_height, zoom_map_width, aspect_ratio, width_aspect, height_aspect, zoom_map_area = 2500;
+
 function initZoom() {
 	var img = document.querySelectorAll('.file img.preview');
 	for (var i = 0; i < img.length; ++i) {
 		initImageZoom(img[i]);
 	}
 }
+
 function initImageZoom(image) {
 	if (window.innerHeight <= image.naturalHeight || window.innerWidth <= image.naturalWidth) {
 		if (image.getAttribute('data-zoom-on') != '1') {
@@ -165,18 +179,44 @@ function initImageZoom(image) {
 			aZoom.className = 'zoombox-tr';
 			aZoom.onclick = function(img){
 				return function(){
+					
 					zoom_div = document.createElement('div');
 					zoom_div.id = 'zoombox';
 					zoom_div.onclick = function(){
 						window.removeEventListener('mousemove', zoomPos);
+						window.removeEventListener('resize', zoomChangeMap);
 						document.body.removeChild(zoom_div);
 					};
+					
 					zoom_img = document.createElement('img');
 					zoom_img.src = img.src;
+					zoom_map = document.createElement('div');
+					zoom_map.id = 'zoombox-map';
+					
+					aspect_ratio = img.naturalWidth/img.naturalHeight;
+					width_aspect = img.naturalWidth/window.innerWidth;
+					height_aspect = img.naturalHeight/window.innerHeight;
+					
+					zoom_map_height = Math.round(Math.sqrt(zoom_map_area/aspect_ratio));
+					zoom_map_width = Math.round(zoom_map_area/zoom_map_height);
+					zoom_map.style.height = zoom_map_height+2 + 'px';
+					zoom_map.style.width = zoom_map_width+2 + 'px';
+					
+					zoom_view = document.createElement('div');
+					zoom_view.id = 'zoombox-view';
+					zoom_view.style.width = Math.round(Math.min(zoom_map_width, zoom_map_width/width_aspect)) + 'px';
+					zoom_view.style.height = Math.round(Math.min(zoom_map_height, zoom_map_height/height_aspect)) + 'px';
+					
+					zoom_map.appendChild(zoom_view);
 					zoom_div.appendChild(zoom_img);
+					zoom_div.appendChild(zoom_map);
+					
 					zoomPos({clientX: window.innerWidth/2, clientY: window.innerHeight/2});
 					document.body.appendChild(zoom_div);
+					
 					window.addEventListener('mousemove', zoomPos);
+					window.addEventListener('resize', zoomChangeMap);
+					
 					return false;
 				};
 			}(image);
@@ -189,18 +229,28 @@ function initImageZoom(image) {
 		image.setAttribute('data-zoom-on', '0');
 	}
 }
+
 function zoomPos(event) {
 	if (window.innerWidth <= zoom_img.naturalWidth) {
 		var x = Math.min(1, (event.clientX - 200) / (window.innerWidth - 400)) * (zoom_img.naturalWidth - window.innerWidth);
 		zoom_img.style.marginLeft = '-'+x+'px';
+		zoom_view.style.marginLeft = Math.max(0, x * zoom_map_height / zoom_img.naturalHeight) + 'px';
 	}
 	if (window.innerHeight <= zoom_img.naturalHeight) {
 		var y = Math.min(1, (event.clientY - 200) / (window.innerHeight - 400)) * (zoom_img.naturalHeight - window.innerHeight);
 		zoom_img.style.marginTop = '-'+y+'px';
+		zoom_view.style.marginTop = Math.max(0, y * zoom_map_width / zoom_img.naturalWidth) + 'px';
 	} else {
 		zoom_img.style.marginTop = '-'+zoom_img.naturalHeight/2+'px';
 		zoom_img.style.top = '50%';
 	}
+}
+
+function zoomChangeMap(event) {
+	width_aspect = zoom_img.naturalWidth/window.innerWidth;
+	height_aspect = zoom_img.naturalHeight/window.innerHeight;
+	zoom_view.style.width = Math.round(Math.min(zoom_map_width, zoom_map_width/width_aspect)) + 'px';
+	zoom_view.style.height = Math.round(Math.min(zoom_map_height, zoom_map_height/height_aspect)) + 'px';
 }
 window.addEventListener('resize', initZoom);
 JS;
