@@ -115,9 +115,16 @@ body > #zoombox img {
 	width: auto;
 	height: auto;
 }
-body > #zoombox #zoombox-map {
+body > #zoombox #zoombox-info {
 	position: absolute;
 	top: 10px;
+	left: 10px;
+	margin: 0;
+	font-size: 80%;
+}
+body > #zoombox #zoombox-map {
+	position: absolute;
+	top: 30px;
 	left: 10px;
 	border: 1px solid #ccc;
 	background-color: rgba(255, 255, 255, .1);
@@ -211,8 +218,13 @@ function initImageZoom(image) {
 					zoom_view = document.createElement('div');
 					zoom_view.id = 'zoombox-view';
 					
+					zoom_info = document.createElement('p');
+					zoom_info.id = 'zoombox-info';
+					zoom_info.appendChild(document.createTextNode('click to minimize'));
+					
 					zoom_map.appendChild(zoom_view);
 					zoom_div.appendChild(zoom_img);
+					zoom_div.appendChild(zoom_info);
 					zoom_div.appendChild(zoom_map);
 					
 					zoomChangeMap();
