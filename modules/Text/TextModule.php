@@ -105,11 +105,11 @@ class SnippetTextFile extends MetaFile {
 		Lonely::model()->getModule('TextModule')->initRes = true;
 		$text = trim(file_get_contents($this->location));
 		if (substr($this->getFilename(), -3) == 'txt') {
-			$text = nl2br(\LonelyGallery\escape($text), false);
+			$text = '<p>'.nl2br(\LonelyGallery\escape($text), false).'</p>';
 		}
 		$classes = 'textmodule-thumb';
 		if (strlen($text) > 255 || substr_count($text, '<br>') > 5) $classes .= ' textmodule-scroll';
-		return "<div class=\"".$classes."\"><p>".$text."</p></div>";
+		return "<div class=\"".$classes."\"><div>".$text."</div></div>";
 	}
 }
 
@@ -147,17 +147,17 @@ class CSSFile extends \LonelyGallery\CSSFile {
 .file .preview-box .textmodule-preview ~ a.next:after {
 	text-align: left;
 }
-.album .files li .textmodule-thumb p {
+.album .files li .textmodule-thumb > div {
 	margin: 0;
 	line-height: 20px;
 	overflow: hidden;
 	height: 280px;
 	width: 280px;
 }
-.album .files li .textmodule-thumb p > *:first-child {
+.album .files li .textmodule-thumb > div > *:first-child {
 	margin-top: 0;
 }
-.album .files li .textmodule-thumb p > *:last-child {
+.album .files li .textmodule-thumb > div > *:last-child {
 	margin-bottom: 0;
 }
 
@@ -197,10 +197,10 @@ class CSSFile extends \LonelyGallery\CSSFile {
 }
 
 /* scrolling */
-.album .files li .textmodule-thumb.textmodule-scroll p {
+.album .files li .textmodule-thumb.textmodule-scroll > div {
 	transition-property: height, margin-top;
 }
-.album .files li:hover .textmodule-thumb.textmodule-scroll p {
+.album .files li:hover .textmodule-thumb.textmodule-scroll > div {
 	height: 2280px;
 	margin-top: -2000px;
 }
@@ -218,12 +218,12 @@ class CSSFile extends \LonelyGallery\CSSFile {
 .album .files li:hover .textmodule-thumb.textmodule-scroll:after {
 	top: 278px;
 }
-.album .files li .textmodule-thumb.textmodule-scroll p, .album .files li .textmodule-thumb.textmodule-scroll:after {
+.album .files li .textmodule-thumb.textmodule-scroll > div, .album .files li .textmodule-thumb.textmodule-scroll:after {
 	transition-duration: 4s;
 	transition-delay: 6s;
 	transition-timing-function: cubic-bezier(.05,0,.6,.6);
 }
-.album .files li:hover .textmodule-thumb.textmodule-scroll p, .album .files li:hover .textmodule-thumb.textmodule-scroll:after {
+.album .files li:hover .textmodule-thumb.textmodule-scroll > div, .album .files li:hover .textmodule-thumb.textmodule-scroll:after {
 	transition-duration: 180s;
 	transition-delay: 4s;
 }
