@@ -144,7 +144,7 @@ class VimeoTextFile extends MetaFile {
 	}
 	
 	/* returns the HTML code for the thumbnail */
-	public function getThumbHTML($mode) {
+	public function getThumbHTML($profile, &$htmlclass = '') {
 		Lonely::model()->getModule('VimeoModule')->initRes = true;
 		return "<div class=\"vimeomodule-thumb\">".$this->getVideoCode(300, 260, 'badge=0&amp;byline=0&amp;portrait=0&amp;title=0')."</div>";
 	}

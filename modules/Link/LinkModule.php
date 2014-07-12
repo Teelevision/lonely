@@ -123,12 +123,12 @@ class LinkTextFile extends MetaFile {
 	}
 	
 	/* returns the HTML code for the thumbnail */
-	public function getThumbHTML($mode) {
+	public function getThumbHTML($profile, &$htmlclass = '') {
 		Lonely::model()->getModule('LinkModule')->initRes = true;
 		$l = $this->getLData();
 		$thumb = Factory::createFileByRelPath($l['image'], $this->getParent());
 		if ($thumb) {
-			return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($mode)."</div><a class=\"linkmodule-thumb-link thumb-link\" href=\"".\LonelyGallery\escape($l['url'])."\"><span>".\LonelyGallery\escape($l['label'])."</span></a>";
+			return "<div class=\"linkmodule-thumb\">".$thumb->getThumbHTML($profile)."</div><a class=\"linkmodule-thumb-link thumb-link\" href=\"".\LonelyGallery\escape($l['url'])."\"><span>".\LonelyGallery\escape($l['label'])."</span></a>";
 		}
 		return "<p style=\"line-height: 100%;\">Error: Please write the link (first line) and image path (second line) in this text file.</p>";
 	}

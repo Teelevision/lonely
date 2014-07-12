@@ -972,8 +972,9 @@ class Lonely extends Component {
 				foreach ($albums as $element) {
 					$path = escape($this->rootScript.$element->getPath());
 					$name = escape($element->getName());
-					$html .= "\t\t<li id=\"".$element->getId()."\">\n".
-						"\t\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
+					$thumbHtml = $element->getThumbHTML($this->_design->thumbProfile($element), $classname);
+					$html .= "\t\t<li id=\"".$element->getId()."\"".($classname != '' ? ' class="'.$classname.'"' : '').">\n".
+						"\t\t\t".$thumbHtml."\n".
 						"\t\t\t<a class=\"thumb-link\" href=\"".$path."\">\n".
 						"\t\t\t\t<span>".$name."</span>\n".
 						"\t\t\t</a>\n".
@@ -989,8 +990,9 @@ class Lonely extends Component {
 				foreach ($files as $element) {
 					$path = escape($this->rootScript.$element->getPath().'/'.$action);
 					$name = escape($element->getName());
-					$html .= "\t\t<li id=\"".$element->getId()."\">\n".
-						"\t\t\t".$element->getThumbHTML($this->_design->thumbProfile($element))."\n".
+					$thumbHtml = $element->getThumbHTML($this->_design->thumbProfile($element), $classname);
+					$html .= "\t\t<li id=\"".$element->getId()."\"".($classname != '' ? ' class="'.$classname.'"' : '').">\n".
+						"\t\t\t".$thumbHtml."\n".
 						"\t\t\t<a class=\"thumb-link\" href=\"".$path."#p\">\n".
 						"\t\t\t\t<span>".$name."</span>\n".
 						"\t\t\t</a>\n".
@@ -1844,7 +1846,7 @@ abstract class Element extends Component {
 	}
 	
 	/* returns the HTML code for the thumbnail */
-	public function getThumbHTML($profile) {
+	public function getThumbHTML($profile, &$htmlclass = '') {
 		$thumbpath = escape($this->getThumbPath($profile));
 		$name = escape($this->getName());
 		return "<img class=\"thumb\" src=\"".$thumbpath."\" alt=\"".$name."\">";

@@ -153,7 +153,7 @@ class YouTubeTextFile extends MetaFile {
 	}
 	
 	/* returns the HTML code for the thumbnail */
-	public function getThumbHTML($mode) {
+	public function getThumbHTML($profile, &$htmlclass = '') {
 		Lonely::model()->getModule('YouTubeModule')->initRes = true;
 		return "<div class=\"youtubemodule-thumb\">".$this->getVideoCode(300, 260, '&amp;showinfo=0&amp;controls=1')."</div>";
 	}

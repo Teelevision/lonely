@@ -187,7 +187,7 @@ abstract class Element extends Component {
 	}
 	
 	/* returns the HTML code for the thumbnail */
-	public function getThumbHTML($profile) {
+	public function getThumbHTML($profile, &$htmlclass = '') {
 		$thumbpath = escape($this->getThumbPath($profile));
 		$name = escape($this->getName());
 		return "<img class=\"thumb\" src=\"".$thumbpath."\" alt=\"".$name."\">";

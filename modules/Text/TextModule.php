@@ -93,7 +93,7 @@ class SnippetTextFile extends MetaFile {
 	/* returns the HTML code for the preview */
 	public function getPreviewHTML() {
 		Lonely::model()->getModule('TextModule')->initRes = true;
-		$text = file_get_contents($this->location);
+		$text = trim(file_get_contents($this->location));
 		if (substr($this->getFilename(), -3) == 'txt') {
 			$text = nl2br(\LonelyGallery\escape($text), false);
 		}
@@ -101,11 +101,15 @@ class SnippetTextFile extends MetaFile {
 	}
 	
 	/* returns the HTML code for the thumbnail */
-	public function getThumbHTML($mode) {
+	public function getThumbHTML($profile, &$htmlclass = '') {
 		Lonely::model()->getModule('TextModule')->initRes = true;
-		$text = file($this->location, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
-		$text = substr($this->getFilename(), -3) == 'txt' ? \LonelyGallery\escape($text[0]) : $text[0];
-		return "<div class=\"textmodule-thumb\">".$text."</div>";
+		$text = trim(file_get_contents($this->location));
+		if (substr($this->getFilename(), -3) == 'txt') {
+			$text = nl2br(\LonelyGallery\escape($text), false);
+		}
+		$classes = 'textmodule-thumb';
+		if (strlen($text) > 255 || substr_count($text, '<br>') > 5) $classes .= ' textmodule-scroll';
+		return "<div class=\"".$classes."\"><p>".$text."</p></div>";
 	}
 }
 
@@ -143,26 +147,21 @@ class CSSFile extends \LonelyGallery\CSSFile {
 .file .preview-box .textmodule-preview ~ a.next:after {
 	text-align: left;
 }
-.album .files li .textmodule-thumb {
+.album .files li .textmodule-thumb p {
+	margin: 0;
 	line-height: 20px;
 	overflow: hidden;
 	height: 280px;
 	width: 280px;
-	transition-property: height, margin-top;
-	transition-duration: 2s;
-	transition-timing-function: cubic-bezier(.05,0,.6,.6);
 }
-.album .files li:hover .textmodule-thumb {
-	height: 2280px;
-	margin-top: -2000px;
-	transition-duration: 180s;
-}
-.album .files li .textmodule-thumb > *:first-child {
+.album .files li .textmodule-thumb p > *:first-child {
 	margin-top: 0;
 }
-.album .files li .textmodule-thumb > *:last-child {
+.album .files li .textmodule-thumb p > *:last-child {
 	margin-bottom: 0;
 }
+
+/* caption */
 .album .files li .textmodule-thumb + a {
 	opacity: 1;
 	width: 298px;
@@ -195,6 +194,38 @@ class CSSFile extends \LonelyGallery\CSSFile {
 .album .files li:hover .textmodule-thumb + a span {
 	opacity: 1;
 	transition: opacity .15s ease .15s;
+}
+
+/* scrolling */
+.album .files li .textmodule-thumb.textmodule-scroll p {
+	transition-property: height, margin-top;
+}
+.album .files li:hover .textmodule-thumb.textmodule-scroll p {
+	height: 2280px;
+	margin-top: -2000px;
+}
+.album .files li .textmodule-thumb.textmodule-scroll:after {
+	background-color: gray;
+	content: "";
+	display: block;
+	height: 20px;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 4px;
+	transition-property: top;
+}
+.album .files li:hover .textmodule-thumb.textmodule-scroll:after {
+	top: 278px;
+}
+.album .files li .textmodule-thumb.textmodule-scroll p, .album .files li .textmodule-thumb.textmodule-scroll:after {
+	transition-duration: 4s;
+	transition-delay: 6s;
+	transition-timing-function: cubic-bezier(.05,0,.6,.6);
+}
+.album .files li:hover .textmodule-thumb.textmodule-scroll p, .album .files li:hover .textmodule-thumb.textmodule-scroll:after {
+	transition-duration: 180s;
+	transition-delay: 4s;
 }
 CSS;
 	}
