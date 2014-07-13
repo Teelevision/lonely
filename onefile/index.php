@@ -3129,15 +3129,18 @@ function adjustImageHeight(image) {
 }
 function navigate(event) {
 	var k = event.keyCode;
+	var a = false;
 	switch (k) {
 		case 37: // left arrow
-		case 39: // right arrow
-			var a = document.querySelector(".file a.nav.next");
-			if (a) {
-				window.location = a.href;
-				return false;
-			}
+			a = document.querySelector(".file a.nav.prev");
 			break;
+		case 39: // right arrow
+			a = document.querySelector(".file a.nav.next");
+			break;
+	}
+	if (a) {
+		window.location = a.href;
+		return false;
 	}
 }
 
