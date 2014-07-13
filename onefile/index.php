@@ -3132,7 +3132,7 @@ function navigate(event) {
 	switch (k) {
 		case 37: // left arrow
 		case 39: // right arrow
-			var a = document.querySelector(".file .nav a[rel='next']");
+			var a = document.querySelector(".file a.nav.next");
 			if (a) {
 				window.location = a.href;
 				return false;
