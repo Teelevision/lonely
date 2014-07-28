@@ -310,11 +310,35 @@ function navigate(event) {
 	var a = false;
 	switch (k) {
 		case 37: // left arrow
-			a = document.querySelector(".file a.nav.prev");
-			break;
+		case 65: // a
+			a = document.querySelector(".file a.nav.prev"); break;
 		case 39: // right arrow
-			a = document.querySelector(".file a.nav.next");
-			break;
+		case 68: // d
+			a = document.querySelector(".file a.nav.next"); break;
+		case 87: // w
+			a = document.querySelector(".breadcrumbs li:nth-last-child(2) a"); break;
+		case 72: // h
+			a = document.querySelector("h1 a"); break;
+		case 49: // 1
+			a = document.querySelector(".albums li:nth-child(1) a"); break;
+		case 50: // 2
+			a = document.querySelector(".albums li:nth-child(2) a"); break;
+		case 51: // 3
+			a = document.querySelector(".albums li:nth-child(3) a"); break;
+		case 52: // 4
+			a = document.querySelector(".albums li:nth-child(4) a"); break;
+		case 53: // 5
+			a = document.querySelector(".albums li:nth-child(5) a"); break;
+		case 54: // 6
+			a = document.querySelector(".albums li:nth-child(6) a"); break;
+		case 55: // 7
+			a = document.querySelector(".albums li:nth-child(7) a"); break;
+		case 56: // 8
+			a = document.querySelector(".albums li:nth-child(8) a"); break;
+		case 57: // 9
+			a = document.querySelector(".albums li:nth-child(9) a"); break;
+		case 48: // 0
+			a = document.querySelector(".albums li:nth-child(10) a"); break;
 	}
 	if (a) {
 		window.location = a.href;
