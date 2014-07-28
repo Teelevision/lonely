@@ -156,29 +156,30 @@ class Module extends \LonelyGallery\Module {
 			}
 			
 			/* files */
+			$html .= "\t<section class=\"files\">";
 			$action = $lonely->defaultFileAction;
 			if (count($files = $album->getFiles())) {
 				foreach ($files as $file) {
 					
 					/* image */
 					$name = \LonelyGallery\escape($file->getName());
-					$html .= "\t<section class=\"file\">\n";
+					$html .= "\t\t<section class=\"file\">\n";
 					
 					/* preview */
-					$html .= "\t\t<div id=\"".$file->getId()."\" class=\"preview-box\">\n".
-						"\t\t\t".$file->getPreviewHTML()."\n".
-						"\t\t</div>\n\n";
+					$html .= "\t\t\t<div id=\"".$file->getId()."\" class=\"preview-box\">\n".
+						"\t\t\t\t".$file->getPreviewHTML()."\n".
+						"\t\t\t</div>\n\n";
 					
 					/* info */
 					if ($file instanceof ContentFile || $file->showTitle) {
-						$html .= "\t\t<div class=\"info\">\n".
-							"\t\t\t<p class=\"title\">\n".
-							"\t\t\t\t<a href=\"".\LonelyGallery\escape($lonely->rootScript.$file->getPath().'/'.$action)."\">".$name."</a>\n".
-							"\t\t\t</p>\n".
-							"\t\t</div>\n";
+						$html .= "\t\t\t<div class=\"info\">\n".
+							"\t\t\t\t<p class=\"title\">\n".
+							"\t\t\t\t\t<a class=\"thumb-link\" href=\"".\LonelyGallery\escape($lonely->rootScript.$file->getPath().'/'.$action)."\">".$name."</a>\n".
+							"\t\t\t\t</p>\n".
+							"\t\t\t</div>\n";
 					}
 					
-					$html .= "\t</section>\n";
+					$html .= "\t\t</section>\n";
 				}
 			}
 			
@@ -190,6 +191,7 @@ class Module extends \LonelyGallery\Module {
 					$html .= "\t<p>This album is empty.</p>\n\n";
 				}
 			}
+			$html .= "\t</section>";
 			
 			$html .= "</section>\n";
 			

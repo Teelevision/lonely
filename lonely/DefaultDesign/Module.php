@@ -284,6 +284,25 @@ ul.breadcrumbs > li:not(:first-child):before {
 .file .title:after {
     content: " «";
 }
+body > #keynavinfo {
+	width: 300px;
+	margin-left: -150px;
+	left: 50%;
+	position: fixed;
+	top: 20px;
+	background-color: #111;
+	border: 1px solid yellow;
+	border-radius: 4px;
+}
+body > #keynavinfo p {
+	color: white;
+	margin: 10px;
+}
+body > #keynavinfo p .keynavinfo-key {
+	color: yellow;
+	font-weight: bold;
+	padding: 0 2px;
+}
 CSS;
 	}
 }
@@ -305,6 +324,50 @@ function adjustMaxImageHeight() {
 function adjustImageHeight(image) {
 	image.style.maxHeight = window.innerHeight + 'px';
 }
+var keyNavInfoDiv = null;
+function showKeyNavigation() {
+	if (keyNavInfoDiv == null) {
+		keyNavInfoDiv = document.createElement('div');
+		keyNavInfoDiv.id = 'keynavinfo';
+		var p = document.createElement('p');
+		
+		var keys = { '1': '1', '9': '9', '0': '0', a: 'A', d: 'D', left: 'left', right: 'right', w: 'W', h: 'H', i: 'I' };
+		for (var k in keys) {
+			var s = document.createElement('span');
+			s.appendChild(document.createTextNode(keys[k]));
+			s.className = 'keynavinfo-key';
+			keys[k] = s;
+		}
+		
+		p.appendChild(document.createTextNode('You can use the numbers on the numpad to go to the first ten images ('));
+		p.appendChild(keys['1']);
+		p.appendChild(document.createTextNode(', ..., '));
+		p.appendChild(keys['9']);
+		p.appendChild(document.createTextNode(', '));
+		p.appendChild(keys['0']);
+		p.appendChild(document.createTextNode('). Use the regular numbers to do the same with albums. Skip to the previous/next image using the '));
+		p.appendChild(keys['a']);
+		p.appendChild(document.createTextNode('/'));
+		p.appendChild(keys['d']);
+		p.appendChild(document.createTextNode(' or the '));
+		p.appendChild(keys['left']);
+		p.appendChild(document.createTextNode('/'));
+		p.appendChild(keys['right']);
+		p.appendChild(document.createTextNode(' arrow keys. Press '));
+		p.appendChild(keys['w']);
+		p.appendChild(document.createTextNode(' to go an album up. '));
+		p.appendChild(keys['h']);
+		p.appendChild(document.createTextNode(' brings you back to the home. '));
+		p.appendChild(keys['i']);
+		p.appendChild(document.createTextNode(' toggles this info.'));
+		
+		keyNavInfoDiv.appendChild(p);
+		document.body.appendChild(keyNavInfoDiv);
+	} else {
+		document.body.removeChild(keyNavInfoDiv);
+		keyNavInfoDiv = null;
+	}
+}
 function navigate(event) {
 	var k = event.keyCode;
 	var a = false;
@@ -320,25 +383,47 @@ function navigate(event) {
 		case 72: // h
 			a = document.querySelector("h1 a"); break;
 		case 49: // 1
-			a = document.querySelector(".albums li:nth-child(1) a"); break;
+			a = document.querySelector(".albums > *:nth-child(1) a.thumb-link"); break;
 		case 50: // 2
-			a = document.querySelector(".albums li:nth-child(2) a"); break;
+			a = document.querySelector(".albums > *:nth-child(2) a.thumb-link"); break;
 		case 51: // 3
-			a = document.querySelector(".albums li:nth-child(3) a"); break;
+			a = document.querySelector(".albums > *:nth-child(3) a.thumb-link"); break;
 		case 52: // 4
-			a = document.querySelector(".albums li:nth-child(4) a"); break;
+			a = document.querySelector(".albums > *:nth-child(4) a.thumb-link"); break;
 		case 53: // 5
-			a = document.querySelector(".albums li:nth-child(5) a"); break;
+			a = document.querySelector(".albums > *:nth-child(5) a.thumb-link"); break;
 		case 54: // 6
-			a = document.querySelector(".albums li:nth-child(6) a"); break;
+			a = document.querySelector(".albums > *:nth-child(6) a.thumb-link"); break;
 		case 55: // 7
-			a = document.querySelector(".albums li:nth-child(7) a"); break;
+			a = document.querySelector(".albums > *:nth-child(7) a.thumb-link"); break;
 		case 56: // 8
-			a = document.querySelector(".albums li:nth-child(8) a"); break;
+			a = document.querySelector(".albums > *:nth-child(8) a.thumb-link"); break;
 		case 57: // 9
-			a = document.querySelector(".albums li:nth-child(9) a"); break;
+			a = document.querySelector(".albums > *:nth-child(9) a.thumb-link"); break;
 		case 48: // 0
-			a = document.querySelector(".albums li:nth-child(10) a"); break;
+			a = document.querySelector(".albums > *:nth-child(10) a.thumb-link"); break;
+		case 97: // 1 on numblock
+			a = document.querySelector(".files > *:nth-child(1) a.thumb-link"); break;
+		case 98: // 2 on numblock
+			a = document.querySelector(".files > *:nth-child(2) a.thumb-link"); break;
+		case 99: // 3 on numblock
+			a = document.querySelector(".files > *:nth-child(3) a.thumb-link"); break;
+		case 100: // 4 on numblock
+			a = document.querySelector(".files > *:nth-child(4) a.thumb-link"); break;
+		case 101: // 5 on numblock
+			a = document.querySelector(".files > *:nth-child(5) a.thumb-link"); break;
+		case 102: // 6 on numblock
+			a = document.querySelector(".files > *:nth-child(6) a.thumb-link"); break;
+		case 103: // 7 on numblock
+			a = document.querySelector(".files > *:nth-child(7) a.thumb-link"); break;
+		case 104: // 8 on numblock
+			a = document.querySelector(".files > *:nth-child(8) a.thumb-link"); break;
+		case 105: // 9 on numblock
+			a = document.querySelector(".files > *:nth-child(9) a.thumb-link"); break;
+		case 96: // 0 on numblock
+			a = document.querySelector(".files > *:nth-child(10) a.thumb-link"); break;
+		case 73: // i
+			showKeyNavigation(); break;
 	}
 	if (a) {
 		window.location = a.href;
