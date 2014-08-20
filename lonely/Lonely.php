@@ -510,7 +510,13 @@ class Lonely extends Component {
 			
 			/* redirect */
 			/* placed here after loading the sub-albums and files because it takes the least time thanks to caching, also you probably want to redirect empty albums, so the overhead isn't that big */
-			if (($redirectAlbum = $album->getRedirectAlbum()) || ($this->autoRedirect && !count($files) && count($albums) == 1 && ($redirectAlbum = reset($albums)))) {
+			if (($redirectAlbum = $album->getRedirectAlbum())
+				|| ($this->autoRedirect // auto redirect, when ...
+					&& !count($files) // ... there are no files ...
+					&& count($albums) == 1 // ... and exactly one album ...
+					&& strpos($_SERVER['HTTP_REFERER'], $this->server.$this->rootScript.$album->getPath()) === false // ... and http referer tells us that you don't come from a subalbum. If you go up an album, don't redirect down again. Only redirect down if you come from above.
+					&& ($redirectAlbum = reset($albums)))
+			) {
 				header('Location: '.$this->server.$this->rootScript.$redirectAlbum->getPath(), true, 302);
 				exit;
 			}
