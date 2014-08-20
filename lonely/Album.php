@@ -40,6 +40,9 @@ class Album extends Element {
 	/* album description */
 	private $_text;
 	
+	/* album order */
+	private $_order;
+	
 	
 	function __construct(Array $gPath, self $parent = null) {
 		parent::__construct($gPath, $parent);
@@ -126,9 +129,31 @@ class Album extends Element {
 		}
 		
 		/* sort alphabetically */
-		ksort($this->_albums);
-		ksort($this->_files);
-		
+		foreach (array('_albums', '_files') as $attr) {
+			switch ($this->getOrder()) {
+				case 'name':
+				case 'asc':
+				case 'name-asc':
+					ksort($this->{$attr});
+					break;
+				case 'desc':
+				case 'name-desc':
+				case 'reversed':
+					krsort($this->{$attr});
+					break;
+				case 'random':
+					$tmpArray = array();
+					foreach ($this->{$attr} as $k => $v)
+						$tmpArray[] = array($k, $v);
+					$this->{$attr} = array();
+					shuffle($tmpArray);
+					foreach ($tmpArray as $v)
+						$this->{$attr}[$v[0]] = $v[1];
+					break;
+				case 'off':
+				default: /* nothing */
+			}
+		}
 	}
 	
 	/* returns the array of albums in this album */
@@ -190,6 +215,15 @@ class Album extends Element {
 			return Factory::createAlbumByRelPath($path, $this);
 		}
 		return null;
+	}
+	
+	/* returns the order */
+	public function getOrder() {
+		if ($this->_order === null && $this->getFilesNamed(Lonely::model()->albumOrderFile)) {
+			$order = file_get_contents($this->location.Lonely::model()->albumOrderFile);
+			$this->_order = trim($order) ?: null;
+		}
+		return $this->_order ?: Lonely::model()->albumOrder;
 	}
 	
 	/* returns the thumb image object or false if an own should be rendered */

@@ -66,6 +66,18 @@ class Lonely extends Component {
 	/* file containing text/html to display at top of an album */
 	public $albumText = '_text.txt';
 	
+	/* order of elements in an album
+	possible values:
+		* name, asc, name-asc: by name alphabetical
+		* desc, name-desc, reversed: by name reversed alphabetical
+		* random: randomized order
+		* off: no specific order
+	*/
+	public $albumOrder = 'name-asc';
+	
+	/* file containing the order of elements in an album */
+	public $albumOrderFile = '_order.txt';
+	
 	/* file containing redirect path to different album */
 	public $redirectFile = '_redirect.txt';
 	
