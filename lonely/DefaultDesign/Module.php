@@ -92,6 +92,9 @@ h1 {
 h1 a {
 	color: #fff;
 }
+.file {
+	padding-bottom: 50px;
+}
 #content > .album > .links, #content > .file > .links {
 	margin: 0;
 	padding: 0;
