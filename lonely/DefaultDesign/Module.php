@@ -155,11 +155,14 @@ ul.breadcrumbs > li:not(:first-child):before {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 126px;
-	height: 126px;
+	width: 146px;
+	height: 146px;
 	padding: 10px;
 	background-color: rgba(0,0,0,0);
 	transition: background-color 0.3s;
+}
+.album > .albums > li > a.thumb-link {
+	padding: 0;
 }
 .album > .files > li > a.thumb-link {
 	width: 280px;
@@ -182,7 +185,19 @@ ul.breadcrumbs > li:not(:first-child):before {
 	box-shadow: 0 0 2px #111;
 	vertical-align: middle;
 	word-wrap: break-word;
-	max-width: 110px;
+}
+.album > .albums > li > a.thumb-link span {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 130px;
+	background-color: rgba(17,17,17,.7);
+	box-shadow: 0 0 2px rgba(17,17,17,.7);
+	transition: background-color 0.3s, box-shadow 0.3s;
+}
+.album > .albums > li > a.thumb-link:hover span, .album > .albums > li > a.thumb-link:focus span {
+	background-color: rgba(17,17,17,1);
+	box-shadow: 0 0 2px rgba(17,17,17,1);
 }
 .album > .files > li > a.thumb-link span {
 	max-width: 264px;
