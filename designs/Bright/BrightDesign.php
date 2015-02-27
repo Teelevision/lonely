@@ -77,7 +77,7 @@ body {
 	color: #111;
 }
 a {
-	color: #b20;
+	color: #02b;
 }
 a:hover {
 	color: #000;

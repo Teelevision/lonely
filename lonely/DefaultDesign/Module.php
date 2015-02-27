@@ -80,7 +80,7 @@ body > *:not(#content), #content > *:not(.file), .file > *:not(.preview-box) {
 	margin-right: 8px;
 }
 a {
-	color: #f20;
+	color: #fd2;
 	text-decoration: none;
 }
 a:hover {
