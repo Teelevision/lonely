@@ -208,10 +208,14 @@ class Album extends Element {
 		return $this->_text;
 	}
 	
-	/* returns the album to redirect to or null */
+	/* returns the album / url to redirect to or null */
 	public function getRedirectAlbum() {
 		if ($this->getFilesNamed(Lonely::model()->redirectFile)) {
 			$path = file_get_contents($this->location.Lonely::model()->redirectFile);
+			/* check if it is a url */
+			if (preg_match("#^[[:alpha:]]+://#", $path)) {
+				return trim($path);
+			}
 			return Factory::createAlbumByRelPath($path, $this);
 		}
 		return null;
